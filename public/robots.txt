@@ -1,0 +1,11 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /client/
+Disallow: /technician/
+Disallow: /panier
+Disallow: /checkout
+
+# Sitemap
+Sitemap: https://www.locagame.fr/sitemap.xml

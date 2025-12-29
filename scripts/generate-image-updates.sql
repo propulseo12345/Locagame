@@ -1,0 +1,41 @@
+-- Script SQL généré pour mettre à jour les images de tous les produits
+-- Ce script doit être exécuté après avoir recherché les images via le MCP stock-images-mcp
+-- 
+-- Pour chaque produit, recherchez une image appropriée via le MCP, puis mettez à jour avec:
+-- UPDATE products SET images = ARRAY['URL_IMAGE'] WHERE id = 'PRODUCT_ID';
+
+-- Exemple de structure pour chaque produit:
+-- UPDATE products SET images = ARRAY['https://images.pexels.com/photos/...'] WHERE id = '...';
+
+-- Produits déjà mis à jour (15 premiers):
+-- ✅ 03067a28-7893-4271-a7c4-5e733438df84 - Ecran lcd 32
+-- ✅ 34b9d1e3-01fb-4a6b-b89d-e488468bd521 - Roll'up cible James Bond
+-- ✅ 4b67fadd-d02a-4c0e-b298-19d52a38771e - Accessoires cuivre et verre Alambic
+-- ✅ e503a12e-2de5-451b-bb60-d34984a20cd8 - Affiche de fim gangster
+-- ✅ 10e1834b-7bfe-4462-b8be-4f7dce1ea2b1 - Affiches 60 x 90 sous cadre + chevalet
+-- ✅ ef687d24-fe6a-4c6c-af51-37b836899c72 - Affiches cinéma
+-- ✅ c256ae8b-6080-41d3-b6ed-9832c4d5d15a - Air hockey
+-- ✅ 8a5b06d2-3d8b-450d-8893-eea00624b234 - Arbalète en bois
+-- ✅ 56749ed2-7924-4eeb-b6d4-48250c7809d5 - Arche arrivée mario kart
+-- ✅ f25ba203-898a-4f1d-8878-917d6e181e92 - Arche rideau cinema
+-- ✅ b6328267-23f6-4d92-91f8-5b734dc5f432 - Arche roulette
+-- ✅ e2743559-5b7a-4d94-b002-3d9b3d81f1f7 - Baby foot 1vs1
+-- ✅ b21b0472-9738-4237-b00f-349086c718ae - Baby foot 2vs2
+-- ✅ 04ced0c7-945d-4123-a00e-d93b27c369c0 - Baby foot Géant 4vs4
+-- ✅ 711f8303-08b1-411f-8f0b-ef519640958f - Badmington
+-- ✅ 64475d7e-92e1-44f3-84bf-9a8204bf1c79 - Beer pong
+-- ✅ c8e08ecd-070e-40aa-9c78-a6306ec890ff - Billard
+-- ✅ 50e53e93-9f38-4864-8357-55e13519ba6e - Billard Hollandais
+-- ✅ 65bc1a07-57a5-44ba-84b9-d11508c457ab - Billard japonais
+-- ✅ c2c9f9ab-e858-402d-ad47-3bfd4a4c3674 - Borne d'arcade
+-- ✅ fdc56372-a935-4424-8f02-f633b278fa35 - Boule à facette 50cm
+-- ✅ 7c3e1de6-2288-4035-a0b3-d783ab178eb4 - Boule à facette 20 cm
+-- ✅ 7f5f46cf-4a06-45ed-b4b4-7bc1d69f2694 - Boule à facette 30 cm
+-- ✅ efc47a2e-4b9e-4eac-b2ad-3ba511ddf452 - Boule de pétanque inox
+-- ✅ 61c45d49-8cca-4237-8bdb-0a9d6d49e009 - Boxing machine
+-- ✅ 2748255e-b2ca-43a2-93c3-54ba7fd18fbb - Cactus factice
+-- ✅ 2377623e-93e3-4e89-9337-3b789f2ee772 - Cage de foot
+
+-- Produits restants à traiter (218 produits)
+-- Utilisez le MCP stock-images-mcp pour rechercher des images pour chaque produit
+-- puis mettez à jour avec les URLs trouvées
