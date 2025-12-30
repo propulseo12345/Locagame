@@ -1,17 +1,63 @@
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { fakeDeliveryTasks, fakeVehicles, fakeTechnicians } from '../../lib/fake-data';
-import { DeliveryTask } from '../../types';
+import { DeliveryTask, Vehicle } from '../../types';
+import { DeliveryService, TechniciansService } from '../../services';
+import { Technician } from '../../services/technicians.service';
 
 export default function TechnicianTaskDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  const task = fakeDeliveryTasks.find(t => t.id === id);
 
-  if (!task) {
+  const [task, setTask] = useState<DeliveryTask | null>(null);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
+  const [technician, setTechnician] = useState<Technician | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!id) return;
+
+      try {
+        setLoading(true);
+        const taskData = await DeliveryService.getTaskById(id);
+        if (!taskData) {
+          setError('Intervention introuvable');
+          return;
+        }
+        setTask(taskData);
+
+        // Load vehicle and technician info
+        const [vehicleData, technicianData] = await Promise.all([
+          taskData.vehicleId ? TechniciansService.getVehicleById(taskData.vehicleId) : null,
+          taskData.technicianId ? TechniciansService.getTechnicianById(taskData.technicianId) : null,
+        ]);
+        setVehicle(vehicleData);
+        setTechnician(technicianData);
+      } catch (err) {
+        console.error('Erreur chargement tâche:', err);
+        setError('Erreur lors du chargement');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [id]);
+
+  if (loading) {
     return (
       <div className="text-center py-12">
-        <p className="text-lg text-gray-600 mb-4">Intervention introuvable</p>
+        <div className="w-8 h-8 border-2 border-[#33ffcc] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600">Chargement...</p>
+      </div>
+    );
+  }
+
+  if (error || !task) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-gray-600 mb-4">{error || 'Intervention introuvable'}</p>
         <Link
           to="/technician/dashboard"
           className="text-[#33ffcc] hover:text-[#66cccc] font-semibold"
@@ -21,9 +67,6 @@ export default function TechnicianTaskDetail() {
       </div>
     );
   }
-
-  const vehicle = fakeVehicles.find(v => v.id === task.vehicleId);
-  const technician = fakeTechnicians.find(t => t.id === task.technicianId);
 
   const getStatusColor = (status: DeliveryTask['status']) => {
     switch (status) {
@@ -65,16 +108,26 @@ export default function TechnicianTaskDetail() {
       : 'bg-orange-500 text-white';
   };
 
-  const handleStartTask = () => {
-    // Simuler le démarrage de la tâche
-    alert('Intervention démarrée !');
-    navigate('/technician/dashboard');
+  const handleStartTask = async () => {
+    if (!task) return;
+    try {
+      await DeliveryService.updateTaskStatus(task.id, 'in_progress');
+      setTask({ ...task, status: 'in_progress', startedAt: new Date().toISOString() });
+    } catch (err) {
+      console.error('Erreur démarrage intervention:', err);
+      alert('Erreur lors du démarrage de l\'intervention');
+    }
   };
 
-  const handleCompleteTask = () => {
-    // Simuler la complétion de la tâche
-    alert('Intervention terminée !');
-    navigate('/technician/dashboard');
+  const handleCompleteTask = async () => {
+    if (!task) return;
+    try {
+      await DeliveryService.updateTaskStatus(task.id, 'completed');
+      setTask({ ...task, status: 'completed', completedAt: new Date().toISOString() });
+    } catch (err) {
+      console.error('Erreur complétion intervention:', err);
+      alert('Erreur lors de la complétion de l\'intervention');
+    }
   };
 
   return (
@@ -271,7 +324,7 @@ export default function TechnicianTaskDetail() {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Technicien</p>
                 <p className="text-base font-semibold text-gray-900">
-                  {technician?.firstName} {technician?.lastName}
+                  {technician?.first_name} {technician?.last_name}
                 </p>
                 <p className="text-sm text-gray-600">
                   {technician?.phone}

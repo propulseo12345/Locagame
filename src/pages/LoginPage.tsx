@@ -131,6 +131,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 leftIcon={<Mail className="w-5 h-5" />}
                 placeholder="votre@email.com"
+                autoComplete="email"
                 required
                 fullWidth
               />
@@ -143,6 +144,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   leftIcon={<Lock className="w-5 h-5" />}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   required
                   fullWidth
                 />

@@ -7,3 +7,4 @@ export { CustomersService } from './customers.service';
 export { TechniciansService } from './technicians.service';
 export { CategoriesService } from './categories.service';
 export { StatsService } from './stats.service';
+export { SettingsService } from './settings.service';

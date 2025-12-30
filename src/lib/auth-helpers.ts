@@ -82,21 +82,20 @@ export async function loadUserProfile(supabaseUser: SupabaseUser): Promise<User 
 
     // Charger les données selon le rôle
     if (role === 'admin') {
-      // Les admins peuvent aussi avoir un profil dans customers
-      const { data: customerData } = await supabase
-        .from('customers')
+      // Charger les données admin depuis admin_users
+      const { data: adminData } = await supabase
+        .from('admin_users')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .maybeSingle();
 
       return {
         id: userId,
-        email: supabaseUser.email || '',
+        email: adminData?.email || supabaseUser.email || '',
         role: 'admin' as const,
-        firstName: customerData?.first_name || 'Admin',
-        lastName: customerData?.last_name || 'User',
-        phone: customerData?.phone || undefined,
-        companyName: customerData?.company_name || undefined,
+        firstName: adminData?.first_name || 'Admin',
+        lastName: adminData?.last_name || '',
+        phone: adminData?.phone || undefined,
       };
     }
 

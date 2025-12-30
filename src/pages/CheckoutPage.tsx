@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -7,7 +7,6 @@ import {
   UserCheck,
   MapPin,
   ClipboardList,
-  CreditCard,
   CheckCircle,
   Shield,
   Lock,
@@ -18,18 +17,30 @@ import {
   Truck,
   Clock,
   Calendar,
-  Info
+  Info,
+  Package,
+  Loader2
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import { formatPrice } from '../utils/pricing';
+import { ReservationsService, CustomersService, AddressesService, ProductsService } from '../services';
+import { DistanceService, PRICE_PER_KM } from '../services/distance.service';
+import PickupForm from '../components/checkout/PickupForm';
 
-type CheckoutStep = 'customer' | 'recipient' | 'delivery' | 'details' | 'payment';
+type CheckoutStep = 'customer' | 'recipient' | 'delivery' | 'payment';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { items: cartItems = [], totalPrice = 0, clearCart } = useCart();
+  const { items: cartItems = [], totalPrice = 0, clearCart, deliveryFee } = useCart();
+  const { user } = useAuth();
+
+  // Mode de livraison sélectionné dans l'étape 3
+  const [selectedDeliveryMode, setSelectedDeliveryMode] = useState<'pickup' | 'delivery'>('delivery');
+  const isPickup = selectedDeliveryMode === 'pickup';
 
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('customer');
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Étape 1: Client (qui commande)
   const [customer, setCustomer] = useState({
@@ -63,6 +74,16 @@ export default function CheckoutPage() {
     pickupTimeSlot: ''
   });
 
+  // État pour le mode pickup (retrait à l'entrepôt)
+  const [pickup, setPickup] = useState({
+    pickupTime: '',
+    returnTime: ''
+  });
+
+  // Récupérer les dates depuis le panier (premier item)
+  const startDate = cartItems[0]?.start_date || '';
+  const endDate = cartItems[0]?.end_date || '';
+
   // Étape 4: Détails événement
   const [eventDetails, setEventDetails] = useState({
     eventType: '',
@@ -89,12 +110,61 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Calcul des frais kilométriques
+  const [calculatedDeliveryFee, setCalculatedDeliveryFee] = useState(0);
+  const [deliveryDistance, setDeliveryDistance] = useState(0);
+  const [isCalculatingFee, setIsCalculatingFee] = useState(false);
+
+  // Calcul du sous-total produits
+  const productsSubtotal = cartItems.reduce((sum, item) => sum + item.total_price, 0);
+
+  // Total avec frais de livraison
+  const finalTotal = isPickup ? productsSubtotal : productsSubtotal + calculatedDeliveryFee;
+
+  // Calculer les frais de livraison quand l'adresse change
+  const calculateDeliveryFeeFromAddress = useCallback(async () => {
+    if (isPickup || !delivery.address || !delivery.city || !delivery.postalCode) {
+      setCalculatedDeliveryFee(0);
+      setDeliveryDistance(0);
+      return;
+    }
+
+    setIsCalculatingFee(true);
+    try {
+      const result = await DistanceService.calculateDeliveryFee(
+        delivery.address,
+        delivery.city,
+        delivery.postalCode
+      );
+
+      if (result.success) {
+        setDeliveryDistance(result.distanceKm);
+        setCalculatedDeliveryFee(result.deliveryFee);
+      }
+    } catch (error) {
+      console.error('Erreur calcul frais:', error);
+    } finally {
+      setIsCalculatingFee(false);
+    }
+  }, [delivery.address, delivery.city, delivery.postalCode, isPickup]);
+
+  // Déclencher le calcul quand l'adresse est complète
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (delivery.address && delivery.city && delivery.postalCode) {
+        calculateDeliveryFeeFromAddress();
+      }
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [delivery.address, delivery.city, delivery.postalCode, calculateDeliveryFeeFromAddress]);
+
+  // Étapes fixes
   const steps = [
     { id: 'customer', label: 'Vos coordonnées', icon: User },
     { id: 'recipient', label: 'Réception', icon: UserCheck },
     { id: 'delivery', label: 'Livraison', icon: MapPin },
-    { id: 'details', label: 'Événement', icon: ClipboardList },
-    { id: 'payment', label: 'Paiement', icon: CreditCard }
+    { id: 'payment', label: 'Récapitulatif', icon: ClipboardList }
   ];
 
   const timeSlots = [
@@ -147,17 +217,22 @@ export default function CheckoutPage() {
         break;
 
       case 'delivery':
-        if (!delivery.address) newErrors.address = 'Adresse requise';
-        if (!delivery.postalCode) newErrors.postalCode = 'Code postal requis';
-        if (!delivery.city) newErrors.city = 'Ville requise';
-        if (!delivery.date) newErrors.date = 'Date de livraison requise';
-        if (!delivery.timeSlot) newErrors.timeSlot = 'Créneau requis';
-        break;
-
-      case 'details':
-        if (!eventDetails.eventType) newErrors.eventType = 'Type d\'événement requis';
-        if (eventDetails.accessDifficulty === 'other' && !eventDetails.accessDetails) {
-          newErrors.accessDetails = 'Précisez la difficulté';
+        if (isPickup) {
+          // Mode pickup: validation des créneaux uniquement
+          if (!pickup.pickupTime) newErrors.pickupTime = 'Créneau de retrait requis';
+          if (!pickup.returnTime) newErrors.returnTime = 'Créneau de retour requis';
+        } else {
+          // Mode livraison: validation adresse + événement
+          if (!delivery.address) newErrors.address = 'Adresse requise';
+          if (!delivery.postalCode) newErrors.postalCode = 'Code postal requis';
+          if (!delivery.city) newErrors.city = 'Ville requise';
+          if (!delivery.date) newErrors.date = 'Date de livraison requise';
+          if (!delivery.timeSlot) newErrors.timeSlot = 'Créneau requis';
+          // Validation détails événement (intégrés dans étape livraison)
+          if (!eventDetails.eventType) newErrors.eventType = 'Type d\'événement requis';
+          if (eventDetails.accessDifficulty === 'other' && !eventDetails.accessDetails) {
+            newErrors.accessDetails = 'Précisez la difficulté';
+          }
         }
         break;
 
@@ -192,12 +267,186 @@ export default function CheckoutPage() {
     if (!validateStep('payment')) return;
 
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    setSubmitError(null);
 
-    // Simuler la création de réservation
-    const reservationId = 'RES-' + Date.now();
-    clearCart();
-    navigate(`/confirmation/${reservationId}`);
+    try {
+      // ========== VÉRIFICATION DISPONIBILITÉ ==========
+      // Vérifier que tous les produits sont disponibles aux dates demandées
+      for (const item of cartItems) {
+        const startDate = item.start_date || delivery.date;
+        const endDate = item.end_date || delivery.pickupDate || delivery.date;
+
+        const availableStock = await ProductsService.getAvailableStockForDates(
+          item.product.id,
+          startDate,
+          endDate
+        );
+
+        if (availableStock < item.quantity) {
+          throw new Error(
+            `Stock insuffisant pour "${item.product.name}". ` +
+            `Disponible: ${availableStock}, Demandé: ${item.quantity}. ` +
+            `Veuillez modifier votre panier ou choisir d'autres dates.`
+          );
+        }
+      }
+      // =================================================
+
+      // 1. Créer ou récupérer le customer
+      let customerId: string;
+
+      if (user?.id) {
+        // Client connecté - vérifier si un profil customer existe
+        const existingCustomer = await CustomersService.getCustomerByEmail(user.email || customer.email);
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        } else {
+          // Créer le profil customer
+          const newCustomer = await CustomersService.createCustomer({
+            id: user.id,
+            email: user.email || customer.email,
+            first_name: customer.firstName,
+            last_name: customer.lastName,
+            phone: customer.phone,
+            customer_type: customer.isProfessional ? 'professional' : 'individual',
+            company_name: customer.companyName || undefined,
+            siret: customer.isProfessional ? customer.siret : undefined,
+          });
+          customerId = newCustomer.id;
+        }
+      } else {
+        // Client non connecté - créer un customer invité
+        const existingGuest = await CustomersService.getCustomerByEmail(customer.email);
+        if (existingGuest) {
+          customerId = existingGuest.id;
+        } else {
+          const guestCustomer = await CustomersService.createCustomer({
+            id: crypto.randomUUID(),
+            email: customer.email,
+            first_name: customer.firstName,
+            last_name: customer.lastName,
+            phone: customer.phone,
+            customer_type: customer.isProfessional ? 'professional' : 'individual',
+            company_name: customer.companyName || undefined,
+            siret: customer.isProfessional ? customer.siret : undefined,
+          });
+          customerId = guestCustomer.id;
+        }
+      }
+
+      // 2. Créer l'adresse de livraison (seulement en mode delivery)
+      let deliveryAddressId: string | undefined;
+      if (!isPickup && delivery.address && delivery.city && delivery.postalCode) {
+        const addressData = await AddressesService.createAddress(customerId, {
+          address_line1: delivery.address,
+          address_line2: delivery.addressComplement || undefined,
+          city: delivery.city,
+          postal_code: delivery.postalCode,
+          is_default: false,
+        });
+        deliveryAddressId = addressData.id;
+      }
+
+      // 3. Calculer la durée en jours
+      const calculateDurationDays = (startDate: string, endDate: string | null): number => {
+        if (!endDate) return 1;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return Math.max(diffDays, 1);
+      };
+
+      // 4. Préparer les items de la réservation
+      const reservationItems = cartItems.map(item => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+        duration_days: calculateDurationDays(item.start_date, item.end_date),
+        unit_price: item.product.pricing?.oneDay || item.product_price || 0,
+        subtotal: item.total_price,
+      }));
+
+      // 5. Calculer les sous-totaux
+      const subtotal = cartItems.reduce((sum, item) => sum + item.total_price, 0);
+      const finalDeliveryFee = isPickup ? 0 : calculatedDeliveryFee;
+
+      // 6. Créer la réservation avec TOUTES les données du checkout
+      const reservation = await ReservationsService.createReservation({
+        customer_id: customerId,
+        start_date: isPickup ? startDate : delivery.date,
+        end_date: isPickup ? endDate : (delivery.pickupDate || delivery.date),
+        delivery_time: isPickup ? undefined : delivery.timeSlot,
+        delivery_type: selectedDeliveryMode,
+        delivery_address_id: isPickup ? undefined : deliveryAddressId,
+        pickup_time: isPickup ? pickup.pickupTime : undefined,
+        return_time: isPickup ? pickup.returnTime : undefined,
+        pickup_slot: !isPickup ? delivery.pickupTimeSlot : undefined,
+        event_type: eventDetails.eventType,
+        items: reservationItems,
+        subtotal: subtotal,
+        delivery_fee: finalDeliveryFee,
+        discount: 0,
+        total: subtotal + finalDeliveryFee,
+        notes: eventDetails.specialRequests || undefined,
+        // Donnees receptionnaire
+        recipient_data: !recipient.sameAsCustomer ? {
+          firstName: recipient.firstName,
+          lastName: recipient.lastName,
+          phone: recipient.phone,
+          email: recipient.email || undefined,
+          sameAsCustomer: false,
+        } : { firstName: '', lastName: '', phone: '', sameAsCustomer: true },
+        // Details evenement complets (mode livraison uniquement)
+        event_details: !isPickup ? {
+          guestCount: eventDetails.guestCount || undefined,
+          venueName: eventDetails.venueName || undefined,
+          accessDifficulty: eventDetails.accessDifficulty || undefined,
+          accessDetails: eventDetails.accessDetails || undefined,
+          hasElevator: eventDetails.hasElevator,
+          floorNumber: eventDetails.floorNumber || undefined,
+          parkingAvailable: eventDetails.parkingAvailable,
+          parkingDetails: eventDetails.parkingDetails || undefined,
+          electricityAvailable: eventDetails.electricityAvailable,
+          setupSpace: eventDetails.setupSpace || undefined,
+        } : null,
+        // Consentements
+        cgv_accepted: payment.acceptCGV,
+        newsletter_accepted: payment.acceptNewsletter,
+      });
+
+      // 7. Bloquer le stock pour chaque produit
+      for (const item of cartItems) {
+        const startDate = item.start_date || delivery.date;
+        const endDate = item.end_date || delivery.pickupDate || delivery.date;
+
+        await ProductsService.createReservationAvailability({
+          product_id: item.product.id,
+          start_date: startDate,
+          end_date: endDate,
+          quantity: item.quantity,
+          reservation_id: reservation.id,
+        });
+      }
+
+      // 8. Succès - vider le panier et rediriger
+      clearCart();
+      navigate(`/confirmation/${reservation.id}`);
+
+    } catch (error) {
+      console.error('Erreur création réservation:', error);
+
+      // Afficher un message d'erreur explicite
+      if (error instanceof Error) {
+        setSubmitError(error.message);
+      } else {
+        setSubmitError('Une erreur est survenue lors de la création de votre réservation. Veuillez réessayer.');
+      }
+
+      // Scroll vers le haut pour voir l'erreur
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Si panier vide
@@ -225,7 +474,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] pt-header">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-6">
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -275,7 +524,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Contenu */}
-        <div className="bg-white/5 rounded-2xl border border-white/10 p-6 md:p-8">
+        <div className="bg-white/5 rounded-2xl border border-white/10 p-4 md:p-6">
 
           {/* ÉTAPE 1: Client */}
           {currentStep === 'customer' && (
@@ -453,281 +702,387 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          {/* ÉTAPE 3: Livraison */}
+          {/* ÉTAPE 3: Mode de livraison (Pickup OU Livraison) */}
           {currentStep === 'delivery' && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Adresse de livraison</h2>
-                <p className="text-gray-400 text-sm">Lieu de l'événement</p>
+                <h2 className="text-xl font-bold text-white mb-1">Mode de récupération</h2>
+                <p className="text-gray-400 text-sm">Comment souhaitez-vous récupérer le matériel ?</p>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className={labelClass}>Adresse *</label>
-                  <input
-                    type="text"
-                    value={delivery.address}
-                    onChange={(e) => setDelivery({...delivery, address: e.target.value})}
-                    className={inputClass}
-                    placeholder="123 rue de la Paix"
-                  />
-                  {errors.address && <p className={errorClass}>{errors.address}</p>}
-                </div>
-                <div>
-                  <label className={labelClass}>Complément d'adresse</label>
-                  <input
-                    type="text"
-                    value={delivery.addressComplement}
-                    onChange={(e) => setDelivery({...delivery, addressComplement: e.target.value})}
-                    className={inputClass}
-                    placeholder="Bâtiment, étage, digicode..."
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Code postal *</label>
-                    <input
-                      type="text"
-                      value={delivery.postalCode}
-                      onChange={(e) => setDelivery({...delivery, postalCode: e.target.value})}
-                      className={inputClass}
-                      placeholder="13001"
-                    />
-                    {errors.postalCode && <p className={errorClass}>{errors.postalCode}</p>}
+              {/* Toggle Pickup / Livraison */}
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDeliveryMode('pickup')}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    isPickup
+                      ? 'border-[#33ffcc] bg-[#33ffcc]/10'
+                      : 'border-white/10 hover:border-white/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Package className={`w-6 h-6 ${isPickup ? 'text-[#33ffcc]' : 'text-gray-400'}`} />
+                    <span className={`font-semibold ${isPickup ? 'text-[#33ffcc]' : 'text-white'}`}>
+                      Retrait à l'entrepôt
+                    </span>
                   </div>
-                  <div>
-                    <label className={labelClass}>Ville *</label>
-                    <input
-                      type="text"
-                      value={delivery.city}
-                      onChange={(e) => setDelivery({...delivery, city: e.target.value})}
-                      className={inputClass}
-                      placeholder="Marseille"
-                    />
-                    {errors.city && <p className={errorClass}>{errors.city}</p>}
+                  <p className="text-gray-500 text-sm">Gratuit - Venez chercher le matériel</p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedDeliveryMode('delivery')}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    !isPickup
+                      ? 'border-[#33ffcc] bg-[#33ffcc]/10'
+                      : 'border-white/10 hover:border-white/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Truck className={`w-6 h-6 ${!isPickup ? 'text-[#33ffcc]' : 'text-gray-400'}`} />
+                    <span className={`font-semibold ${!isPickup ? 'text-[#33ffcc]' : 'text-white'}`}>
+                      Livraison
+                    </span>
                   </div>
-                </div>
+                  <p className="text-gray-500 text-sm">Nous livrons sur le lieu de l'événement</p>
+                </button>
               </div>
 
-              <div className="pt-4 border-t border-white/10">
-                <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-[#33ffcc]" />
-                  Créneau de livraison
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Date de livraison *</label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                      <input
-                        type="date"
-                        value={delivery.date}
-                        onChange={(e) => setDelivery({...delivery, date: e.target.value})}
-                        min={new Date().toISOString().split('T')[0]}
-                        className={`${inputClass} pl-10 [color-scheme:dark]`}
-                      />
-                    </div>
-                    {errors.date && <p className={errorClass}>{errors.date}</p>}
-                  </div>
-                  <div>
-                    <label className={labelClass}>Créneau horaire *</label>
-                    <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                      <select
-                        value={delivery.timeSlot}
-                        onChange={(e) => setDelivery({...delivery, timeSlot: e.target.value})}
-                        className={`${inputClass} pl-10`}
-                      >
-                        <option value="" className="bg-[#000033]">Sélectionnez</option>
-                        {timeSlots.map(slot => (
-                          <option key={slot} value={slot} className="bg-[#000033]">{slot}</option>
-                        ))}
-                      </select>
-                    </div>
-                    {errors.timeSlot && <p className={errorClass}>{errors.timeSlot}</p>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-white/10">
-                <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-[#33ffcc] rotate-180" />
-                  Créneau de récupération
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelClass}>Date de récupération</label>
-                    <input
-                      type="date"
-                      value={delivery.pickupDate}
-                      onChange={(e) => setDelivery({...delivery, pickupDate: e.target.value})}
-                      min={delivery.date || new Date().toISOString().split('T')[0]}
-                      className={`${inputClass} [color-scheme:dark]`}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Créneau horaire</label>
-                    <select
-                      value={delivery.pickupTimeSlot}
-                      onChange={(e) => setDelivery({...delivery, pickupTimeSlot: e.target.value})}
-                      className={inputClass}
-                    >
-                      <option value="" className="bg-[#000033]">Sélectionnez</option>
-                      {timeSlots.map(slot => (
-                        <option key={slot} value={slot} className="bg-[#000033]">{slot}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ÉTAPE 4: Détails événement */}
-          {currentStep === 'details' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold text-white mb-1">Détails de l'événement</h2>
-                <p className="text-gray-400 text-sm">Aidez-nous à préparer au mieux votre livraison</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Type d'événement *</label>
-                  <select
-                    value={eventDetails.eventType}
-                    onChange={(e) => setEventDetails({...eventDetails, eventType: e.target.value})}
-                    className={inputClass}
-                  >
-                    <option value="" className="bg-[#000033]">Sélectionnez</option>
-                    {eventTypes.map(type => (
-                      <option key={type} value={type} className="bg-[#000033]">{type}</option>
-                    ))}
-                  </select>
-                  {errors.eventType && <p className={errorClass}>{errors.eventType}</p>}
-                </div>
-                <div>
-                  <label className={labelClass}>Nombre d'invités estimé</label>
-                  <input
-                    type="number"
-                    value={eventDetails.guestCount}
-                    onChange={(e) => setEventDetails({...eventDetails, guestCount: e.target.value})}
-                    className={inputClass}
-                    placeholder="50"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className={labelClass}>Nom du lieu / Salle</label>
-                  <input
-                    type="text"
-                    value={eventDetails.venueName}
-                    onChange={(e) => setEventDetails({...eventDetails, venueName: e.target.value})}
-                    className={inputClass}
-                    placeholder="Château de..., Salle des fêtes de..."
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-white/10">
-                <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-[#fe1979]" />
-                  Accès au lieu
-                </h3>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className={labelClass}>Difficulté d'accès</label>
-                    <select
-                      value={eventDetails.accessDifficulty}
-                      onChange={(e) => setEventDetails({...eventDetails, accessDifficulty: e.target.value})}
-                      className={inputClass}
-                    >
-                      {accessDifficulties.map(d => (
-                        <option key={d.value} value={d.value} className="bg-[#000033]">{d.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {eventDetails.accessDifficulty !== 'none' && (
-                    <div>
-                      <label className={labelClass}>Précisions sur l'accès</label>
-                      <textarea
-                        value={eventDetails.accessDetails}
-                        onChange={(e) => setEventDetails({...eventDetails, accessDetails: e.target.value})}
-                        className={`${inputClass} resize-none`}
-                        rows={2}
-                        placeholder="Décrivez les difficultés d'accès..."
-                      />
-                      {errors.accessDetails && <p className={errorClass}>{errors.accessDetails}</p>}
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={eventDetails.hasElevator}
-                        onChange={(e) => setEventDetails({...eventDetails, hasElevator: e.target.checked})}
-                        className="w-4 h-4 rounded border-white/20 text-[#33ffcc] focus:ring-[#33ffcc] bg-white/5"
-                      />
-                      <span className="text-gray-300">Ascenseur disponible</span>
-                    </label>
-
-                    <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={eventDetails.parkingAvailable}
-                        onChange={(e) => setEventDetails({...eventDetails, parkingAvailable: e.target.checked})}
-                        className="w-4 h-4 rounded border-white/20 text-[#33ffcc] focus:ring-[#33ffcc] bg-white/5"
-                      />
-                      <span className="text-gray-300">Parking disponible</span>
-                    </label>
-                  </div>
-
-                  {eventDetails.hasElevator && (
-                    <div>
-                      <label className={labelClass}>Étage</label>
-                      <input
-                        type="text"
-                        value={eventDetails.floorNumber}
-                        onChange={(e) => setEventDetails({...eventDetails, floorNumber: e.target.value})}
-                        className={inputClass}
-                        placeholder="2ème étage"
-                      />
-                    </div>
-                  )}
-
-                  <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={eventDetails.electricityAvailable}
-                      onChange={(e) => setEventDetails({...eventDetails, electricityAvailable: e.target.checked})}
-                      className="w-4 h-4 rounded border-white/20 text-[#33ffcc] focus:ring-[#33ffcc] bg-white/5"
-                    />
-                    <span className="text-gray-300">Électricité disponible sur place</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-white/10">
-                <label className={labelClass}>Demandes particulières / Notes</label>
-                <textarea
-                  value={eventDetails.specialRequests}
-                  onChange={(e) => setEventDetails({...eventDetails, specialRequests: e.target.value})}
-                  className={`${inputClass} resize-none`}
-                  rows={3}
-                  placeholder="Instructions spéciales, demandes particulières..."
+              {isPickup ? (
+                /* MODE PICKUP - Retrait à l'entrepôt */
+                <PickupForm
+                  selectedDate={startDate}
+                  endDate={endDate}
+                  pickupTime={pickup.pickupTime}
+                  returnTime={pickup.returnTime}
+                  onPickupTimeChange={(time) => setPickup({...pickup, pickupTime: time})}
+                  onReturnTimeChange={(time) => setPickup({...pickup, returnTime: time})}
+                  errors={errors}
                 />
-              </div>
+              ) : (
+                /* MODE LIVRAISON - Adresse + Créneaux + Détails événement */
+                <>
+                  {/* Adresse de livraison */}
+                  <div className="pt-4 border-t border-white/10">
+                    <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+                      <MapPin className="w-5 h-5 text-[#33ffcc]" />
+                      Adresse de livraison
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className={labelClass}>Adresse *</label>
+                        <input
+                          type="text"
+                          value={delivery.address}
+                          onChange={(e) => setDelivery({...delivery, address: e.target.value})}
+                          className={inputClass}
+                          placeholder="123 rue de la Paix"
+                        />
+                        {errors.address && <p className={errorClass}>{errors.address}</p>}
+                      </div>
+                      <div>
+                        <label className={labelClass}>Complément d'adresse</label>
+                        <input
+                          type="text"
+                          value={delivery.addressComplement}
+                          onChange={(e) => setDelivery({...delivery, addressComplement: e.target.value})}
+                          className={inputClass}
+                          placeholder="Bâtiment, étage, digicode..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className={labelClass}>Code postal *</label>
+                          <input
+                            type="text"
+                            value={delivery.postalCode}
+                            onChange={(e) => setDelivery({...delivery, postalCode: e.target.value})}
+                            className={inputClass}
+                            placeholder="13001"
+                          />
+                          {errors.postalCode && <p className={errorClass}>{errors.postalCode}</p>}
+                        </div>
+                        <div>
+                          <label className={labelClass}>Ville *</label>
+                          <input
+                            type="text"
+                            value={delivery.city}
+                            onChange={(e) => setDelivery({...delivery, city: e.target.value})}
+                            className={inputClass}
+                            placeholder="Marseille"
+                          />
+                          {errors.city && <p className={errorClass}>{errors.city}</p>}
+                        </div>
+                      </div>
+
+                      {/* Affichage des frais kilométriques */}
+                      {(delivery.address && delivery.city && delivery.postalCode) && (
+                        <div className="mt-4 p-4 bg-[#33ffcc]/10 rounded-xl border border-[#33ffcc]/30">
+                          {isCalculatingFee ? (
+                            <div className="flex items-center gap-2 text-gray-400">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Calcul des frais de livraison...</span>
+                            </div>
+                          ) : deliveryDistance > 0 ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-400 text-sm">Distance depuis l'entrepôt</span>
+                                <span className="text-white font-medium">{deliveryDistance} km</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-400 text-sm">Tarif kilométrique</span>
+                                <span className="text-white">{PRICE_PER_KM.toFixed(2)}€ / km</span>
+                              </div>
+                              <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                                <span className="text-[#33ffcc] font-medium">Frais de livraison</span>
+                                <span className="text-[#33ffcc] font-bold">{formatPrice(calculatedDeliveryFee)}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-gray-400 text-sm">
+                              Les frais de livraison seront calculés après vérification de l'adresse
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Créneaux de livraison */}
+                  <div className="pt-4 border-t border-white/10">
+                    <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-[#33ffcc]" />
+                      Créneau de livraison
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelClass}>Date de livraison *</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <input
+                            type="date"
+                            value={delivery.date}
+                            onChange={(e) => setDelivery({...delivery, date: e.target.value})}
+                            min={new Date().toISOString().split('T')[0]}
+                            className={`${inputClass} pl-10 [color-scheme:dark]`}
+                          />
+                        </div>
+                        {errors.date && <p className={errorClass}>{errors.date}</p>}
+                      </div>
+                      <div>
+                        <label className={labelClass}>Créneau horaire *</label>
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                          <select
+                            value={delivery.timeSlot}
+                            onChange={(e) => setDelivery({...delivery, timeSlot: e.target.value})}
+                            className={`${inputClass} pl-10`}
+                          >
+                            <option value="" className="bg-[#000033]">Sélectionnez</option>
+                            {timeSlots.map(slot => (
+                              <option key={slot} value={slot} className="bg-[#000033]">{slot}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {errors.timeSlot && <p className={errorClass}>{errors.timeSlot}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Créneaux de récupération */}
+                  <div className="pt-4 border-t border-white/10">
+                    <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-[#33ffcc] rotate-180" />
+                      Créneau de récupération
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelClass}>Date de récupération</label>
+                        <input
+                          type="date"
+                          value={delivery.pickupDate}
+                          onChange={(e) => setDelivery({...delivery, pickupDate: e.target.value})}
+                          min={delivery.date || new Date().toISOString().split('T')[0]}
+                          className={`${inputClass} [color-scheme:dark]`}
+                        />
+                      </div>
+                      <div>
+                        <label className={labelClass}>Créneau horaire</label>
+                        <select
+                          value={delivery.pickupTimeSlot}
+                          onChange={(e) => setDelivery({...delivery, pickupTimeSlot: e.target.value})}
+                          className={inputClass}
+                        >
+                          <option value="" className="bg-[#000033]">Sélectionnez</option>
+                          {timeSlots.map(slot => (
+                            <option key={slot} value={slot} className="bg-[#000033]">{slot}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Détails de l'événement (intégrés pour la livraison) */}
+                  <div className="pt-4 border-t border-white/10">
+                    <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+                      <ClipboardList className="w-5 h-5 text-[#33ffcc]" />
+                      Détails de l'événement
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className={labelClass}>Type d'événement *</label>
+                          <select
+                            value={eventDetails.eventType}
+                            onChange={(e) => setEventDetails({...eventDetails, eventType: e.target.value})}
+                            className={inputClass}
+                          >
+                            <option value="" className="bg-[#000033]">Sélectionnez</option>
+                            {eventTypes.map(type => (
+                              <option key={type} value={type} className="bg-[#000033]">{type}</option>
+                            ))}
+                          </select>
+                          {errors.eventType && <p className={errorClass}>{errors.eventType}</p>}
+                        </div>
+                        <div>
+                          <label className={labelClass}>Nombre d'invités estimé</label>
+                          <input
+                            type="number"
+                            value={eventDetails.guestCount}
+                            onChange={(e) => setEventDetails({...eventDetails, guestCount: e.target.value})}
+                            className={inputClass}
+                            placeholder="50"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={labelClass}>Nom du lieu / Salle</label>
+                        <input
+                          type="text"
+                          value={eventDetails.venueName}
+                          onChange={(e) => setEventDetails({...eventDetails, venueName: e.target.value})}
+                          className={inputClass}
+                          placeholder="Château de..., Salle des fêtes de..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Accès au lieu */}
+                  <div className="pt-4 border-t border-white/10">
+                    <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-[#fe1979]" />
+                      Accès au lieu
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className={labelClass}>Difficulté d'accès</label>
+                        <select
+                          value={eventDetails.accessDifficulty}
+                          onChange={(e) => setEventDetails({...eventDetails, accessDifficulty: e.target.value})}
+                          className={inputClass}
+                        >
+                          {accessDifficulties.map(d => (
+                            <option key={d.value} value={d.value} className="bg-[#000033]">{d.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {eventDetails.accessDifficulty !== 'none' && (
+                        <div>
+                          <label className={labelClass}>Précisions sur l'accès</label>
+                          <textarea
+                            value={eventDetails.accessDetails}
+                            onChange={(e) => setEventDetails({...eventDetails, accessDetails: e.target.value})}
+                            className={`${inputClass} resize-none`}
+                            rows={2}
+                            placeholder="Décrivez les difficultés d'accès..."
+                          />
+                          {errors.accessDetails && <p className={errorClass}>{errors.accessDetails}</p>}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={eventDetails.hasElevator}
+                            onChange={(e) => setEventDetails({...eventDetails, hasElevator: e.target.checked})}
+                            className="w-4 h-4 rounded border-white/20 text-[#33ffcc] focus:ring-[#33ffcc] bg-white/5"
+                          />
+                          <span className="text-gray-300">Ascenseur disponible</span>
+                        </label>
+
+                        <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={eventDetails.parkingAvailable}
+                            onChange={(e) => setEventDetails({...eventDetails, parkingAvailable: e.target.checked})}
+                            className="w-4 h-4 rounded border-white/20 text-[#33ffcc] focus:ring-[#33ffcc] bg-white/5"
+                          />
+                          <span className="text-gray-300">Parking disponible</span>
+                        </label>
+                      </div>
+
+                      {eventDetails.hasElevator && (
+                        <div>
+                          <label className={labelClass}>Étage</label>
+                          <input
+                            type="text"
+                            value={eventDetails.floorNumber}
+                            onChange={(e) => setEventDetails({...eventDetails, floorNumber: e.target.value})}
+                            className={inputClass}
+                            placeholder="2ème étage"
+                          />
+                        </div>
+                      )}
+
+                      <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={eventDetails.electricityAvailable}
+                          onChange={(e) => setEventDetails({...eventDetails, electricityAvailable: e.target.checked})}
+                          className="w-4 h-4 rounded border-white/20 text-[#33ffcc] focus:ring-[#33ffcc] bg-white/5"
+                        />
+                        <span className="text-gray-300">Électricité disponible sur place</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Notes / Demandes particulières */}
+                  <div className="pt-4 border-t border-white/10">
+                    <label className={labelClass}>Demandes particulières / Notes</label>
+                    <textarea
+                      value={eventDetails.specialRequests}
+                      onChange={(e) => setEventDetails({...eventDetails, specialRequests: e.target.value})}
+                      className={`${inputClass} resize-none`}
+                      rows={3}
+                      placeholder="Instructions spéciales, demandes particulières..."
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
 
-          {/* ÉTAPE 5: Paiement */}
+          {/* ÉTAPE 4: Récapitulatif (Demande de devis) */}
           {currentStep === 'payment' && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Récapitulatif et paiement</h2>
-                <p className="text-gray-400 text-sm">Vérifiez votre commande</p>
+                <h2 className="text-xl font-bold text-white mb-1">Récapitulatif de votre demande</h2>
+                <p className="text-gray-400 text-sm">Vérifiez les détails avant d'envoyer votre demande de devis</p>
+              </div>
+
+              {/* Info demande de devis */}
+              <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                <p className="text-blue-400 text-sm flex items-center gap-2">
+                  <Info className="w-4 h-4" />
+                  Votre demande sera examinée par notre équipe. Vous recevrez une confirmation par email sous 24h.
+                </p>
               </div>
 
               {/* Récap articles */}
@@ -750,12 +1105,46 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              {/* Total */}
-              <div className="p-4 bg-[#33ffcc]/10 rounded-xl border border-[#33ffcc]/20">
+              {/* Total avec détail */}
+              <div className="p-4 bg-[#33ffcc]/10 rounded-xl border border-[#33ffcc]/20 space-y-3">
+                {/* Sous-total produits */}
                 <div className="flex justify-between items-center">
-                  <span className="text-white font-medium">Total à payer</span>
-                  <span className="text-2xl font-bold text-[#33ffcc]">{formatPrice(totalPrice)}</span>
+                  <span className="text-gray-400">Sous-total produits</span>
+                  <span className="text-white font-medium">{formatPrice(productsSubtotal)}</span>
                 </div>
+
+                {/* Frais de livraison (si mode livraison) */}
+                {!isPickup && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">
+                      Frais de livraison
+                      {deliveryDistance > 0 && (
+                        <span className="text-xs ml-1">({deliveryDistance} km × {PRICE_PER_KM.toFixed(2)}€)</span>
+                      )}
+                    </span>
+                    <span className="text-white font-medium">
+                      {calculatedDeliveryFee > 0 ? formatPrice(calculatedDeliveryFee) : 'À calculer'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Pickup gratuit */}
+                {isPickup && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Retrait à l'entrepôt</span>
+                    <span className="text-green-400 font-medium">Gratuit</span>
+                  </div>
+                )}
+
+                {/* Ligne de séparation */}
+                <div className="border-t border-white/10 pt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-semibold">Total estimé</span>
+                    <span className="text-2xl font-bold text-[#33ffcc]">{formatPrice(finalTotal)}</span>
+                  </div>
+                </div>
+
+                <p className="text-gray-500 text-xs">* Le montant final sera confirmé après validation de votre demande</p>
               </div>
 
               {/* CGV */}
@@ -789,15 +1178,25 @@ export default function CheckoutPage() {
                 </label>
               </div>
 
+              {/* Erreur */}
+              {submitError && (
+                <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                  <p className="text-red-400 text-sm flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    {submitError}
+                  </p>
+                </div>
+              )}
+
               {/* Sécurité */}
               <div className="flex items-center gap-4 text-gray-500 text-sm">
                 <div className="flex items-center gap-1">
                   <Shield className="w-4 h-4" />
-                  <span>Paiement sécurisé</span>
+                  <span>Données sécurisées</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Lock className="w-4 h-4" />
-                  <span>SSL 256 bits</span>
+                  <span>Réponse sous 24h</span>
                 </div>
               </div>
             </div>
@@ -824,12 +1223,12 @@ export default function CheckoutPage() {
               {isProcessing ? (
                 <>
                   <div className="w-5 h-5 border-2 border-[#000033] border-t-transparent rounded-full animate-spin" />
-                  Traitement...
+                  Envoi en cours...
                 </>
               ) : (
                 <>
-                  <Lock className="w-5 h-5" />
-                  Confirmer et payer
+                  <Mail className="w-5 h-5" />
+                  Envoyer ma demande
                 </>
               )}
             </button>

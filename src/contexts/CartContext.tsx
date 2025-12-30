@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem } from '../types';
 
+type DeliveryType = 'delivery' | 'pickup';
+
 interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => void;
@@ -9,6 +11,9 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  deliveryType: DeliveryType;
+  setDeliveryType: (type: DeliveryType) => void;
+  deliveryFee: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -19,9 +24,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>(() => {
+    const savedType = localStorage.getItem('locagame_delivery_type');
+    return (savedType as DeliveryType) || 'delivery';
+  });
+
   useEffect(() => {
     localStorage.setItem('locagame_cart', JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    localStorage.setItem('locagame_delivery_type', deliveryType);
+  }, [deliveryType]);
+
+  // Frais de livraison : 0 si pickup, sinon somme des frais par item
+  const deliveryFee = deliveryType === 'pickup'
+    ? 0
+    : items.reduce((sum, item) => sum + (item.delivery_fee || 0), 0);
 
   const addItem = (item: CartItem) => {
     setItems((prev) => {
@@ -83,6 +102,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         totalItems,
         totalPrice,
+        deliveryType,
+        setDeliveryType,
+        deliveryFee,
       }}
     >
       {children}

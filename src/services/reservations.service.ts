@@ -12,6 +12,9 @@ export class ReservationsService {
     delivery_time?: string;
     delivery_type: 'delivery' | 'pickup';
     delivery_address_id?: string;
+    pickup_time?: string;
+    return_time?: string;
+    pickup_slot?: string;
     zone_id?: string;
     event_type?: string;
     items: Array<{
@@ -27,7 +30,28 @@ export class ReservationsService {
     deposit?: number;
     total: number;
     notes?: string;
-    payment_method?: string;
+    // Nouveaux champs pour stockage complet
+    recipient_data?: {
+      firstName: string;
+      lastName: string;
+      phone: string;
+      email?: string;
+      sameAsCustomer: boolean;
+    } | null;
+    event_details?: {
+      guestCount?: string;
+      venueName?: string;
+      accessDifficulty?: string;
+      accessDetails?: string;
+      hasElevator?: boolean;
+      floorNumber?: string;
+      parkingAvailable?: boolean;
+      parkingDetails?: string;
+      electricityAvailable?: boolean;
+      setupSpace?: string;
+    } | null;
+    cgv_accepted?: boolean;
+    newsletter_accepted?: boolean;
   }): Promise<any> {
     try {
       // 1. Créer la réservation principale
@@ -40,17 +64,23 @@ export class ReservationsService {
           delivery_time: orderData.delivery_time,
           delivery_type: orderData.delivery_type,
           delivery_address_id: orderData.delivery_address_id,
+          pickup_time: orderData.pickup_time,
+          return_time: orderData.return_time,
+          pickup_slot: orderData.pickup_slot,
           zone_id: orderData.zone_id,
           event_type: orderData.event_type,
           notes: orderData.notes,
           subtotal: orderData.subtotal,
           delivery_fee: orderData.delivery_fee,
           discount: orderData.discount,
-          deposit: orderData.deposit || 0,
+          deposit_amount: orderData.deposit || 0,
           total: orderData.total,
-          payment_method: orderData.payment_method,
           status: 'pending',
-          payment_status: 'pending',
+          // Nouveaux champs
+          recipient_data: orderData.recipient_data,
+          event_details: orderData.event_details,
+          cgv_accepted: orderData.cgv_accepted ?? false,
+          newsletter_accepted: orderData.newsletter_accepted ?? false,
         })
         .select('*')
         .single();
@@ -83,26 +113,27 @@ export class ReservationsService {
 
       // 2.5. Les stocks sont validés automatiquement via le trigger "validate_stock_before_reservation"
 
-      // 3. Si livraison, créer automatiquement les tâches de livraison ET de retour
-      if (orderData.delivery_type === 'delivery' && orderData.delivery_address_id) {
-        try {
-          // Récupérer les infos complètes pour la tâche
-          const { data: customer } = await supabase
-            .from('customers')
-            .select('*')
-            .eq('id', orderData.customer_id)
-            .single();
+      // 3. Créer automatiquement les tâches selon le type de livraison
+      try {
+        // Récupérer les infos client et produits
+        const { data: customer } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('id', orderData.customer_id)
+          .single();
 
+        const { data: products } = await supabase
+          .from('products')
+          .select('*')
+          .in('id', orderData.items.map(i => i.product_id));
+
+        if (orderData.delivery_type === 'delivery' && orderData.delivery_address_id) {
+          // MODE LIVRAISON: tâches delivery + pickup par technicien
           const { data: address } = await supabase
             .from('addresses')
             .select('*')
             .eq('id', orderData.delivery_address_id)
             .single();
-
-          const { data: products } = await supabase
-            .from('products')
-            .select('*')
-            .in('id', orderData.items.map(i => i.product_id));
 
           // Créer la tâche de LIVRAISON (start_date)
           await supabase.from('delivery_tasks').insert({
@@ -129,10 +160,45 @@ export class ReservationsService {
             address_data: address,
             products_data: products,
           });
-        } catch (taskError) {
-          console.error('⚠️ Erreur création tâche (non-bloquant):', taskError);
-          // Non-bloquant: la réservation est déjà créée
+        } else if (orderData.delivery_type === 'pickup') {
+          // MODE PICKUP: tâches client_pickup + client_return à l'entrepôt
+          const warehouseAddress = {
+            name: "Entrepôt LOCAGAME",
+            street: "Zone Industrielle des Paluds",
+            city: "13400 Aubagne",
+          };
+
+          // Créer la tâche de RETRAIT CLIENT (start_date)
+          await supabase.from('delivery_tasks').insert({
+            reservation_id: reservation.id,
+            order_number: `ORD-${reservation.id.substring(0, 8)}-CLIENT-PICKUP`,
+            type: 'client_pickup',
+            scheduled_date: orderData.start_date,
+            scheduled_time: orderData.pickup_time || '09:00',
+            status: 'scheduled',
+            customer_data: customer,
+            address_data: warehouseAddress,
+            products_data: products,
+            notes: 'Retrait client à l\'entrepôt',
+          });
+
+          // Créer la tâche de RETOUR CLIENT (end_date)
+          await supabase.from('delivery_tasks').insert({
+            reservation_id: reservation.id,
+            order_number: `ORD-${reservation.id.substring(0, 8)}-CLIENT-RETURN`,
+            type: 'client_return',
+            scheduled_date: orderData.end_date,
+            scheduled_time: orderData.return_time || '09:00',
+            status: 'scheduled',
+            customer_data: customer,
+            address_data: warehouseAddress,
+            products_data: products,
+            notes: 'Retour client à l\'entrepôt',
+          });
         }
+      } catch (taskError) {
+        console.error('⚠️ Erreur création tâche (non-bloquant):', taskError);
+        // Non-bloquant: la réservation est déjà créée
       }
 
       // 4. Retourner la réservation complète avec items

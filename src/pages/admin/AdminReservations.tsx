@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ReservationsService, DeliveryService, TechniciansService } from '../../services';
-import { Order } from '../../types';
-import { X, Truck, User } from 'lucide-react';
+import { Order, RecipientData, EventDetails } from '../../types';
+import { X, Truck, User, Package, MapPin, Users, Building, Info, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Technician {
   id: string;
@@ -45,6 +45,7 @@ export default function AdminReservations() {
   const [selectedTechnician, setSelectedTechnician] = useState<string>('');
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [assigning, setAssigning] = useState(false);
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -90,21 +91,46 @@ export default function AdminReservations() {
       preparing: 'bg-purple-100 text-purple-800',
       delivered: 'bg-indigo-100 text-indigo-800',
       completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
+      cancelled: 'bg-red-100 text-red-800',
+      rejected: 'bg-red-100 text-red-800'
     };
     const labels = {
-      pending: 'En attente',
-      confirmed: 'Confirmé',
-      preparing: 'En préparation',
-      delivered: 'Livré',
-      completed: 'Terminé',
-      cancelled: 'Annulé'
+      pending: '⏳ Nouvelle demande',
+      confirmed: '✅ Confirmé',
+      preparing: '📦 En préparation',
+      delivered: '🚚 Livré',
+      completed: '✔️ Terminé',
+      cancelled: '❌ Annulé',
+      rejected: '🚫 Refusé'
     };
     return (
       <span className={`px-3 py-1 text-xs font-medium rounded-full ${styles[status as keyof typeof styles] || 'bg-gray-100'}`}>
         {labels[status as keyof typeof labels] || status}
       </span>
     );
+  };
+
+  const handleValidateReservation = async (reservationId: string) => {
+    if (!confirm('Valider cette demande de réservation ?')) return;
+    try {
+      await ReservationsService.updateReservationStatus(reservationId, 'confirmed');
+      await loadData();
+    } catch (error) {
+      console.error('Error validating reservation:', error);
+      alert('Erreur lors de la validation');
+    }
+  };
+
+  const handleRejectReservation = async (reservationId: string) => {
+    const reason = prompt('Motif du refus (optionnel):');
+    if (reason === null) return; // Cancelled
+    try {
+      await ReservationsService.updateReservationStatus(reservationId, 'cancelled');
+      await loadData();
+    } catch (error) {
+      console.error('Error rejecting reservation:', error);
+      alert('Erreur lors du refus');
+    }
   };
 
   const handleAssignClick = (reservation: UnassignedReservation) => {
@@ -342,10 +368,10 @@ export default function AdminReservations() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Commande</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mode</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produits</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paiement</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -354,88 +380,208 @@ export default function AdminReservations() {
               {filteredReservations.map((reservation) => {
                 const customer = reservation.customer as any;
                 const items = (reservation as any).reservation_items || [];
+                const recipientData = (reservation as any).recipient_data as RecipientData | null;
+                const eventDetails = (reservation as any).event_details as EventDetails | null;
+                const isExpanded = expandedRow === reservation.id;
+                const deliveryType = (reservation as any).delivery_type;
+
                 return (
-                  <tr key={reservation.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {reservation.id.substring(0, 8).toUpperCase()}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {new Date(reservation.created_at).toLocaleDateString('fr-FR')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {customer?.first_name} {customer?.last_name}
-                      </div>
-                      <div className="text-xs text-gray-500">{customer?.email}</div>
-                      {customer?.company_name && (
-                        <div className="text-xs text-blue-600">{customer.company_name}</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{items.length} produit(s)</div>
-                      {items.length > 0 && (
-                        <div className="text-xs text-gray-500">
-                          {items.slice(0, 2).map((item: any, idx: number) => (
-                            <span key={idx}>
-                              {item.quantity}x {item.product_id?.substring(0, 8) || 'Produit'}
-                              {idx < Math.min(items.length, 2) - 1 && ', '}
+                  <>
+                    <tr key={reservation.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setExpandedRow(isExpanded ? null : reservation.id)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </button>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {reservation.id.substring(0, 8).toUpperCase()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(reservation.created_at).toLocaleDateString('fr-FR')}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {customer?.first_name} {customer?.last_name}
+                        </div>
+                        <div className="text-xs text-gray-500">{customer?.email}</div>
+                        {customer?.company_name && (
+                          <div className="text-xs text-blue-600">{customer.company_name}</div>
+                        )}
+                        {recipientData && !recipientData.sameAsCustomer && (
+                          <div className="mt-1 text-xs text-orange-600 flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            Recep: {recipientData.firstName} {recipientData.lastName}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          deliveryType === 'pickup'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {deliveryType === 'pickup' ? (
+                            <span className="flex items-center gap-1">
+                              <Package className="w-3 h-3" />
+                              Pick-up
                             </span>
-                          ))}
-                          {items.length > 2 && '...'}
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <Truck className="w-3 h-3" />
+                              Livraison
+                            </span>
+                          )}
+                        </span>
+                        {deliveryType === 'pickup' && (reservation as any).pickup_time && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Retrait: {(reservation as any).pickup_time}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-900">{items.length} produit(s)</div>
+                        {items.length > 0 && (
+                          <div className="text-xs text-gray-500">
+                            {items.slice(0, 2).map((item: any, idx: number) => (
+                              <span key={idx}>
+                                {item.quantity}x {item.product_id?.substring(0, 8) || 'Produit'}
+                                {idx < Math.min(items.length, 2) - 1 && ', '}
+                              </span>
+                            ))}
+                            {items.length > 2 && '...'}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {new Date((reservation as any).start_date).toLocaleDateString('fr-FR')}
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {new Date((reservation as any).start_date).toLocaleDateString('fr-FR')}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        au {new Date((reservation as any).end_date).toLocaleDateString('fr-FR')}
-                      </div>
-                      {(reservation as any).delivery_time && (
                         <div className="text-xs text-gray-500">
-                          Livraison: {(reservation as any).delivery_time}
+                          au {new Date((reservation as any).end_date).toLocaleDateString('fr-FR')}
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-xl font-bold text-gray-900">
-                        {(reservation as any).total || reservation.total}€
-                      </div>
-                      {(reservation as any).discount > 0 && (
-                        <div className="text-sm text-green-600 font-medium">
-                          -{(reservation as any).discount}€
+                        {(reservation as any).delivery_time && (
+                          <div className="text-xs text-gray-500">
+                            Livraison: {(reservation as any).delivery_time}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-xl font-bold text-gray-900">
+                          {(reservation as any).total || reservation.total}€
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`text-xs font-medium ${
-                        (reservation as any).payment_status === 'completed' || reservation.payment_status === 'paid' 
-                          ? 'text-green-600' 
-                          : 'text-yellow-600'
-                      }`}>
-                        {(reservation as any).payment_status === 'completed' || reservation.payment_status === 'paid' 
-                          ? '✅ Payé' 
-                          : '⏳ En attente'}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {(reservation as any).payment_method || 'Non spécifié'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(reservation.status)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link
-                        to={`/admin/reservations/${reservation.id}`}
-                        className="text-[#33ffcc] hover:text-[#66cccc]"
-                      >
-                        Voir détails
-                      </Link>
-                    </td>
-                  </tr>
+                        {(reservation as any).discount > 0 && (
+                          <div className="text-sm text-green-600 font-medium">
+                            -{(reservation as any).discount}€
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(reservation.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          {reservation.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => handleValidateReservation(reservation.id)}
+                                className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-lg transition-colors"
+                              >
+                                Valider
+                              </button>
+                              <button
+                                onClick={() => handleRejectReservation(reservation.id)}
+                                className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors"
+                              >
+                                Refuser
+                              </button>
+                            </>
+                          )}
+                          <Link
+                            to={`/admin/reservations/${reservation.id}`}
+                            className="text-[#33ffcc] hover:text-[#66cccc]"
+                          >
+                            Voir details
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                    {/* Ligne expandable avec details */}
+                    {isExpanded && (
+                      <tr key={`${reservation.id}-details`} className="bg-gray-50">
+                        <td colSpan={8} className="px-6 py-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Receptionnaire */}
+                            {recipientData && !recipientData.sameAsCustomer && (
+                              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                                <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                  <Users className="w-4 h-4 text-orange-500" />
+                                  Receptionnaire
+                                </h4>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                  <p><strong>Nom:</strong> {recipientData.firstName} {recipientData.lastName}</p>
+                                  <p><strong>Tel:</strong> {recipientData.phone}</p>
+                                  {recipientData.email && <p><strong>Email:</strong> {recipientData.email}</p>}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Details evenement */}
+                            {eventDetails && (
+                              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                                <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                  <Info className="w-4 h-4 text-blue-500" />
+                                  Details evenement
+                                </h4>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                  {eventDetails.venueName && <p><strong>Lieu:</strong> {eventDetails.venueName}</p>}
+                                  {eventDetails.guestCount && <p><strong>Invites:</strong> {eventDetails.guestCount}</p>}
+                                  {(reservation as any).event_type && <p><strong>Type:</strong> {(reservation as any).event_type}</p>}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Acces */}
+                            {eventDetails && (eventDetails.hasElevator !== undefined || eventDetails.floorNumber || eventDetails.parkingAvailable !== undefined || eventDetails.accessDetails) && (
+                              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                                <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                  <Building className="w-4 h-4 text-purple-500" />
+                                  Acces au lieu
+                                </h4>
+                                <div className="text-sm text-gray-600 space-y-1">
+                                  {eventDetails.floorNumber && <p><strong>Etage:</strong> {eventDetails.floorNumber}</p>}
+                                  {eventDetails.hasElevator !== undefined && (
+                                    <p><strong>Ascenseur:</strong> {eventDetails.hasElevator ? 'Oui' : 'Non'}</p>
+                                  )}
+                                  {eventDetails.parkingAvailable !== undefined && (
+                                    <p><strong>Parking:</strong> {eventDetails.parkingAvailable ? 'Oui' : 'Non'}</p>
+                                  )}
+                                  {eventDetails.electricityAvailable !== undefined && (
+                                    <p><strong>Electricite:</strong> {eventDetails.electricityAvailable ? 'Oui' : 'Non'}</p>
+                                  )}
+                                  {eventDetails.accessDetails && <p><strong>Details:</strong> {eventDetails.accessDetails}</p>}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Notes */}
+                            {(reservation as any).notes && (
+                              <div className="bg-white p-4 rounded-lg border border-gray-200 md:col-span-3">
+                                <h4 className="font-semibold text-gray-900 mb-2">Notes / Demandes speciales</h4>
+                                <p className="text-sm text-gray-600">{(reservation as any).notes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 );
               })}
             </tbody>

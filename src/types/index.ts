@@ -76,7 +76,34 @@ export interface Customer {
   email: string;
   phone: string;
   company_name?: string;
+  siret?: string;
   is_professional: boolean;
+  customer_type?: 'individual' | 'professional';
+  loyalty_points?: number;
+  is_guest?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface RecipientData {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  sameAsCustomer: boolean;
+}
+
+export interface EventDetails {
+  guestCount?: string;
+  venueName?: string;
+  accessDifficulty?: string;
+  accessDetails?: string;
+  hasElevator?: boolean;
+  floorNumber?: string;
+  parkingAvailable?: boolean;
+  parkingDetails?: string;
+  electricityAvailable?: boolean;
+  setupSpace?: string;
 }
 
 export interface Order {
@@ -91,6 +118,10 @@ export interface Order {
   };
   delivery_date?: string;
   delivery_time?: string;
+  delivery_type?: 'pickup' | 'delivery';
+  pickup_time?: string;
+  return_time?: string;
+  pickup_slot?: string;
   event_type: string;
   special_notes?: string;
   subtotal: number;
@@ -98,8 +129,12 @@ export interface Order {
   discount: number;
   total: number;
   status: 'pending' | 'confirmed' | 'preparing' | 'delivered' | 'returned' | 'cancelled';
-  payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   created_at: string;
+  // Nouveaux champs
+  recipient_data?: RecipientData | null;
+  event_details?: EventDetails | null;
+  cgv_accepted?: boolean;
+  newsletter_accepted?: boolean;
 }
 
 export interface FilterOptions {

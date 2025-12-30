@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { User, loadUserProfile } from '../lib/auth-helpers';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
@@ -119,6 +118,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             first_name: updates.firstName,
             last_name: updates.lastName,
             phone: updates.phone,
+          })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else if (user.role === 'admin') {
+        const { error } = await supabase
+          .from('admin_users')
+          .update({
+            first_name: updates.firstName,
+            last_name: updates.lastName,
+            phone: updates.phone,
+            email: updates.email,
           })
           .eq('user_id', user.id);
 

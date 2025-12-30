@@ -19,7 +19,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Réservations', href: '/admin/reservations' },
     { label: 'Livraisons', href: '/admin/livraisons' },
     { label: 'Clients', href: '/admin/customers' },
-    { label: 'Zones de livraison', href: '/admin/zones' },
     { label: 'Paramètres', href: '/admin/settings' }
   ];
 

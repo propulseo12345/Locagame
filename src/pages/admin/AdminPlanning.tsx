@@ -1,12 +1,16 @@
 import { useState, useMemo, useEffect } from 'react';
-import { fakeReservations } from '../../lib/fake-data';
-import { fakeTechnicians, fakeVehicles } from '../../lib/fake-data';
-import { fakeDeliveryTasks } from '../../lib/fake-data';
-import { DeliveryTask } from '../../types';
+import { DeliveryTask, Vehicle, Order } from '../../types';
 import { X, Trash2, Edit2, MoreVertical, Truck } from 'lucide-react';
+import { DeliveryService, TechniciansService, ReservationsService } from '../../services';
+import { Technician } from '../../services/technicians.service';
 
 export default function AdminPlanning() {
-  const [vehicles, setVehicles] = useState(fakeVehicles);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [reservations, setReservations] = useState<Order[]>([]);
+  const [tasksState, setTasksState] = useState<DeliveryTask[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -25,15 +29,33 @@ export default function AdminPlanning() {
   });
   const [draggedTask, setDraggedTask] = useState<DeliveryTask | null>(null);
   const [draggedReservation, setDraggedReservation] = useState<any | null>(null);
-  const [tasksState, setTasksState] = useState<DeliveryTask[]>(fakeDeliveryTasks);
 
-  // Réservations qui nécessitent une livraison/retrait
-  const reservationsNeedingAssignment = useMemo(() => {
-    return fakeReservations.filter(res => 
-      res.delivery.type === 'delivery' && 
-      (res.status === 'confirmed' || res.status === 'preparing')
-    );
-  }, []);
+  // Charger les données au montage
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [vehiclesData, techniciansData, tasksData, unassignedRes] = await Promise.all([
+          TechniciansService.getAllVehicles(),
+          TechniciansService.getAllTechnicians(),
+          DeliveryService.getTasksByDate(selectedDate),
+          ReservationsService.getUnassignedReservations(),
+        ]);
+        setVehicles(vehiclesData);
+        setTechnicians(techniciansData);
+        setTasksState(tasksData);
+        setReservations(unassignedRes);
+      } catch (err) {
+        console.error('Erreur chargement données:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [selectedDate]);
+
+  // Réservations qui nécessitent une livraison/retrait (déjà filtrées par le service)
+  const reservationsNeedingAssignment = reservations;
 
   // Tâches déjà assignées pour la date sélectionnée
   const existingTasks = useMemo(() => {
@@ -63,7 +85,8 @@ export default function AdminPlanning() {
   const unassignedReservations = useMemo(() => {
     const assignedReservationIds = new Set(existingTasks.map(t => t.reservationId));
     return reservationsNeedingAssignment.filter(res => {
-      const deliveryDate = res.dates.start;
+      // Support both res.dates?.start and res.start_date formats
+      const deliveryDate = res.dates?.start || res.start_date;
       return deliveryDate === selectedDate && !assignedReservationIds.has(res.id);
     });
   }, [reservationsNeedingAssignment, selectedDate, existingTasks]);
@@ -191,8 +214,8 @@ export default function AdminPlanning() {
     if (!draggedTask) return;
 
     // Trouver le véhicule du technicien cible
-    const targetTechnician = fakeTechnicians.find(t => t.id === targetTechnicianId);
-    if (!targetTechnician || !targetTechnician.vehicleId) {
+    const targetTechnician = technicians.find(t => t.id === targetTechnicianId);
+    if (!targetTechnician || !targetTechnician.vehicle_id) {
       console.warn('Technicien ou véhicule introuvable');
       return;
     }
@@ -204,7 +227,7 @@ export default function AdminPlanning() {
           ? {
               ...task,
               technicianId: targetTechnicianId,
-              vehicleId: targetTechnician.vehicleId!
+              vehicleId: targetTechnician.vehicle_id!
             }
           : task
       )
@@ -240,8 +263,8 @@ export default function AdminPlanning() {
 
     if (!draggedReservation) return;
 
-    const targetTechnician = fakeTechnicians.find(t => t.id === targetTechnicianId);
-    if (!targetTechnician || !targetTechnician.vehicleId) {
+    const targetTechnician = technicians.find(t => t.id === targetTechnicianId);
+    if (!targetTechnician || !targetTechnician.vehicle_id) {
       console.warn('Technicien ou véhicule introuvable');
       return;
     }
@@ -250,28 +273,28 @@ export default function AdminPlanning() {
     const newTask: DeliveryTask = {
       id: `task_${Date.now()}`,
       reservationId: draggedReservation.id,
-      orderNumber: draggedReservation.orderNumber,
+      orderNumber: draggedReservation.order_number || `ORD-${draggedReservation.id.substring(0, 8)}`,
       type: 'delivery',
       scheduledDate: selectedDate,
-      scheduledTime: draggedReservation.dates.deliveryTime || '10:00',
-      vehicleId: targetTechnician.vehicleId,
+      scheduledTime: draggedReservation.delivery_time || '10:00',
+      vehicleId: targetTechnician.vehicle_id,
       technicianId: targetTechnicianId,
       status: 'scheduled',
       customer: {
-        firstName: draggedReservation.customer.firstName,
-        lastName: draggedReservation.customer.lastName,
-        phone: draggedReservation.customer.phone || '',
-        email: draggedReservation.customer.email || ''
+        firstName: draggedReservation.customer?.first_name || '',
+        lastName: draggedReservation.customer?.last_name || '',
+        phone: draggedReservation.customer?.phone || '',
+        email: draggedReservation.customer?.email || ''
       },
       address: {
-        street: draggedReservation.delivery.address.street,
-        city: draggedReservation.delivery.address.city,
-        postalCode: draggedReservation.delivery.address.postalCode || '',
-        country: draggedReservation.delivery.address.country || 'France'
+        street: 'Adresse à compléter',
+        city: '',
+        postalCode: '',
+        country: 'France'
       },
-      products: draggedReservation.products.map((p: any) => ({
-        productId: p.productId || p.id || '',
-        productName: p.productName || p.name || '',
+      products: (draggedReservation.reservation_items || []).map((p: any) => ({
+        productId: p.product_id || '',
+        productName: p.product?.name || 'Produit',
         quantity: p.quantity || 1
       }))
     };
@@ -487,10 +510,10 @@ export default function AdminPlanning() {
                         {tasks.length} intervention(s)
                       </div>
                       {Object.keys(tasksByTech).slice(0, 2).map(techId => {
-                        const tech = fakeTechnicians.find(t => t.id === techId);
+                        const tech = technicians.find(t => t.id === techId);
                         return (
                           <div key={techId} className="text-xs text-gray-600 truncate">
-                            {tech?.firstName} ({tasksByTech[techId].length})
+                            {tech?.first_name} ({tasksByTech[techId].length})
                           </div>
                         );
                       })}
@@ -557,9 +580,9 @@ export default function AdminPlanning() {
                     defaultValue=""
                   >
                     <option value="">Choisir un livreur...</option>
-                    {fakeTechnicians.map(tech => {
-                      const techVehicle = tech.vehicleId 
-                        ? vehicles.find(v => v.id === tech.vehicleId)
+                    {technicians.map(tech => {
+                      const techVehicle = tech.vehicle_id
+                        ? vehicles.find(v => v.id === tech.vehicle_id)
                         : null;
                       if (!techVehicle) return null;
                       return (
@@ -567,7 +590,7 @@ export default function AdminPlanning() {
                           key={tech.id}
                           value={`${tech.id}|${techVehicle.id}`}
                         >
-                          {tech.firstName} {tech.lastName}
+                          {tech.first_name} {tech.last_name}
                         </option>
                       );
                     })}
@@ -592,15 +615,15 @@ export default function AdminPlanning() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto">
-          {fakeTechnicians.map(technician => {
-            const vehicle = technician.vehicleId 
-              ? vehicles.find(v => v.id === technician.vehicleId)
+          {technicians.map(technicianItem => {
+            const vehicle = technicianItem.vehicle_id
+              ? vehicles.find(v => v.id === technicianItem.vehicle_id)
               : null;
-            const tasks = tasksByTechnician[technician.id] || [];
+            const tasks = tasksByTechnician[technicianItem.id] || [];
 
             return (
-              <div 
-                key={technician.id} 
+              <div
+                key={technicianItem.id} 
                 className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50 min-h-[500px] transition-all duration-200"
                 onDragOver={(e) => {
                   handleDragOver(e);
@@ -613,20 +636,20 @@ export default function AdminPlanning() {
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => {
                   if (draggedReservation) {
-                    handleReservationDrop(e, technician.id);
+                    handleReservationDrop(e, technicianItem.id);
                   } else {
-                    handleDrop(e, technician.id);
+                    handleDrop(e, technicianItem.id);
                   }
                 }}
               >
                 {/* En-tête livreur */}
                 <div className="mb-4 pb-3 border-b border-gray-300">
                   <h3 className="font-bold text-gray-900 text-base">
-                    {technician.firstName} {technician.lastName}
+                    {technicianItem.first_name} {technicianItem.last_name}
                   </h3>
                   {vehicle && (
                     <p className="text-xs text-gray-600 mt-1">
-                      {vehicle.name} - {vehicle.licensePlate}
+                      {vehicle.name} - {vehicle.license_plate}
                     </p>
                   )}
                   <p className="text-xs text-gray-500 mt-1">
@@ -733,14 +756,14 @@ export default function AdminPlanning() {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900">{vehicle.name}</h3>
-                  <p className="text-sm text-gray-600">{vehicle.licensePlate}</p>
+                  <p className="text-sm text-gray-600">{vehicle.license_plate}</p>
                   <div className="mt-2 flex items-center gap-2">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      vehicle.isActive 
-                        ? 'bg-green-100 text-green-800' 
+                      vehicle.is_active
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {vehicle.isActive ? 'Actif' : 'Inactif'}
+                      {vehicle.is_active ? 'Actif' : 'Inactif'}
                     </span>
                     <span className="text-xs text-gray-500">
                       {vehicle.type === 'truck' ? 'Camion' : 'Utilitaire'} - {vehicle.capacity} m³
@@ -763,8 +786,8 @@ export default function AdminPlanning() {
                             name: vehicle.name,
                             type: vehicle.type,
                             capacity: vehicle.capacity.toString(),
-                            licensePlate: vehicle.licensePlate,
-                            isActive: vehicle.isActive
+                            licensePlate: vehicle.license_plate,
+                            isActive: vehicle.is_active
                           });
                           setShowVehicleModal(true);
                           setShowMenu(null);

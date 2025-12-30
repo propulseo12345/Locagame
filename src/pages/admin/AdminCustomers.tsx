@@ -1,20 +1,38 @@
-import { useState } from 'react';
-import { fakeCustomers } from '../../lib/fake-data';
+import { useState, useEffect, useMemo } from 'react';
+import { CustomersService } from '../../services';
+import { Customer } from '../../types';
 
 export default function AdminCustomers() {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [segmentFilter, setSegmentFilter] = useState<string>('all');
 
-  const filteredCustomers = fakeCustomers.filter(customer => {
-    const matchesSearch = 
-      `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (customer.company && customer.company.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesType = typeFilter === 'all' || customer.type === typeFilter;
-    const matchesSegment = segmentFilter === 'all' || customer.segment === segmentFilter;
-    return matchesSearch && matchesType && matchesSegment;
-  });
+  useEffect(() => {
+    const loadCustomers = async () => {
+      try {
+        setLoading(true);
+        const data = await CustomersService.getAllCustomers();
+        setCustomers(data);
+      } catch (err) {
+        console.error('Erreur chargement clients:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCustomers();
+  }, []);
+
+  const filteredCustomers = useMemo(() => {
+    return customers.filter(customer => {
+      const matchesSearch =
+        `${customer.first_name} ${customer.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (customer.company_name && customer.company_name.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesType = typeFilter === 'all' || customer.customer_type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+  }, [customers, searchTerm, typeFilter]);
 
   const getSegmentBadge = (segment: string) => {
     const styles = {
@@ -30,13 +48,21 @@ export default function AdminCustomers() {
     );
   };
 
-  const stats = {
-    total: fakeCustomers.length,
-    particulier: fakeCustomers.filter(c => c.type === 'particulier').length,
-    professionnel: fakeCustomers.filter(c => c.type === 'professionnel').length,
-    vip: fakeCustomers.filter(c => c.segment === 'VIP').length,
-    actif: fakeCustomers.filter(c => c.status === 'active').length
-  };
+  const stats = useMemo(() => ({
+    total: customers.length,
+    particulier: customers.filter(c => c.customer_type === 'individual').length,
+    professionnel: customers.filter(c => c.customer_type === 'professional').length,
+    vip: 0, // VIP tracking not implemented yet
+    actif: customers.length // All loaded customers are considered active
+  }), [customers]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-2 border-[#33ffcc] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -93,22 +119,8 @@ export default function AdminCustomers() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
             >
               <option value="all">Tous</option>
-              <option value="particulier">Particulier</option>
-              <option value="professionnel">Professionnel</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Segment</label>
-            <select
-              value={segmentFilter}
-              onChange={(e) => setSegmentFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
-            >
-              <option value="all">Tous</option>
-              <option value="VIP">VIP</option>
-              <option value="nouveau">Nouveau</option>
-              <option value="standard">Standard</option>
-              <option value="inactif">Inactif</option>
+              <option value="individual">Particulier</option>
+              <option value="professional">Professionnel</option>
             </select>
           </div>
         </div>
@@ -135,41 +147,43 @@ export default function AdminCustomers() {
                 <tr key={customer.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {customer.firstName} {customer.lastName}
+                      {customer.first_name} {customer.last_name}
                     </div>
                     <div className="text-xs text-gray-500">{customer.email}</div>
-                    <div className="text-xs text-gray-500">{customer.phone}</div>
-                    {customer.company && (
-                      <div className="text-xs text-blue-600 font-medium mt-1">{customer.company}</div>
+                    <div className="text-xs text-gray-500">{customer.phone || 'N/A'}</div>
+                    {customer.company_name && (
+                      <div className="text-xs text-blue-600 font-medium mt-1">{customer.company_name}</div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      customer.type === 'professionnel' 
-                        ? 'bg-purple-100 text-purple-800' 
+                      customer.customer_type === 'professional'
+                        ? 'bg-purple-100 text-purple-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}>
-                      {customer.type === 'professionnel' ? '🏢 Pro' : '👤 Part'}
+                      {customer.customer_type === 'professional' ? 'Pro' : 'Part'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{customer.stats.totalReservations}</div>
+                    <div className="text-sm font-medium text-gray-900">-</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-xl font-bold text-gray-900">{customer.stats.totalSpent}€</div>
+                    <div className="text-xl font-bold text-gray-900">-</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-lg font-semibold text-gray-900">{customer.stats.averageBasket}€</div>
+                    <div className="text-lg font-semibold text-gray-900">-</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getSegmentBadge(customer.segment)}
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                      {customer.loyalty_points || 0} pts
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {new Date(customer.stats.memberSince).toLocaleDateString('fr-FR', {
+                      {customer.created_at ? new Date(customer.created_at).toLocaleDateString('fr-FR', {
                         month: 'short',
                         year: 'numeric'
-                      })}
+                      }) : 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

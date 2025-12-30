@@ -1,13 +1,40 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Calendar, MapPin, CreditCard, Clock, Filter, ChevronRight, CheckCircle, XCircle, AlertCircle, Loader2, Sparkles } from 'lucide-react';
+import { Package, Calendar, MapPin, Clock, Filter, ChevronRight, CheckCircle, XCircle, AlertCircle, Euro } from 'lucide-react';
 import { ReservationsService } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
-import { Order } from '../../types';
+
+interface ReservationItem {
+  id: string;
+  product_id: string;
+  quantity: number;
+  duration_days: number;
+  unit_price: number;
+  subtotal: number;
+}
+
+interface Reservation {
+  id: string;
+  customer_id: string;
+  start_date: string;
+  end_date: string;
+  delivery_time?: string;
+  delivery_type: 'delivery' | 'pickup';
+  status: string;
+  subtotal: number;
+  delivery_fee: number;
+  discount: number;
+  total: number;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  customer?: any;
+  reservation_items?: ReservationItem[];
+}
 
 export default function ClientReservations() {
   const { user } = useAuth();
-  const [customerReservations, setCustomerReservations] = useState<Order[]>([]);
+  const [customerReservations, setCustomerReservations] = useState<Reservation[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
@@ -21,7 +48,7 @@ export default function ClientReservations() {
     try {
       setLoading(true);
       const reservations = await ReservationsService.getCustomerReservations(user.id);
-      setCustomerReservations(reservations);
+      setCustomerReservations(reservations as unknown as Reservation[]);
     } catch (error) {
       console.error('Error loading reservations:', error);
     } finally {
@@ -176,6 +203,7 @@ export default function ClientReservations() {
         ) : (
           filteredReservations.map((reservation, index) => {
             const statusConfig = getStatusConfig(reservation.status);
+            const items = reservation.reservation_items || [];
 
             return (
               <div
@@ -188,7 +216,7 @@ export default function ClientReservations() {
                   <div>
                     <div className="flex items-center flex-wrap gap-3 mb-2">
                       <h3 className="text-xl font-black text-white">
-                        {reservation.orderNumber}
+                        #{reservation.id.substring(0, 8).toUpperCase()}
                       </h3>
                       <span className={`inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-full border ${statusConfig.style}`}>
                         {statusConfig.icon}
@@ -197,7 +225,7 @@ export default function ClientReservations() {
                     </div>
                     <p className="text-sm text-gray-400 flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
-                      Réservée le {new Date(reservation.createdAt).toLocaleDateString('fr-FR', {
+                      Réservée le {new Date(reservation.created_at).toLocaleDateString('fr-FR', {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric'
@@ -206,20 +234,9 @@ export default function ClientReservations() {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-2xl font-black text-[#33ffcc] mb-1">
-                      {reservation.pricing.total}€
+                    <div className="text-2xl font-black text-[#33ffcc]">
+                      {reservation.total}€
                     </div>
-                    {reservation.payment.status === 'paid' ? (
-                      <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
-                        <CheckCircle className="w-4 h-4" />
-                        Payé
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-yellow-400 text-sm font-medium">
-                        <AlertCircle className="w-4 h-4" />
-                        En attente
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -232,10 +249,10 @@ export default function ClientReservations() {
                       <span className="text-sm font-bold">Produits</span>
                     </div>
                     <div className="text-white font-medium mb-2">
-                      {reservation.products.map(p => p.productName).join(', ')}
+                      {items.length} produit(s)
                     </div>
                     <div className="text-xs text-gray-400">
-                      {reservation.products.length} produit(s) • {reservation.products[0].duration} jour(s)
+                      {items.length > 0 && `${items[0].duration_days} jour(s)`}
                     </div>
                   </div>
 
@@ -246,57 +263,38 @@ export default function ClientReservations() {
                       <span className="text-sm font-bold">Dates</span>
                     </div>
                     <div className="text-white text-sm mb-1">
-                      <strong>Du:</strong> {new Date(reservation.dates.start).toLocaleDateString('fr-FR')}
+                      <strong>Du:</strong> {new Date(reservation.start_date).toLocaleDateString('fr-FR')}
                     </div>
                     <div className="text-white text-sm mb-2">
-                      <strong>Au:</strong> {new Date(reservation.dates.end).toLocaleDateString('fr-FR')}
+                      <strong>Au:</strong> {new Date(reservation.end_date).toLocaleDateString('fr-FR')}
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
-                      <Clock className="w-3.5 h-3.5" />
-                      Livraison: {reservation.dates.deliveryTime}
-                    </div>
+                    {reservation.delivery_time && (
+                      <div className="flex items-center gap-1 text-xs text-gray-400">
+                        <Clock className="w-3.5 h-3.5" />
+                        {reservation.delivery_type === 'delivery' ? 'Livraison' : 'Retrait'}: {reservation.delivery_time}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Paiement */}
+                  {/* Total */}
                   <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-2 text-green-400 mb-3">
-                      <CreditCard className="w-5 h-5" />
-                      <span className="text-sm font-bold">Paiement</span>
+                      <Euro className="w-5 h-5" />
+                      <span className="text-sm font-bold">Total</span>
                     </div>
                     <div className="text-2xl font-black text-white mb-2">
-                      {reservation.pricing.total}€
+                      {reservation.total}€
                     </div>
-                    {reservation.pricing.discount > 0 && (
+                    {reservation.discount > 0 && (
                       <div className="text-xs text-green-400 mb-1">
-                        -{reservation.pricing.discount}€ de réduction
+                        -{reservation.discount}€ de réduction
                       </div>
                     )}
                     <div className="text-xs text-gray-400">
-                      Méthode: {reservation.payment.method === 'card' ? 'Carte bancaire' : reservation.payment.method}
+                      {reservation.delivery_type === 'delivery' ? '🚚 Livraison' : '📦 Retrait'}
                     </div>
                   </div>
                 </div>
-
-                {/* Adresse de livraison */}
-                {reservation.delivery.address && (
-                  <div className="mb-5 p-4 bg-gradient-to-r from-[#33ffcc]/10 to-[#66cccc]/5 rounded-xl border border-[#33ffcc]/20">
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-[#33ffcc] mt-0.5" />
-                      <div>
-                        <div className="text-sm font-bold text-white mb-2">Adresse de livraison</div>
-                        <div className="text-sm text-gray-300 mb-1">
-                          {reservation.delivery.address.street}
-                        </div>
-                        <div className="text-sm text-gray-300 mb-2">
-                          {reservation.delivery.address.zipCode} {reservation.delivery.address.city}
-                        </div>
-                        <div className="inline-block px-3 py-1 bg-[#33ffcc]/20 border border-[#33ffcc]/30 rounded-full text-xs text-[#33ffcc] font-medium">
-                          Zone: {reservation.delivery.zone}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* Notes */}
                 {reservation.notes && (
@@ -309,7 +307,7 @@ export default function ClientReservations() {
                 {/* Footer actions */}
                 <div className="flex items-center justify-between pt-5 border-t border-white/10">
                   <div className="text-xs text-gray-500">
-                    {reservation.timeline.length} étape(s) • Dernière MAJ: {new Date(reservation.updatedAt).toLocaleDateString('fr-FR')}
+                    Dernière MAJ: {new Date(reservation.updated_at).toLocaleDateString('fr-FR')}
                   </div>
                   <Link
                     to={`/client/reservations/${reservation.id}`}

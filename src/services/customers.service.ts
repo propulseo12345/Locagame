@@ -45,13 +45,14 @@ export class CustomersService {
    * Crée un nouveau client (appelé après inscription auth)
    */
   static async createCustomer(customer: {
-    id: string; // ID de auth.users
+    id: string; // ID de auth.users ou UUID généré pour invité
     email: string;
     first_name?: string;
     last_name?: string;
     phone?: string;
     customer_type?: 'individual' | 'professional';
     company_name?: string;
+    siret?: string; // Nouveau champ SIRET pour professionnels
   }): Promise<Customer> {
     const { data, error } = await supabase
       .from('customers')
@@ -63,6 +64,7 @@ export class CustomersService {
         phone: customer.phone,
         customer_type: customer.customer_type || 'individual',
         company_name: customer.company_name,
+        siret: customer.siret,
         loyalty_points: 0,
       })
       .select()

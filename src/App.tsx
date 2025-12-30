@@ -33,6 +33,7 @@ const CGVPage = lazy(() => import('./pages/CGVPage'));
 const MentionsLegalesPage = lazy(() => import('./pages/MentionsLegalesPage'));
 const ConfidentialitePage = lazy(() => import('./pages/ConfidentialitePage'));
 const AProposPage = lazy(() => import('./pages/AProposPage'));
+const ConfirmationPage = lazy(() => import('./pages/ConfirmationPage'));
 
 // Admin pages
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
@@ -42,7 +43,6 @@ const AdminProductDetail = lazy(() => import('./pages/admin/AdminProductDetail')
 const AdminReservations = lazy(() => import('./pages/admin/AdminReservations'));
 const AdminPlanning = lazy(() => import('./pages/admin/AdminPlanning'));
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
-const AdminZones = lazy(() => import('./pages/admin/AdminZones'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 
 // Client pages
@@ -119,6 +119,7 @@ function AppContent() {
             <Route path={ROUTES.MENTIONS_LEGALES} element={<MentionsLegalesPage />} />
             <Route path={ROUTES.CONFIDENTIALITE} element={<ConfidentialitePage />} />
             <Route path={ROUTES.A_PROPOS} element={<AProposPage />} />
+            <Route path="/confirmation/:reservationId" element={<ConfirmationPage />} />
 
           {/* Admin Routes - Protégées */}
           <Route path={`${ROUTES.ADMIN.BASE}/*`} element={
@@ -131,7 +132,6 @@ function AppContent() {
                   <Route path="reservations" element={<AdminReservations />} />
                   <Route path="livraisons" element={<AdminPlanning />} />
                   <Route path="customers" element={<AdminCustomers />} />
-                  <Route path="zones" element={<AdminZones />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="*" element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
                 </Routes>

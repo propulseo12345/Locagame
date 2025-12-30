@@ -1,36 +1,100 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { SettingsService } from '../../services';
+import { Loader2, Check } from 'lucide-react';
 
 export default function AdminSettings() {
   const { user, updateUserProfile } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingCompany, setSavingCompany] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [companySaved, setCompanySaved] = useState(false);
+
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    phone: user?.phone || '',
+    firstName: '',
+    lastName: '',
+    phone: '',
   });
-  const [saved, setSaved] = useState(false);
+
+  const [companyData, setCompanyData] = useState({
+    company_name: '',
+    company_email: '',
+    company_phone: '',
+    company_address: '',
+  });
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        phone: user.phone || '',
-      });
-    }
+    loadData();
   }, [user]);
 
-  const handleSaveProfile = () => {
-    if (user) {
-      updateUserProfile({
+  const loadData = async () => {
+    try {
+      setLoading(true);
+
+      // Charger le profil utilisateur
+      if (user) {
+        setFormData({
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          phone: user.phone || '',
+        });
+      }
+
+      // Charger les paramètres de l'entreprise
+      const companySettings = await SettingsService.getCompanySettings();
+      setCompanyData(companySettings);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    setSavingProfile(true);
+    try {
+      await updateUserProfile({
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 3000);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Erreur lors de la sauvegarde du profil');
+    } finally {
+      setSavingProfile(false);
     }
   };
+
+  const handleSaveCompany = async () => {
+    setSavingCompany(true);
+    try {
+      await SettingsService.updateCompanySettings(companyData);
+      setCompanySaved(true);
+      setTimeout(() => setCompanySaved(false), 3000);
+    } catch (error) {
+      console.error('Error saving company settings:', error);
+      alert('Erreur lors de la sauvegarde des paramètres');
+    } finally {
+      setSavingCompany(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-[#33ffcc] animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Chargement des paramètres...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -86,14 +150,25 @@ export default function AdminSettings() {
                 />
               </div>
               <div className="flex justify-end items-center gap-3 pt-2">
-                {saved && (
-                  <span className="text-sm text-green-600">✓ Modifications enregistrées</span>
+                {profileSaved && (
+                  <span className="flex items-center gap-1 text-sm text-green-600">
+                    <Check className="w-4 h-4" />
+                    Profil enregistré
+                  </span>
                 )}
-                <button 
+                <button
                   onClick={handleSaveProfile}
-                  className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
+                  disabled={savingProfile}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors disabled:opacity-50"
                 >
-                  Enregistrer le profil
+                  {savingProfile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enregistrement...
+                    </>
+                  ) : (
+                    'Enregistrer le profil'
+                  )}
                 </button>
               </div>
             </div>
@@ -107,7 +182,8 @@ export default function AdminSettings() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Nom de l'entreprise</label>
                 <input
                   type="text"
-                  defaultValue="LOCAGAME"
+                  value={companyData.company_name}
+                  onChange={(e) => setCompanyData({...companyData, company_name: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
                 />
               </div>
@@ -115,7 +191,8 @@ export default function AdminSettings() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email de contact</label>
                 <input
                   type="email"
-                  defaultValue="contact@locagame.fr"
+                  value={companyData.company_email}
+                  onChange={(e) => setCompanyData({...companyData, company_email: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
                 />
               </div>
@@ -123,7 +200,8 @@ export default function AdminSettings() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
                 <input
                   type="tel"
-                  defaultValue="+33 4 12 34 56 78"
+                  value={companyData.company_phone}
+                  onChange={(e) => setCompanyData({...companyData, company_phone: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
                 />
               </div>
@@ -131,21 +209,37 @@ export default function AdminSettings() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
                 <textarea
                   rows={3}
-                  defaultValue="123 Rue de la République, 13001 Marseille"
+                  value={companyData.company_address}
+                  onChange={(e) => setCompanyData({...companyData, company_address: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
                 />
+              </div>
+              <div className="flex justify-end items-center gap-3 pt-2">
+                {companySaved && (
+                  <span className="flex items-center gap-1 text-sm text-green-600">
+                    <Check className="w-4 h-4" />
+                    Paramètres enregistrés
+                  </span>
+                )}
+                <button
+                  onClick={handleSaveCompany}
+                  disabled={savingCompany}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors disabled:opacity-50"
+                >
+                  {savingCompany ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enregistrement...
+                    </>
+                  ) : (
+                    'Enregistrer l\'entreprise'
+                  )}
+                </button>
               </div>
             </div>
           </div>
 
         </div>
-      </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <button className="px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors">
-          Enregistrer les modifications
-        </button>
       </div>
     </div>
   );

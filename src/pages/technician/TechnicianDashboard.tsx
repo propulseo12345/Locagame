@@ -1,22 +1,55 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { fakeDeliveryTasks, fakeVehicles } from '../../lib/fake-data';
-import { DeliveryTask } from '../../types';
+import { DeliveryTask, Vehicle } from '../../types';
 import { getCurrentDateISO, getCurrentDate, isToday } from '../../utils/fixedDate';
+import { DeliveryService, TechniciansService } from '../../services';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function TechnicianDashboard() {
   const navigate = useNavigate();
-  const fixedDate = getCurrentDate(); // 11/11/2025 5h31
+  const { userProfile } = useAuth();
+  const fixedDate = getCurrentDate();
   const [selectedDate, setSelectedDate] = useState(getCurrentDateISO());
   const [viewMode, setViewMode] = useState<'calendar' | 'vehicles' | 'list'>('calendar');
   const [selectedVehicle, setSelectedVehicle] = useState<string>('all');
   const [currentMonth, setCurrentMonth] = useState(fixedDate.getMonth());
   const [currentYear, setCurrentYear] = useState(fixedDate.getFullYear());
 
+  // États pour les données Supabase
+  const [allTasks, setAllTasks] = useState<DeliveryTask[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Charger les données depuis Supabase
+  useEffect(() => {
+    const loadData = async () => {
+      if (!userProfile?.id) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+        const [tasksData, vehiclesData] = await Promise.all([
+          DeliveryService.getTechnicianTasks(userProfile.id),
+          TechniciansService.getAllVehicles(),
+        ]);
+        setAllTasks(tasksData);
+        setVehicles(vehiclesData);
+      } catch (err) {
+        console.error('Erreur chargement données:', err);
+        setError('Impossible de charger vos tâches');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [userProfile]);
+
   // Filtrer les tâches par date
   const tasksForDate = useMemo(() => {
-    return fakeDeliveryTasks.filter(task => task.scheduledDate === selectedDate);
-  }, [selectedDate]);
+    return allTasks.filter(task => task.scheduledDate === selectedDate);
+  }, [selectedDate, allTasks]);
 
   // Grouper par véhicule
   const tasksByVehicle = useMemo(() => {
@@ -55,8 +88,8 @@ export default function TechnicianDashboard() {
   // Grouper toutes les tâches par date pour le calendrier
   const allTasksByDate = useMemo(() => {
     const grouped: Record<string, DeliveryTask[]> = {};
-    
-    fakeDeliveryTasks.forEach(task => {
+
+    allTasks.forEach(task => {
       if (!grouped[task.scheduledDate]) {
         grouped[task.scheduledDate] = [];
       }
@@ -69,7 +102,7 @@ export default function TechnicianDashboard() {
     });
 
     return grouped;
-  }, []);
+  }, [allTasks]);
 
   // Générer les jours du mois pour le calendrier
   const calendarDays = useMemo(() => {
@@ -210,7 +243,7 @@ export default function TechnicianDashboard() {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#33ffcc]"
             >
               <option value="all">Tous les véhicules</option>
-              {fakeVehicles.map(vehicle => (
+              {vehicles.map(vehicle => (
                 <option key={vehicle.id} value={vehicle.id}>
                   {vehicle.name} ({vehicle.licensePlate})
                 </option>
@@ -424,7 +457,7 @@ export default function TechnicianDashboard() {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {Object.entries(tasksByVehicle).map(([vehicleId, tasks]) => {
-                const vehicle = fakeVehicles.find(v => v.id === vehicleId);
+                const vehicle = vehicles.find(v => v.id === vehicleId);
                 return (
                   <div key={vehicleId} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-4">
@@ -496,7 +529,7 @@ export default function TechnicianDashboard() {
           ) : (
             <div className="space-y-4">
               {allTasksSorted.map(task => {
-                const vehicle = fakeVehicles.find(v => v.id === task.vehicleId);
+                const vehicle = vehicles.find(v => v.id === task.vehicleId);
                 return (
                   <Link
                     key={task.id}

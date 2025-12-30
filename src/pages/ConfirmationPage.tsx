@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { CheckCircle, Package, Truck, Calendar, MapPin, Phone, Mail, ArrowLeft, Download } from 'lucide-react';
+import { CheckCircle, Package, Truck, Calendar, MapPin, Phone, Mail, ArrowLeft, Clock, PartyPopper } from 'lucide-react';
 import { ReservationsService } from '../services/reservations.service';
 import { formatPrice, formatDate } from '../utils/pricing';
 
@@ -31,18 +31,18 @@ export default function ConfirmationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-header flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] pt-header flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#33ffcc] border-t-transparent"></div>
       </div>
     );
   }
 
   if (error || !reservation) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-header flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] pt-header flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">❌ {error || 'Réservation introuvable'}</div>
-          <Link to="/" className="text-blue-600 hover:underline">
+          <div className="text-red-400 text-xl mb-4">{error || 'Réservation introuvable'}</div>
+          <Link to="/" className="text-[#33ffcc] hover:underline">
             Retour à l'accueil
           </Link>
         </div>
@@ -51,193 +51,191 @@ export default function ConfirmationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-header">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* En-tête de confirmation */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
-            <CheckCircle className="w-12 h-12 text-green-600" />
+    <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] pt-header">
+      <div className="max-w-5xl mx-auto px-4 py-6">
+
+        {/* En-tête de félicitations */}
+        <div className="bg-white/5 rounded-2xl border border-white/10 p-8 mb-6 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-[#33ffcc]/20 rounded-full mb-4">
+            <PartyPopper className="w-12 h-12 text-[#33ffcc]" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Réservation confirmée !
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Félicitations !
           </h1>
-          <p className="text-gray-600 mb-4">
-            Merci pour votre confiance. Votre réservation a été enregistrée avec succès.
+          <p className="text-xl text-[#33ffcc] font-medium mb-4">
+            Votre demande a bien été envoyée
           </p>
-          <div className="inline-block bg-blue-50 px-6 py-3 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Numéro de réservation</p>
-            <p className="text-2xl font-bold text-blue-600">
+
+          <div className="inline-block bg-[#33ffcc]/10 border border-[#33ffcc]/30 px-6 py-3 rounded-xl mb-6">
+            <p className="text-sm text-gray-400 mb-1">Numéro de demande</p>
+            <p className="text-2xl font-bold text-[#33ffcc]">
               #{reservation.id.substring(0, 8).toUpperCase()}
             </p>
           </div>
+
+          {/* Message important */}
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-left">
+            <div className="flex items-start gap-3">
+              <Clock className="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-white font-semibold mb-1">Prochaine étape</p>
+                <p className="text-gray-300 text-sm">
+                  L'équipe LOCAGAME va examiner votre demande et reviendra vers vous
+                  <strong className="text-white"> sous 24h</strong> pour confirmer la disponibilité
+                  et valider votre réservation.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Détails de la réservation */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Package className="w-6 h-6" />
-            Détails de votre réservation
-          </h2>
-
+        {/* Contenu principal en 2 colonnes */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Colonne gauche - Récapitulatif */}
           <div className="space-y-4">
-            {/* Dates */}
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-              <Calendar className="w-5 h-5 text-blue-600 mt-1" />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">Période de location</p>
-                <p className="text-sm text-gray-600">
-                  Du {formatDate(reservation.start_date)}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Au {formatDate(reservation.end_date)}
-                </p>
-              </div>
-            </div>
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
+              <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <Package className="w-5 h-5 text-[#33ffcc]" />
+                Récapitulatif
+              </h2>
 
-            {/* Type de livraison */}
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-              <Truck className="w-5 h-5 text-blue-600 mt-1" />
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">
-                  {reservation.delivery_type === 'delivery' ? 'Livraison à domicile' : 'Retrait en magasin'}
-                </p>
-                {reservation.delivery_type === 'delivery' && (
-                  <>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {formatDate(reservation.start_date)} à {reservation.delivery_time || '09:00'}
-                    </p>
-                    <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {reservation.delivery_address_id ? 'Adresse enregistrée' : 'Adresse fournie'}
-                    </p>
-                  </>
-                )}
-                {reservation.delivery_type === 'pickup' && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    À récupérer le {formatDate(reservation.start_date)}
+              {/* Dates & Livraison en ligne */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="p-3 bg-white/5 rounded-xl">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="w-4 h-4 text-[#33ffcc]" />
+                    <p className="font-medium text-white text-sm">Période</p>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    {formatDate(reservation.start_date)} → {formatDate(reservation.end_date)}
                   </p>
-                )}
-              </div>
-            </div>
-
-            {/* Produits */}
-            <div>
-              <p className="font-medium text-gray-900 mb-3">Produits réservés</p>
-              <div className="space-y-2">
-                {reservation.reservation_items?.map((item: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900">{item.product_name || `Produit ${index + 1}`}</p>
-                      <p className="text-sm text-gray-600">
-                        Quantité: {item.quantity} × {formatPrice(item.unit_price)}
-                      </p>
-                    </div>
-                    <p className="font-semibold text-gray-900">
-                      {formatPrice(item.subtotal)}
+                </div>
+                <div className="p-3 bg-white/5 rounded-xl">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Truck className="w-4 h-4 text-[#33ffcc]" />
+                    <p className="font-medium text-white text-sm">
+                      {reservation.delivery_type === 'delivery' ? 'Livraison' : 'Retrait'}
                     </p>
                   </div>
-                ))}
+                  <p className="text-xs text-gray-400">
+                    {reservation.delivery_type === 'pickup'
+                      ? '553 rue St Pierre, 13012'
+                      : reservation.delivery_time || 'À confirmer'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Produits */}
+              {reservation.reservation_items && reservation.reservation_items.length > 0 && (
+                <div className="space-y-2">
+                  {reservation.reservation_items.map((item: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-2 bg-white/5 rounded-lg text-sm"
+                    >
+                      <div>
+                        <p className="font-medium text-white">{item.product_name || `Produit ${index + 1}`}</p>
+                        <p className="text-xs text-gray-400">Qté: {item.quantity}</p>
+                      </div>
+                      <p className="font-semibold text-white">{formatPrice(item.subtotal)}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Total */}
+            <div className="bg-[#33ffcc]/10 rounded-2xl border border-[#33ffcc]/30 p-4">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between text-gray-400">
+                  <span>Sous-total</span>
+                  <span className="text-white">{formatPrice(reservation.subtotal)}</span>
+                </div>
+                {reservation.delivery_fee > 0 && (
+                  <div className="flex justify-between text-gray-400">
+                    <span>Livraison</span>
+                    <span className="text-white">{formatPrice(reservation.delivery_fee)}</span>
+                  </div>
+                )}
+                {reservation.delivery_type === 'pickup' && (
+                  <div className="flex justify-between text-gray-400">
+                    <span>Retrait</span>
+                    <span className="text-green-400">Gratuit</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-white/10 flex justify-between items-center">
+                  <span className="font-semibold text-white">Total estimé</span>
+                  <span className="text-xl font-bold text-[#33ffcc]">{formatPrice(reservation.total)}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Récapitulatif financier */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Récapitulatif</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between text-gray-600">
-              <span>Sous-total</span>
-              <span>{formatPrice(reservation.subtotal)}</span>
+          {/* Colonne droite - Prochaines étapes */}
+          <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
+            <h3 className="font-bold text-white mb-4">Et maintenant ?</h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 bg-[#33ffcc]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-[#33ffcc] font-bold text-xs">1</span>
+                </div>
+                <div>
+                  <p className="text-white font-medium text-sm">Vérification disponibilité</p>
+                  <p className="text-gray-400 text-xs">Nous vérifions le matériel aux dates souhaitées.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 bg-[#33ffcc]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-[#33ffcc] font-bold text-xs">2</span>
+                </div>
+                <div>
+                  <p className="text-white font-medium text-sm">Confirmation sous 24h</p>
+                  <p className="text-gray-400 text-xs">Nous vous contactons par email ou téléphone.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 bg-[#33ffcc]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-[#33ffcc] font-bold text-xs">3</span>
+                </div>
+                <div>
+                  <p className="text-white font-medium text-sm">Paiement et validation</p>
+                  <p className="text-gray-400 text-xs">Finalisez votre réservation en toute sécurité.</p>
+                </div>
+              </div>
             </div>
-            {reservation.delivery_fee > 0 && (
-              <div className="flex justify-between text-gray-600">
-                <span>Frais de livraison</span>
-                <span>{formatPrice(reservation.delivery_fee)}</span>
-              </div>
-            )}
-            {reservation.discount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span>Réduction</span>
-                <span>-{formatPrice(reservation.discount)}</span>
-              </div>
-            )}
-            {reservation.deposit > 0 && (
-              <div className="flex justify-between text-orange-600">
-                <span>Caution (remboursable)</span>
-                <span>{formatPrice(reservation.deposit)}</span>
-              </div>
-            )}
-            <div className="pt-3 border-t border-gray-200">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-gray-900">Total</span>
-                <span className="text-2xl font-bold text-blue-600">
-                  {formatPrice(reservation.total)}
-                </span>
+
+            {/* Contact intégré */}
+            <div className="mt-6 pt-4 border-t border-white/10">
+              <p className="text-gray-400 text-xs mb-2">Une question ?</p>
+              <div className="flex items-center gap-4 text-sm">
+                <a href="tel:0430220383" className="flex items-center gap-1 text-[#33ffcc] hover:underline">
+                  <Phone className="w-3 h-3" />
+                  04 30 22 03 83
+                </a>
+                <a href="mailto:contact@locagame.fr" className="flex items-center gap-1 text-[#33ffcc] hover:underline">
+                  <Mail className="w-3 h-3" />
+                  contact@locagame.fr
+                </a>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Informations importantes */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-          <h3 className="font-bold text-blue-900 mb-3">📧 Confirmation envoyée</h3>
-          <p className="text-blue-800 text-sm mb-4">
-            Un email de confirmation a été envoyé à votre adresse. Vous y trouverez tous les détails de votre réservation.
-          </p>
-
-          {reservation.deposit > 0 && (
-            <>
-              <h3 className="font-bold text-blue-900 mb-2 mt-4">💰 Caution</h3>
-              <p className="text-blue-800 text-sm">
-                Une caution de {formatPrice(reservation.deposit)} a été prélevée. Elle vous sera intégralement remboursée après retour du matériel en bon état.
-              </p>
-            </>
-          )}
-
-          {reservation.delivery_type === 'delivery' && (
-            <>
-              <h3 className="font-bold text-blue-900 mb-2 mt-4">🚚 Livraison et Retrait</h3>
-              <p className="text-blue-800 text-sm">
-                Le matériel sera livré le {formatDate(reservation.start_date)} et récupéré le {formatDate(reservation.end_date)}. Vous recevrez un SMS la veille de chaque intervention.
-              </p>
-            </>
-          )}
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link
-            to="/client/reservations"
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Voir mes réservations
-          </Link>
+        <div className="flex gap-4">
           <Link
             to="/catalogue"
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 font-semibold rounded-lg border-2 border-gray-300 hover:bg-gray-50 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-xl hover:bg-[#66cccc] transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             Retour au catalogue
           </Link>
-        </div>
-
-        {/* Aide */}
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p className="mb-2">Besoin d'aide ? Contactez-nous :</p>
-          <div className="flex items-center justify-center gap-6">
-            <a href="tel:0612345678" className="flex items-center gap-2 text-blue-600 hover:underline">
-              <Phone className="w-4 h-4" />
-              06 12 34 56 78
-            </a>
-            <a href="mailto:contact@locagame.fr" className="flex items-center gap-2 text-blue-600 hover:underline">
-              <Mail className="w-4 h-4" />
-              contact@locagame.fr
-            </a>
-          </div>
+          <Link
+            to="/"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl border border-white/20 hover:bg-white/20 transition-colors"
+          >
+            Accueil
+          </Link>
         </div>
       </div>
     </div>
