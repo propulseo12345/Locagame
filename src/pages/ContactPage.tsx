@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle, ArrowLeft } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
+import { FaqsService, type FAQ } from '../services';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,19 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+
+  useEffect(() => {
+    async function fetchFaqs() {
+      try {
+        const data = await FaqsService.getFaqs();
+        setFaqs(data);
+      } catch (error) {
+        console.error('Failed to fetch FAQs:', error);
+      }
+    }
+    fetchFaqs();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -30,13 +44,6 @@ export default function ContactPage() {
     setIsSubmitting(false);
     setIsSubmitted(true);
   };
-
-  const faqs = [
-    { q: 'Quel est le délai de réservation ?', a: 'Minimum 48h pour les livraisons, 24h pour le retrait.' },
-    { q: 'Installation incluse ?', a: 'Oui, installation et démontage gratuits.' },
-    { q: 'Modes de paiement ?', a: 'CB, virement, chèque et espèces.' },
-    { q: 'Zone de livraison ?', a: 'Toute la région PACA, et au-delà sur devis.' }
-  ];
 
   // État de succès
   if (isSubmitted) {
@@ -263,10 +270,10 @@ export default function ContactPage() {
             <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
               <h3 className="text-lg font-bold text-white mb-4">Questions fréquentes</h3>
               <div className="space-y-4">
-                {faqs.map((faq, index) => (
-                  <div key={index}>
-                    <p className="text-white text-sm font-medium mb-1">{faq.q}</p>
-                    <p className="text-gray-400 text-sm">{faq.a}</p>
+                {faqs.map((faq) => (
+                  <div key={faq.id}>
+                    <p className="text-white text-sm font-medium mb-1">{faq.question}</p>
+                    <p className="text-gray-400 text-sm">{faq.answer}</p>
                   </div>
                 ))}
               </div>

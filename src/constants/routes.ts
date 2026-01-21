@@ -13,7 +13,6 @@ export const ROUTES = {
   CHECKOUT: '/checkout',
   EVENTS: '/evenements',
   EVENT_DETAIL: (id: string) => `/evenements/${id}`,
-  ZONES: '/zones',
   CONTACT: '/contact',
   DEMO: '/demo',
 
@@ -31,7 +30,6 @@ export const ROUTES = {
     RESERVATIONS: '/admin/reservations',
     LIVRAISONS: '/admin/livraisons',
     CUSTOMERS: '/admin/customers',
-    ZONES: '/admin/zones',
     SETTINGS: '/admin/settings',
   },
 
@@ -67,7 +65,6 @@ export function isPublicRoute(pathname: string): boolean {
     ROUTES.CART,
     ROUTES.CHECKOUT,
     ROUTES.EVENTS,
-    ROUTES.ZONES,
     ROUTES.CONTACT,
     ROUTES.DEMO,
   ];

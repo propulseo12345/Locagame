@@ -15,21 +15,25 @@ interface DeliveryStepProps {
   delivery: DeliveryData;
   errors: Record<string, string>;
   onChange: (data: DeliveryData) => void;
+  timeSlots?: { id: string; label: string }[];
 }
 
 const inputClass = "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#33ffcc] focus:outline-none transition-colors";
 const labelClass = "block text-sm text-gray-400 mb-1.5";
 const errorClass = "text-red-400 text-xs mt-1";
 
-const timeSlots = [
-  '08:00 - 10:00',
-  '10:00 - 12:00',
-  '14:00 - 16:00',
-  '16:00 - 18:00',
-  '18:00 - 20:00'
+// Fallback timeSlots si non fournis (pour compatibilité)
+const defaultTimeSlots = [
+  { id: '1', label: '08:00 - 10:00' },
+  { id: '2', label: '10:00 - 12:00' },
+  { id: '3', label: '14:00 - 16:00' },
+  { id: '4', label: '16:00 - 18:00' },
+  { id: '5', label: '18:00 - 20:00' }
 ];
 
-export function DeliveryStep({ delivery, errors, onChange }: DeliveryStepProps) {
+export function DeliveryStep({ delivery, errors, onChange, timeSlots }: DeliveryStepProps) {
+  const slots = timeSlots && timeSlots.length > 0 ? timeSlots : defaultTimeSlots;
+
   const updateField = (field: keyof DeliveryData, value: string) => {
     onChange({ ...delivery, [field]: value });
   };
@@ -121,8 +125,8 @@ export function DeliveryStep({ delivery, errors, onChange }: DeliveryStepProps) 
                 className={`${inputClass} pl-10`}
               >
                 <option value="" className="bg-[#000033]">Sélectionnez</option>
-                {timeSlots.map(slot => (
-                  <option key={slot} value={slot} className="bg-[#000033]">{slot}</option>
+                {slots.map(slot => (
+                  <option key={slot.id} value={slot.label} className="bg-[#000033]">{slot.label}</option>
                 ))}
               </select>
             </div>
@@ -155,8 +159,8 @@ export function DeliveryStep({ delivery, errors, onChange }: DeliveryStepProps) 
               className={inputClass}
             >
               <option value="" className="bg-[#000033]">Sélectionnez</option>
-              {timeSlots.map(slot => (
-                <option key={slot} value={slot} className="bg-[#000033]">{slot}</option>
+              {slots.map(slot => (
+                <option key={slot.id} value={slot.label} className="bg-[#000033]">{slot.label}</option>
               ))}
             </select>
           </div>

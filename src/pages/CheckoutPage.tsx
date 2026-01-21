@@ -24,7 +24,18 @@ import {
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatPrice } from '../utils/pricing';
-import { ReservationsService, CustomersService, AddressesService, ProductsService } from '../services';
+import {
+  ReservationsService,
+  CustomersService,
+  AddressesService,
+  ProductsService,
+  EventTypesService,
+  TimeSlotsService,
+  AccessDifficultyService,
+  type EventType,
+  type TimeSlot,
+  type AccessDifficultyType
+} from '../services';
 import { DistanceService, PRICE_PER_KM } from '../services/distance.service';
 import PickupForm from '../components/checkout/PickupForm';
 
@@ -110,6 +121,30 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Données dynamiques depuis Supabase
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [accessDifficulties, setAccessDifficulties] = useState<AccessDifficultyType[]>([]);
+
+  // Charger les données de référence
+  useEffect(() => {
+    async function fetchLookupData() {
+      try {
+        const [types, slots, difficulties] = await Promise.all([
+          EventTypesService.getEventTypes(),
+          TimeSlotsService.getTimeSlots(),
+          AccessDifficultyService.getAccessDifficulties()
+        ]);
+        setEventTypes(types);
+        setTimeSlots(slots);
+        setAccessDifficulties(difficulties);
+      } catch (error) {
+        console.error('Failed to load checkout data:', error);
+      }
+    }
+    fetchLookupData();
+  }, []);
+
   // Calcul des frais kilométriques
   const [calculatedDeliveryFee, setCalculatedDeliveryFee] = useState(0);
   const [deliveryDistance, setDeliveryDistance] = useState(0);
@@ -165,33 +200,6 @@ export default function CheckoutPage() {
     { id: 'recipient', label: 'Réception', icon: UserCheck },
     { id: 'delivery', label: 'Livraison', icon: MapPin },
     { id: 'payment', label: 'Récapitulatif', icon: ClipboardList }
-  ];
-
-  const timeSlots = [
-    '08:00 - 10:00',
-    '10:00 - 12:00',
-    '14:00 - 16:00',
-    '16:00 - 18:00',
-    '18:00 - 20:00'
-  ];
-
-  const eventTypes = [
-    'Mariage',
-    'Anniversaire',
-    'Événement d\'entreprise',
-    'Team building',
-    'Festival',
-    'Fête de famille',
-    'Kermesse',
-    'Autre'
-  ];
-
-  const accessDifficulties = [
-    { value: 'none', label: 'Aucune difficulté' },
-    { value: 'stairs', label: 'Escaliers (pas d\'ascenseur)' },
-    { value: 'narrow', label: 'Passage étroit' },
-    { value: 'distance', label: 'Longue distance de portage' },
-    { value: 'other', label: 'Autre (préciser)' }
   ];
 
   const getCurrentStepIndex = () => steps.findIndex(s => s.id === currentStep);
@@ -881,7 +889,7 @@ export default function CheckoutPage() {
                           >
                             <option value="" className="bg-[#000033]">Sélectionnez</option>
                             {timeSlots.map(slot => (
-                              <option key={slot} value={slot} className="bg-[#000033]">{slot}</option>
+                              <option key={slot.id} value={slot.label} className="bg-[#000033]">{slot.label}</option>
                             ))}
                           </select>
                         </div>
@@ -916,7 +924,7 @@ export default function CheckoutPage() {
                         >
                           <option value="" className="bg-[#000033]">Sélectionnez</option>
                           {timeSlots.map(slot => (
-                            <option key={slot} value={slot} className="bg-[#000033]">{slot}</option>
+                            <option key={slot.id} value={slot.label} className="bg-[#000033]">{slot.label}</option>
                           ))}
                         </select>
                       </div>
@@ -941,7 +949,7 @@ export default function CheckoutPage() {
                           >
                             <option value="" className="bg-[#000033]">Sélectionnez</option>
                             {eventTypes.map(type => (
-                              <option key={type} value={type} className="bg-[#000033]">{type}</option>
+                              <option key={type.id} value={type.name} className="bg-[#000033]">{type.name}</option>
                             ))}
                           </select>
                           {errors.eventType && <p className={errorClass}>{errors.eventType}</p>}

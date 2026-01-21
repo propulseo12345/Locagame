@@ -19,6 +19,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Réservations', href: '/admin/reservations' },
     { label: 'Livraisons', href: '/admin/livraisons' },
     { label: 'Clients', href: '/admin/customers' },
+    { label: 'Types d\'événements', href: '/admin/event-types' },
+    { label: 'Créneaux horaires', href: '/admin/time-slots' },
+    { label: 'Témoignages', href: '/admin/testimonials' },
+    { label: 'FAQ', href: '/admin/faqs' },
+    { label: 'Portfolio', href: '/admin/portfolio' },
     { label: 'Paramètres', href: '/admin/settings' }
   ];
 

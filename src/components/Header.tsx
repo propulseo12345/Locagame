@@ -9,7 +9,6 @@ const NAV_LINKS = [
   { path: '/', label: 'Accueil' },
   { path: '/catalogue', label: 'Catalogue' },
   { path: '/evenements', label: 'Événements' },
-  { path: '/zones', label: 'Zones de livraison' },
   { path: '/contact', label: 'Contact' },
 ] as const;
 

@@ -1,36 +1,28 @@
 import { Star, Quote, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { ScrollReveal } from './ui';
-
-const testimonials = [
-  {
-    id: 1,
-    name: 'Olivier',
-    role: 'Particulier',
-    location: 'Le Muy (83)',
-    rating: 5,
-    text: 'PING-PONG : 87 tournantes & 187 parties endiablées, BABY-FOOT : 17 gamelles & 26 "fanny". Bref, c\'était toooop !!!'
-  },
-  {
-    id: 2,
-    name: 'Céline',
-    role: 'Responsable CSE',
-    location: 'Aix-en-Provence (13)',
-    rating: 5,
-    text: 'Merci encore pour la soirée gaming. Je n\'ai eu que de bons retours de la part des collaborateurs. On recommencera !'
-  },
-  {
-    id: 3,
-    name: 'Jean-René',
-    role: 'Professionnel',
-    location: 'Avignon (84)',
-    rating: 5,
-    text: 'J\'ai loué des jeux anciens en bois pour un événement professionnel. Tout le monde a passé un excellent moment. Service au top !'
-  }
-];
+import { TestimonialsService, type Testimonial } from '../services';
 
 export function Testimonials() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchTestimonials() {
+      try {
+        const data = await TestimonialsService.getFeaturedTestimonials();
+        setTestimonials(data);
+      } catch (error) {
+        console.error('Failed to fetch testimonials:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTestimonials();
+  }, []);
+
   // Variantes d'animation
   const containerVariants = {
     hidden: {},
@@ -123,7 +115,7 @@ export function Testimonials() {
 
               {/* Texte */}
               <p className="text-gray-300 leading-relaxed mb-8">
-                "{testimonial.text}"
+                "{testimonial.content}"
               </p>
 
               {/* Auteur */}
@@ -133,11 +125,11 @@ export function Testimonials() {
                   whileHover={{ scale: 1.1, rotate: 10 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {testimonial.name.charAt(0)}
+                  {testimonial.author_name.charAt(0)}
                 </motion.div>
                 <div>
-                  <p className="text-white font-semibold">{testimonial.name}</p>
-                  <p className="text-gray-500 text-sm">{testimonial.role} - {testimonial.location}</p>
+                  <p className="text-white font-semibold">{testimonial.author_name}</p>
+                  <p className="text-gray-500 text-sm">{testimonial.author_role} - {testimonial.author_location}</p>
                 </div>
               </div>
             </motion.div>

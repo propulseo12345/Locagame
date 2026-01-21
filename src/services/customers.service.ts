@@ -149,4 +149,45 @@ export class CustomersService {
       throw error;
     }
   }
+
+  /**
+   * Supprime un client de force en supprimant d'abord toutes les données liées (admin)
+   */
+  static async forceDeleteCustomer(id: string): Promise<void> {
+    // 1. Supprimer les favoris du client
+    await supabase.from('customer_favorites').delete().eq('customer_id', id);
+
+    // 2. Récupérer les réservations du client pour supprimer les données liées
+    const { data: reservations } = await supabase
+      .from('reservations')
+      .select('id')
+      .eq('customer_id', id);
+
+    if (reservations && reservations.length > 0) {
+      const reservationIds = reservations.map(r => r.id);
+
+      // 3. Supprimer les items de réservation
+      await supabase.from('reservation_items').delete().in('reservation_id', reservationIds);
+
+      // 4. Supprimer les disponibilités produits liées aux réservations
+      await supabase.from('product_availability').delete().in('reservation_id', reservationIds);
+
+      // 5. Supprimer les tâches de livraison
+      await supabase.from('delivery_tasks').delete().in('reservation_id', reservationIds);
+
+      // 6. Supprimer les réservations
+      await supabase.from('reservations').delete().eq('customer_id', id);
+    }
+
+    // 7. Supprimer les adresses du client
+    await supabase.from('addresses').delete().eq('customer_id', id);
+
+    // 8. Enfin, supprimer le client
+    const { error } = await supabase.from('customers').delete().eq('id', id);
+
+    if (error) {
+      console.error('Error force deleting customer:', error);
+      throw error;
+    }
+  }
 }

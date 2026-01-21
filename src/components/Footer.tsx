@@ -67,12 +67,6 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/zones" className="text-gray-400 hover:text-[#33ffcc] transition-colors inline-flex items-center gap-1 group">
-                    Zones de livraison
-                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                  </Link>
-                </li>
-                <li>
                   <Link to="/contact" className="text-gray-400 hover:text-[#33ffcc] transition-colors inline-flex items-center gap-1 group">
                     Contact
                     <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
@@ -158,7 +152,7 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-1 sm:px-2 lg:px-3 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-gray-500 text-sm">
-              © 2025 LOCAGAME - Poker Agency®. Tous droits réservés.
+              © {new Date().getFullYear()} LOCAGAME - Poker Agency®. Tous droits réservés.
             </p>
             <p className="text-gray-600 text-sm">
               Fait avec passion par{' '}

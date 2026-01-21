@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { DeliveryTask, Vehicle } from '../../types';
-import { DeliveryService, TechniciansService } from '../../services';
+import { DeliveryTask, Vehicle, Order } from '../../types';
+import { DeliveryService, TechniciansService, ReservationsService } from '../../services';
 import { Technician } from '../../services/technicians.service';
+import { User, Zap, Car, Building, Users, Calendar as CalendarIcon, MapPin } from 'lucide-react';
 
 export default function TechnicianTaskDetail() {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +12,7 @@ export default function TechnicianTaskDetail() {
   const [task, setTask] = useState<DeliveryTask | null>(null);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [technician, setTechnician] = useState<Technician | null>(null);
+  const [reservation, setReservation] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,13 +29,15 @@ export default function TechnicianTaskDetail() {
         }
         setTask(taskData);
 
-        // Load vehicle and technician info
-        const [vehicleData, technicianData] = await Promise.all([
+        // Load vehicle, technician info and reservation details
+        const [vehicleData, technicianData, reservationData] = await Promise.all([
           taskData.vehicleId ? TechniciansService.getVehicleById(taskData.vehicleId) : null,
           taskData.technicianId ? TechniciansService.getTechnicianById(taskData.technicianId) : null,
+          taskData.reservationId ? ReservationsService.getReservationById(taskData.reservationId) : null,
         ]);
         setVehicle(vehicleData);
         setTechnician(technicianData);
+        setReservation(reservationData);
       } catch (err) {
         console.error('Erreur chargement tâche:', err);
         setError('Erreur lors du chargement');
@@ -160,7 +164,10 @@ export default function TechnicianTaskDetail() {
         <div className="lg:col-span-2 space-y-6">
           {/* Informations client */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Informations client</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <User className="w-5 h-5 text-[#33ffcc]" />
+              Informations client
+            </h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Nom</p>
@@ -170,7 +177,7 @@ export default function TechnicianTaskDetail() {
               </div>
               <div>
                 <p className="text-sm text-gray-600 mb-1">Téléphone</p>
-                <a 
+                <a
                   href={`tel:${task.customer.phone}`}
                   className="text-base font-semibold text-[#33ffcc] hover:text-[#66cccc]"
                 >
@@ -179,7 +186,7 @@ export default function TechnicianTaskDetail() {
               </div>
               <div>
                 <p className="text-sm text-gray-600 mb-1">Email</p>
-                <a 
+                <a
                   href={`mailto:${task.customer.email}`}
                   className="text-base font-semibold text-gray-900 hover:text-[#33ffcc]"
                 >
@@ -194,6 +201,99 @@ export default function TechnicianTaskDetail() {
               </div>
             </div>
           </div>
+
+          {/* Réceptionnaire (si différent du client) */}
+          {reservation?.recipient_data && !(reservation.recipient_data as any).sameAsCustomer && (
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-orange-200 bg-orange-50">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-orange-500" />
+                Réceptionnaire sur place
+              </h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Nom</p>
+                  <p className="text-base font-semibold text-gray-900">
+                    {(reservation.recipient_data as any).firstName} {(reservation.recipient_data as any).lastName}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Téléphone</p>
+                  <a
+                    href={`tel:${(reservation.recipient_data as any).phone}`}
+                    className="text-base font-semibold text-[#33ffcc] hover:text-[#66cccc]"
+                  >
+                    {(reservation.recipient_data as any).phone}
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Détails de l'événement */}
+          {reservation?.event_details && (
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5 text-purple-500" />
+                Détails de l'événement
+              </h2>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {reservation.event_type && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Type d'événement</p>
+                    <p className="text-base font-semibold text-gray-900">{reservation.event_type}</p>
+                  </div>
+                )}
+                {(reservation.event_details as any).guestCount && (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Nombre d'invités</p>
+                    <p className="text-base font-semibold text-gray-900">{(reservation.event_details as any).guestCount} personnes</p>
+                  </div>
+                )}
+                {(reservation.event_details as any).venueName && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-gray-600 mb-1">Lieu / Salle</p>
+                    <p className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      {(reservation.event_details as any).venueName}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Infos importantes pour le technicien */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 border-t border-gray-200">
+                <div className={`flex items-center gap-2 p-2 rounded-lg ${(reservation.event_details as any).hasElevator ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  <Building className="w-4 h-4" />
+                  <span className="text-sm">Ascenseur {(reservation.event_details as any).hasElevator ? '✓' : '✗'}</span>
+                </div>
+                <div className={`flex items-center gap-2 p-2 rounded-lg ${(reservation.event_details as any).parkingAvailable ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  <Car className="w-4 h-4" />
+                  <span className="text-sm">Parking {(reservation.event_details as any).parkingAvailable ? '✓' : '✗'}</span>
+                </div>
+                <div className={`flex items-center gap-2 p-2 rounded-lg ${(reservation.event_details as any).electricityAvailable ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                  <Zap className="w-4 h-4" />
+                  <span className="text-sm">Électricité {(reservation.event_details as any).electricityAvailable ? '✓' : '✗'}</span>
+                </div>
+                {(reservation.event_details as any).floorNumber && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 text-blue-700">
+                    <span className="text-sm">Étage {(reservation.event_details as any).floorNumber}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Difficulté d'accès */}
+              {(reservation.event_details as any).accessDifficulty && (reservation.event_details as any).accessDifficulty !== 'Aucune' && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm font-semibold text-yellow-800">
+                    Difficulté d'accès: {(reservation.event_details as any).accessDifficulty}
+                  </p>
+                  {(reservation.event_details as any).accessDetails && (
+                    <p className="text-sm text-yellow-700 mt-1">{(reservation.event_details as any).accessDetails}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Adresse */}
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">

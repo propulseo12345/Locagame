@@ -26,7 +26,6 @@ const CartPage = lazy(() => import('./pages/CartPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
 const EventDetailPage = lazy(() => import('./pages/EventDetailPage'));
-const ZonesPage = lazy(() => import('./pages/ZonesPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const InterfacesDemo = lazy(() => import('./pages/InterfacesDemo'));
 const CGVPage = lazy(() => import('./pages/CGVPage'));
@@ -41,9 +40,15 @@ const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const AdminProductDetail = lazy(() => import('./pages/admin/AdminProductDetail'));
 const AdminReservations = lazy(() => import('./pages/admin/AdminReservations'));
+const AdminReservationDetail = lazy(() => import('./pages/admin/AdminReservationDetail'));
 const AdminPlanning = lazy(() => import('./pages/admin/AdminPlanning'));
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminEventTypes = lazy(() => import('./pages/admin/AdminEventTypes'));
+const AdminTimeSlots = lazy(() => import('./pages/admin/AdminTimeSlots'));
+const AdminTestimonials = lazy(() => import('./pages/admin/AdminTestimonials'));
+const AdminFaqs = lazy(() => import('./pages/admin/AdminFaqs'));
+const AdminPortfolioEvents = lazy(() => import('./pages/admin/AdminPortfolioEvents'));
 
 // Client pages
 const ClientLayout = lazy(() => import('./components/client/ClientLayout'));
@@ -112,7 +117,6 @@ function AppContent() {
             <Route path={ROUTES.CHECKOUT} element={<CheckoutPage />} />
             <Route path={ROUTES.EVENTS} element={<EventsPage />} />
             <Route path="/evenements/:id" element={<EventDetailPage />} />
-            <Route path={ROUTES.ZONES} element={<ZonesPage />} />
             <Route path={ROUTES.CONTACT} element={<ContactPage />} />
             <Route path={ROUTES.DEMO} element={<InterfacesDemo />} />
             <Route path={ROUTES.CGV} element={<CGVPage />} />
@@ -130,9 +134,15 @@ function AppContent() {
                   <Route path="products" element={<AdminProducts />} />
                   <Route path="products/:id" element={<AdminProductDetail />} />
                   <Route path="reservations" element={<AdminReservations />} />
+                  <Route path="reservations/:id" element={<AdminReservationDetail />} />
                   <Route path="livraisons" element={<AdminPlanning />} />
                   <Route path="customers" element={<AdminCustomers />} />
                   <Route path="settings" element={<AdminSettings />} />
+                  <Route path="event-types" element={<AdminEventTypes />} />
+                  <Route path="time-slots" element={<AdminTimeSlots />} />
+                  <Route path="testimonials" element={<AdminTestimonials />} />
+                  <Route path="faqs" element={<AdminFaqs />} />
+                  <Route path="portfolio" element={<AdminPortfolioEvents />} />
                   <Route path="*" element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
                 </Routes>
               </AdminLayout>
