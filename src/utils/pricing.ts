@@ -143,14 +143,23 @@ export function formatPrice(price: number): string {
 }
 
 /**
- * Calcule la durée en jours entre deux dates
+ * Calcule la durée en jours entre deux dates (INCLUSIF)
+ * Pour la location: du 15 au 17 = 3 jours (15, 16, 17)
+ * C'est la SOURCE DE VÉRITÉ pour le calcul de durée
  */
 export function calculateDurationDays(startDate: string | Date, endDate: string | Date): number {
   const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
   const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
-  const diffTime = end.getTime() - start.getTime();
-  const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return days > 0 ? days : 1; // Minimum 1 jour
+
+  // Reset to midnight for accurate day calculation
+  const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endMidnight = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+  const diffTime = endMidnight.getTime() - startMidnight.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  // +1 pour inclusif: du 15 au 17 = 3 jours
+  return Math.max(1, diffDays + 1);
 }
 
 /**

@@ -2,16 +2,45 @@ import { supabase } from '../lib/supabase';
 import { ProductsService } from '../services';
 import { Product } from '../types';
 
+/** Résultat de vérification de disponibilité */
+export interface AvailabilityResult {
+  available: boolean;
+  availableQuantity: number;
+  conflictingDates: string[];
+  /** Message d'erreur si la vérification a échoué - BLOQUE la réservation */
+  error?: string;
+}
+
+/** Résultat de génération de calendrier */
+export interface CalendarDayResult {
+  date: string;
+  available: boolean;
+  availableQuantity: number;
+  isMaintenance: boolean;
+  /** Erreur de vérification pour ce jour */
+  error?: string;
+}
+
+/** Résultat de vérification batch pour le catalogue */
+export interface UnavailabilityResult {
+  unavailableIds: Set<string>;
+  /** Si true, une erreur s'est produite et les résultats ne sont pas fiables */
+  hasError: boolean;
+  errorMessage?: string;
+}
+
 /**
  * Vérifie la disponibilité d'un produit pour une période donnée
  * Utilise Supabase pour calculer la disponibilité réelle
+ *
+ * SÉCURITÉ: En cas d'erreur, retourne TOUJOURS available=false
  */
 export async function checkAvailability(
   productId: string,
   startDate: string,
   endDate: string,
   quantity: number = 1
-): Promise<{ available: boolean; availableQuantity: number; conflictingDates: string[] }> {
+): Promise<AvailabilityResult> {
   try {
     // Récupérer le produit pour connaître le stock total
     const product = await ProductsService.getProductById(productId);
@@ -36,11 +65,13 @@ export async function checkAvailability(
 
     if (error) {
       console.error('Error checking availability:', error);
-      // En cas d'erreur, considérer comme disponible (fallback)
+      // SÉCURITÉ: En cas d'erreur, considérer comme INDISPONIBLE
+      // Ne jamais retourner "disponible" si on ne peut pas vérifier
       return {
-        available: true,
-        availableQuantity: totalStock,
-        conflictingDates: []
+        available: false,
+        availableQuantity: 0,
+        conflictingDates: [startDate, endDate],
+        error: 'Impossible de vérifier la disponibilité. Veuillez réessayer.'
       };
     }
 
@@ -88,11 +119,13 @@ export async function checkAvailability(
     };
   } catch (error) {
     console.error('Error in checkAvailability:', error);
-    // En cas d'erreur, considérer comme disponible (fallback)
+    // SÉCURITÉ: En cas d'erreur, considérer comme INDISPONIBLE
+    // Ne jamais retourner "disponible" si on ne peut pas vérifier
     return {
-      available: true,
-      availableQuantity: 999,
-      conflictingDates: []
+      available: false,
+      availableQuantity: 0,
+      conflictingDates: [startDate, endDate],
+      error: 'Impossible de vérifier la disponibilité. Veuillez réessayer.'
     };
   }
 }
@@ -100,12 +133,14 @@ export async function checkAvailability(
 /**
  * Génère un calendrier de disponibilité pour un produit
  * Utilise Supabase pour calculer la disponibilité réelle
+ *
+ * SÉCURITÉ: En cas d'erreur, retourne TOUJOURS available=false pour tous les jours
  */
 export async function generateAvailabilityCalendar(
   productId: string,
   year: number,
   month: number
-): Promise<{ date: string; available: boolean; availableQuantity: number; isMaintenance: boolean }[]> {
+): Promise<CalendarDayResult[]> {
   try {
     // Récupérer le produit pour connaître le stock total
     const product = await ProductsService.getProductById(productId);
@@ -174,15 +209,17 @@ export async function generateAvailabilityCalendar(
     return calendar;
   } catch (error) {
     console.error('Error in generateAvailabilityCalendar:', error);
-    // En cas d'erreur, retourner un calendrier avec toutes les dates disponibles
+    // SÉCURITÉ: En cas d'erreur, retourner un calendrier avec TOUTES LES DATES INDISPONIBLES
+    // Ne jamais retourner "disponible" si on ne peut pas vérifier
     const daysInMonth = new Date(year, month, 0).getDate();
     return Array.from({ length: daysInMonth }, (_, i) => {
       const date = new Date(year, month - 1, i + 1);
       return {
         date: date.toISOString().split('T')[0],
-        available: true,
-        availableQuantity: 999,
-        isMaintenance: false
+        available: false,
+        availableQuantity: 0,
+        isMaintenance: false,
+        error: 'Impossible de vérifier la disponibilité. Veuillez nous contacter.'
       };
     });
   }
@@ -233,20 +270,22 @@ export function formatDateShort(date: string): string {
  * Récupère les IDs des produits indisponibles pour une période donnée.
  * Optimisé pour le filtrage du catalogue.
  *
+ * SÉCURITÉ: En cas d'erreur, retourne hasError=true pour que l'UI puisse afficher un message
+ *
  * @param products - Liste des produits à vérifier
  * @param startDate - Date de début (YYYY-MM-DD)
  * @param endDate - Date de fin (YYYY-MM-DD)
- * @returns Set des IDs de produits indisponibles
+ * @returns Résultat avec Set des IDs indisponibles et indicateur d'erreur
  */
 export async function getUnavailableProductIds(
   products: Product[],
   startDate: string,
   endDate: string
-): Promise<Set<string>> {
+): Promise<UnavailabilityResult> {
   const unavailableIds = new Set<string>();
 
   if (!products.length || !startDate || !endDate) {
-    return unavailableIds;
+    return { unavailableIds, hasError: false };
   }
 
   try {
@@ -260,11 +299,16 @@ export async function getUnavailableProductIds(
 
     if (error) {
       console.error('Error fetching unavailabilities:', error);
-      return unavailableIds; // Fallback: tous disponibles
+      // SÉCURITÉ: Signaler l'erreur pour que l'UI affiche un message
+      return {
+        unavailableIds,
+        hasError: true,
+        errorMessage: 'Impossible de vérifier la disponibilité. Veuillez nous contacter.'
+      };
     }
 
     if (!availabilities || availabilities.length === 0) {
-      return unavailableIds;
+      return { unavailableIds, hasError: false };
     }
 
     // Créer un map product_id -> stock total pour accès rapide
@@ -310,21 +354,23 @@ export async function getUnavailableProductIds(
       }
     }
 
-    return unavailableIds;
+    return { unavailableIds, hasError: false };
   } catch (error) {
     console.error('Error in getUnavailableProductIds:', error);
-    return unavailableIds;
+    // SÉCURITÉ: Signaler l'erreur pour que l'UI affiche un message
+    return {
+      unavailableIds,
+      hasError: true,
+      errorMessage: 'Impossible de vérifier la disponibilité. Veuillez nous contacter.'
+    };
   }
 }
 
 /**
  * Calcule le nombre de jours entre deux dates (inclusif)
  * Ex: du 2025-01-15 au 2025-01-17 = 3 jours
+ *
+ * @deprecated Utiliser calculateDurationDays depuis pricing.ts
+ * Cette fonction est conservée pour compatibilité et délègue à la source unique
  */
-export function calculateDurationDaysInclusive(from: string, to: string): number {
-  const startDate = new Date(from);
-  const endDate = new Date(to);
-  const diffTime = endDate.getTime() - startDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return Math.max(1, diffDays + 1);
-}
+export { calculateDurationDays as calculateDurationDaysInclusive } from './pricing';

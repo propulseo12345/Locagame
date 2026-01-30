@@ -18,6 +18,8 @@ import { ROUTES } from './constants/routes';
 
 // Auth pages
 const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const AccessDeniedPage = lazy(() => import('./pages/AccessDeniedPage'));
 
 // Lazy loading des pages pour optimiser le bundle
 const CatalogPage = lazy(() => import('./pages/CatalogPage'));
@@ -94,7 +96,7 @@ function HomePage() {
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === ROUTES.LOGIN;
+  const isAuthPage = location.pathname === ROUTES.LOGIN || location.pathname === '/inscription';
   const isAdminOrClientOrTechnician =
     location.pathname.startsWith(ROUTES.ADMIN.BASE) ||
     location.pathname.startsWith(ROUTES.CLIENT.BASE) ||
@@ -106,8 +108,12 @@ function AppContent() {
       <div className="overflow-y-auto">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* Page de connexion */}
+            {/* Pages d'authentification */}
             <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+            <Route path="/inscription" element={<RegisterPage />} />
+
+            {/* Page accès refusé */}
+            <Route path="/access-denied" element={<AccessDeniedPage />} />
 
             {/* Pages publiques */}
             <Route path={ROUTES.HOME} element={<HomePage />} />

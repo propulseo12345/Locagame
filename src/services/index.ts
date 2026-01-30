@@ -8,6 +8,7 @@ export { TechniciansService } from './technicians.service';
 export { CategoriesService } from './categories.service';
 export { StatsService } from './stats.service';
 export { SettingsService } from './settings.service';
+export { CheckoutService, type CheckoutPayload, type CheckoutResult } from './checkout.service';
 
 // Services pour les tables lookup "B"
 export { EventTypesService, type EventType } from './eventTypes.service';

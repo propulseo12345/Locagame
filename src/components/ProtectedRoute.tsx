@@ -4,9 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'admin' | 'client' | 'technician';
+  /** Si true, affiche la page accès refusé au lieu de rediriger */
+  showAccessDenied?: boolean;
 }
 
-export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requiredRole, showAccessDenied = false }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -28,8 +30,15 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   // Si un rôle spécifique est requis, vérifier
+  // Le rôle est déterminé côté serveur (via RPC get_current_user_role)
+  // donc cette vérification est sûre - elle reflète la réalité DB
   if (requiredRole && user.role !== requiredRole) {
-    // Rediriger vers le dashboard approprié
+    // Option: afficher la page accès refusé
+    if (showAccessDenied) {
+      return <Navigate to="/access-denied" state={{ from: location, requiredRole }} replace />;
+    }
+
+    // Par défaut: rediriger vers le dashboard approprié au rôle réel
     if (user.role === 'admin') {
       return <Navigate to="/admin/dashboard" replace />;
     } else if (user.role === 'technician') {

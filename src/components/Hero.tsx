@@ -1,10 +1,121 @@
 import { Search, Calendar, ArrowRight, Gamepad2, Loader2, Sparkles, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductsService, CategoriesService } from '../services';
 import { Product, Category } from '../types';
 import { useCart } from '../contexts/CartContext';
+
+// Composant Dropdown rendu via Portal - FOND 100% OPAQUE
+interface DropdownPortalProps {
+  suggestions: Product[];
+  onSelect: (e: React.MouseEvent, id: string) => void;
+  anchorRef: React.RefObject<HTMLElement>;
+  isVisible: boolean;
+  dropdownRef: React.RefObject<HTMLDivElement>;
+}
+
+function DropdownPortal({ suggestions, onSelect, anchorRef, isVisible, dropdownRef }: DropdownPortalProps) {
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+
+  useEffect(() => {
+    if (anchorRef.current && isVisible) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  }, [anchorRef, isVisible]);
+
+  if (!isVisible || suggestions.length === 0) return null;
+
+  return createPortal(
+    <div
+      ref={dropdownRef}
+      style={{
+        position: 'absolute',
+        top: position.top,
+        left: position.left,
+        width: position.width,
+        zIndex: 999999,
+        backgroundColor: '#0f0f23',
+        borderRadius: '12px',
+        border: '2px solid #3b82f6',
+        boxShadow: '0 25px 60px rgba(0,0,0,0.95), 0 0 0 4px rgba(0,0,0,0.5)',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Header */}
+      <div style={{ backgroundColor: '#1a1a3e', padding: '12px 16px', borderBottom: '2px solid #3b82f6' }}>
+        <p style={{ color: '#ffffff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          Résultats de recherche
+        </p>
+      </div>
+
+      {/* Liste */}
+      <div style={{ maxHeight: '320px', overflowY: 'auto', backgroundColor: '#0f0f23' }}>
+        {suggestions.map((product) => (
+          <button
+            key={product.id}
+            type="button"
+            onClick={(e) => onSelect(e, product.id)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              padding: '12px 16px',
+              textAlign: 'left',
+              backgroundColor: '#0f0f23',
+              border: 'none',
+              borderBottom: '1px solid #2a2a4a',
+              cursor: 'pointer',
+              transition: 'background-color 0.15s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e1e3f'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0f0f23'}
+          >
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              flexShrink: 0,
+              backgroundColor: '#2a2a4a',
+              border: '1px solid #3b3b5c'
+            }}>
+              {product.images?.[0] ? (
+                <img src={product.images[0]} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Gamepad2 style={{ width: '24px', height: '24px', color: '#6b7280' }} />
+                </div>
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ color: '#ffffff', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
+                {product.name}
+              </p>
+              <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '4px' }}>
+                {product.pricing?.oneDay ? (
+                  <>
+                    <span style={{ color: '#33ffcc', fontWeight: 700 }}>{product.pricing.oneDay}€</span>
+                    <span style={{ color: '#6b7280' }}> /jour</span>
+                  </>
+                ) : 'Prix sur demande'}
+              </p>
+            </div>
+            <ChevronRight style={{ width: '20px', height: '20px', color: '#6b7280' }} />
+          </button>
+        ))}
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 // Animations orchestrées
 const animations = {
@@ -89,7 +200,18 @@ export function Hero() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchInputDesktopRef = useRef<HTMLDivElement>(null);
+  const searchInputMobileRef = useRef<HTMLDivElement>(null);
+  const dropdownPortalRef = useRef<HTMLDivElement>(null);
+
+  // Détecter la taille de l'écran
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const debouncedQuery = useDebounce(searchQuery, 150);
   const isSearching = searchQuery !== debouncedQuery;
@@ -144,10 +266,14 @@ export function Hero() {
     setShowSuggestions(debouncedQuery.length >= 1 && isSearchFocused);
   }, [debouncedQuery, isSearchFocused]);
 
-  // Click outside
+  // Click outside - exclure le dropdown portal
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const isInsideSearchContainer = searchContainerRef.current?.contains(target);
+      const isInsideDropdownPortal = dropdownPortalRef.current?.contains(target);
+
+      if (!isInsideSearchContainer && !isInsideDropdownPortal) {
         setShowSuggestions(false);
         setIsSearchFocused(false);
       }
@@ -179,10 +305,14 @@ export function Hero() {
     navigate(`/catalogue${params.toString() ? `?${params.toString()}` : ''}`);
   };
 
-  const handleSelectProduct = (productId: string) => {
+  const handleSelectProduct = (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Naviguer immédiatement vers la page produit
+    navigate(`/produit/${productId}`);
+    // Puis nettoyer l'état
     setShowSuggestions(false);
     setSearchQuery('');
-    navigate(`/produit/${productId}`);
   };
 
   const handleCategoryClick = (categorySlug: string) => {
@@ -264,11 +394,9 @@ export function Hero() {
           {/* Titre */}
           <motion.div variants={animations.fadeUp} className="text-center space-y-4">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
-              Louez vos jeux,
-              <br />
               <span className="relative inline-block">
                 <span className="relative z-10 bg-gradient-to-r from-[#33ffcc] via-[#66ffdd] to-[#33ffcc] bg-clip-text text-transparent">
-                  créez la fête
+                  Loue & Joue
                 </span>
                 <motion.span
                   className="absolute -bottom-2 left-0 right-0 h-3 bg-[#33ffcc]/20 rounded-full -skew-x-3"
@@ -293,7 +421,7 @@ export function Hero() {
                 {/* Desktop layout */}
                 <div className="hidden lg:flex items-stretch">
                   {/* Recherche */}
-                  <div className="flex-1 relative border-r border-white/10">
+                  <div className="flex-1 border-r border-white/10" ref={searchInputDesktopRef}>
                     <div className="flex items-center h-full px-5 py-4">
                       <Search className="w-5 h-5 text-white/40 mr-3 flex-shrink-0" />
                       <input
@@ -312,55 +440,6 @@ export function Hero() {
                         <Loader2 className="w-5 h-5 text-[#33ffcc] animate-spin ml-2" />
                       )}
                     </div>
-
-                    {/* Suggestions dropdown */}
-                    <AnimatePresence>
-                      {showSuggestions && suggestions.length > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a2e]/98 backdrop-blur-xl border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50"
-                        >
-                          <ul>
-                            {suggestions.map((product, idx) => (
-                              <motion.li
-                                key={product.id}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.05 }}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelectProduct(product.id)}
-                                  className="w-full flex items-center gap-4 px-4 py-3 hover:bg-[#33ffcc]/10 transition-colors text-left group"
-                                >
-                                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-white/10 flex-shrink-0">
-                                    {product.images?.[0] ? (
-                                      <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center">
-                                        <Gamepad2 className="w-5 h-5 text-white/30" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-white font-medium truncate group-hover:text-[#33ffcc] transition-colors">
-                                      {product.name}
-                                    </p>
-                                    <p className="text-white/40 text-sm">
-                                      {product.pricing?.oneDay ? `${product.pricing.oneDay}€/jour` : 'Prix sur demande'}
-                                    </p>
-                                  </div>
-                                  <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-[#33ffcc] group-hover:translate-x-1 transition-all" />
-                                </button>
-                              </motion.li>
-                            ))}
-                          </ul>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </div>
 
                   {/* Dates groupées */}
@@ -400,58 +479,22 @@ export function Hero() {
 
                 {/* Mobile/Tablet layout */}
                 <div className="lg:hidden p-4 space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => {
-                        setIsSearchFocused(true);
-                        if (searchQuery.length >= 1) setShowSuggestions(true);
-                      }}
-                      placeholder="Quel jeu recherchez-vous ?"
-                      className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#33ffcc]/50"
-                      autoComplete="off"
-                    />
-
-                    {/* Mobile suggestions */}
-                    <AnimatePresence>
-                      {showSuggestions && suggestions.length > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a2e]/98 backdrop-blur-xl border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50"
-                        >
-                          <ul>
-                            {suggestions.map((product) => (
-                              <li key={product.id}>
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelectProduct(product.id)}
-                                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#33ffcc]/10 text-left"
-                                >
-                                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 flex-shrink-0">
-                                    {product.images?.[0] ? (
-                                      <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                      <Gamepad2 className="w-full h-full p-2 text-white/30" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-white font-medium truncate text-sm">{product.name}</p>
-                                    <p className="text-white/40 text-xs">
-                                      {product.pricing?.oneDay ? `${product.pricing.oneDay}€/jour` : 'Prix sur demande'}
-                                    </p>
-                                  </div>
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                  <div ref={searchInputMobileRef}>
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => {
+                          setIsSearchFocused(true);
+                          if (searchQuery.length >= 1) setShowSuggestions(true);
+                        }}
+                        placeholder="Quel jeu recherchez-vous ?"
+                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#33ffcc]/50"
+                        autoComplete="off"
+                      />
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
@@ -563,6 +606,15 @@ export function Hero() {
           <ArrowRight className="w-4 h-4 rotate-90" />
         </motion.div>
       </motion.div>
+
+      {/* Dropdown Portal - Rendu via createPortal dans document.body pour fond 100% opaque */}
+      <DropdownPortal
+        suggestions={suggestions}
+        onSelect={handleSelectProduct}
+        anchorRef={isDesktop ? searchInputDesktopRef : searchInputMobileRef}
+        isVisible={showSuggestions}
+        dropdownRef={dropdownPortalRef}
+      />
     </section>
   );
 }

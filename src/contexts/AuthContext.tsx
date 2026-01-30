@@ -2,10 +2,17 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from '../lib/supabase';
 import { User, loadUserProfile } from '../lib/auth-helpers';
 
+interface SignUpMetadata {
+  firstName: string;
+  lastName: string;
+  phone?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, metadata: SignUpMetadata) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
   hasRole: (role: 'admin' | 'client' | 'technician') => boolean;
@@ -78,8 +85,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!userProfile) {
       throw new Error('Profil utilisateur introuvable. Vérifiez que votre compte est correctement configuré.');
     }
-    
+
     setUser(userProfile);
+  };
+
+  const signUp = async (email: string, password: string, metadata: SignUpMetadata) => {
+    // Créer l'utilisateur dans Supabase Auth
+    // Le trigger handle_new_user() crée automatiquement le profil dans customers
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          first_name: metadata.firstName,
+          last_name: metadata.lastName,
+          phone: metadata.phone,
+        },
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Erreur lors de la création du compte');
+    }
+
+    if (!data.user) {
+      throw new Error('Erreur lors de la création du compte');
+    }
+
+    // Le profil customer est créé automatiquement par le trigger DB
   };
 
   const signOut = async () => {
@@ -150,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         signIn,
+        signUp,
         signOut,
         isAuthenticated: !!user,
         hasRole,

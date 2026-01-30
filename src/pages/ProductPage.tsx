@@ -117,8 +117,13 @@ export default function ProductPage() {
     try {
       setIsAddingToCart(true);
       const availability = await checkAvailability(product.id, selectedStartDate, selectedEndDate, quantity);
+
+      // Si erreur de vérification ou indisponible, afficher le message approprié
       if (!availability.available) {
-        setAvailabilityError('Ce produit n\'est pas disponible pour les dates sélectionnées');
+        const errorMsg = availability.error
+          ? availability.error
+          : 'Ce produit n\'est pas disponible pour les dates sélectionnées';
+        setAvailabilityError(errorMsg);
         setIsAddingToCart(false);
         return;
       }
@@ -142,7 +147,7 @@ export default function ProductPage() {
       navigate('/panier');
     } catch (error) {
       console.error('Error checking availability:', error);
-      setAvailabilityError('Erreur lors de la vérification de disponibilité');
+      setAvailabilityError('Impossible de vérifier la disponibilité. Contactez-nous via le formulaire de contact.');
       setIsAddingToCart(false);
     }
   };

@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Search, Grid, List, X, Calendar, Loader2 } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef, useCallback, FormEvent } from 'react';
+import { Search, Grid, List, X, Calendar, Loader2, ArrowRight } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Product, Category, FilterOptions } from '../types';
 import { ProductsService, CategoriesService } from '../services';
@@ -45,6 +45,7 @@ export default function CatalogPage() {
   // State pour le filtrage de disponibilité asynchrone
   const [unavailableProductIds, setUnavailableProductIds] = useState<Set<string>>(new Set());
   const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
 
   // Dates locales (synchronisées avec URL et CartContext)
   const [startDate, setStartDateLocal] = useState<string>('');
@@ -163,12 +164,56 @@ export default function CatalogPage() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Handler pour soumettre la recherche (bouton ou Entrée) - synchronise l'URL
+  const handleSearchSubmit = useCallback((e?: FormEvent) => {
+    if (e) e.preventDefault();
+
+    // Mettre à jour l'URL avec tous les paramètres actuels
+    const newParams = new URLSearchParams();
+    if (searchTerm.trim()) {
+      newParams.set('search', searchTerm.trim());
+    }
+    if (startDate) {
+      newParams.set('from', startDate);
+    }
+    if (endDate) {
+      newParams.set('to', endDate);
+    }
+    if (selectedCategory) {
+      // Trouver le slug de la catégorie
+      const category = categories.find(c => c.id === selectedCategory);
+      if (category) {
+        const slugMap: Record<string, string> = {
+          'Casino & Poker': 'casino-poker',
+          'Jeux de Bar': 'jeux-bar',
+          'Jeux Vidéo': 'jeux-video',
+          'Jeux en Bois': 'jeux-bois',
+          'Kermesse': 'kermesse',
+          'Jeux Sportifs': 'jeux-sportifs',
+          'Loto & Bingo': 'loto-bingo',
+          'Décoration': 'decoration',
+          'Son & Lumière': 'son-lumiere'
+        };
+        const slug = slugMap[category.name] || category.name.toLowerCase().replace(/\s+/g, '-');
+        newParams.set('category', slug);
+      }
+    }
+
+    setSearchParams(newParams, { replace: true });
+
+    // Scroller vers les résultats
+    setTimeout(() => {
+      productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }, [searchTerm, startDate, endDate, selectedCategory, categories, setSearchParams]);
+
   // Vérifier la disponibilité des produits quand les dates changent
   useEffect(() => {
     // Ne rien faire si pas de dates ou pas de produits
     if (!debouncedStartDate || !debouncedEndDate || products.length === 0) {
       setUnavailableProductIds(new Set());
       setCheckingAvailability(false);
+      setAvailabilityError(null);
       return;
     }
 
@@ -176,21 +221,27 @@ export default function CatalogPage() {
 
     const checkAvailabilities = async () => {
       setCheckingAvailability(true);
+      setAvailabilityError(null);
 
       try {
-        const unavailable = await getUnavailableProductIds(
+        const result = await getUnavailableProductIds(
           products,
           debouncedStartDate,
           debouncedEndDate
         );
 
         if (!cancelled) {
-          setUnavailableProductIds(unavailable);
+          setUnavailableProductIds(result.unavailableIds);
+          // Afficher le message d'erreur si la vérification a échoué
+          if (result.hasError) {
+            setAvailabilityError(result.errorMessage || 'Impossible de vérifier la disponibilité. Contactez-nous via le formulaire de contact.');
+          }
         }
       } catch (error) {
         console.error('Error checking availabilities:', error);
         if (!cancelled) {
           setUnavailableProductIds(new Set());
+          setAvailabilityError('Impossible de vérifier la disponibilité. Contactez-nous via le formulaire de contact.');
         }
       } finally {
         if (!cancelled) {
@@ -482,6 +533,8 @@ export default function CatalogPage() {
     setSearchTerm('');
     setSelectedCategory(null);
     clearDates();
+    // Effacer l'URL
+    setSearchParams(new URLSearchParams(), { replace: true });
   };
 
   const activeFiltersCount = Object.values(filters).filter(Boolean).length +
@@ -531,70 +584,102 @@ export default function CatalogPage() {
 
           {/* Barre de recherche et dates - Layout horizontal sur desktop */}
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-3">
-              {/* Barre de recherche */}
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Rechercher un jeu..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#33ffcc] focus:bg-white/10 focus:outline-none transition-all"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* Dates groupées */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
-                  <Calendar className="w-4 h-4 text-gray-500 hidden sm:block" />
-                  <span className="text-gray-500 text-sm hidden sm:inline">Du</span>
+            <form onSubmit={handleSearchSubmit}>
+              <div className="flex flex-col lg:flex-row gap-3">
+                {/* Barre de recherche */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => handleStartDateChange(e.target.value)}
-                    min={getTodayString()}
-                    className="w-[130px] bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
+                    type="text"
+                    placeholder="Rechercher un jeu..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-10 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#33ffcc] focus:bg-white/10 focus:outline-none transition-all"
                   />
-                  <span className="text-gray-500 text-sm">au</span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => handleEndDateChange(e.target.value)}
-                    min={startDate || getTodayString()}
-                    className="w-[130px] bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
-                  />
-                  {/* Affichage du nombre de jours */}
-                  {startDate && endDate && (
-                    <span className="text-[#33ffcc] text-sm font-medium whitespace-nowrap">
-                      {calculateDurationDaysInclusive(startDate, endDate)} jour{calculateDurationDaysInclusive(startDate, endDate) > 1 ? 's' : ''}
-                    </span>
-                  )}
-                  {/* Indicateur de vérification */}
-                  {checkingAvailability && (
-                    <Loader2 className="w-4 h-4 text-[#33ffcc] animate-spin" />
-                  )}
-                  {/* Bouton effacer */}
-                  {startDate && (
+                  {searchTerm && (
                     <button
-                      onClick={clearDates}
-                      className="p-1 text-gray-400 hover:text-[#33ffcc] transition-colors"
-                      title="Effacer les dates"
+                      type="button"
+                      onClick={() => {
+                        setSearchTerm('');
+                        // Mettre à jour l'URL
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.delete('search');
+                        setSearchParams(newParams, { replace: true });
+                      }}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   )}
                 </div>
+
+                {/* Dates groupées */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
+                    <Calendar className="w-4 h-4 text-[#33ffcc] hidden sm:block" />
+                    <span className="text-gray-500 text-sm hidden sm:inline">Du</span>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
+                      min={getTodayString()}
+                      className="w-[130px] bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
+                    />
+                    <span className="text-gray-500 text-sm">au</span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => handleEndDateChange(e.target.value)}
+                      min={startDate || getTodayString()}
+                      className="w-[130px] bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
+                    />
+                    {/* Affichage du nombre de jours */}
+                    {startDate && endDate && (
+                      <span className="text-[#33ffcc] text-sm font-medium whitespace-nowrap">
+                        {calculateDurationDaysInclusive(startDate, endDate)} jour{calculateDurationDaysInclusive(startDate, endDate) > 1 ? 's' : ''}
+                      </span>
+                    )}
+                    {/* Indicateur de vérification */}
+                    {checkingAvailability && (
+                      <Loader2 className="w-4 h-4 text-[#33ffcc] animate-spin" />
+                    )}
+                    {/* Bouton effacer */}
+                    {startDate && (
+                      <button
+                        type="button"
+                        onClick={clearDates}
+                        className="p-1 text-gray-400 hover:text-[#33ffcc] transition-colors"
+                        title="Effacer les dates"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Bouton Rechercher */}
+                <button
+                  type="submit"
+                  className="flex items-center justify-center gap-2 px-6 py-3.5 bg-[#33ffcc] hover:bg-[#4dffdd] text-[#000033] font-bold rounded-xl transition-all hover:shadow-[0_0_20px_rgba(51,255,204,0.3)] active:scale-[0.98]"
+                >
+                  <Search className="w-5 h-5" />
+                  <span className="hidden sm:inline">Rechercher</span>
+                  <ArrowRight className="w-4 h-4 sm:hidden" />
+                </button>
               </div>
-            </div>
+            </form>
+
+            {/* Message d'erreur de disponibilité */}
+            {availabilityError && (
+              <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+                <p className="text-red-400 text-sm">
+                  {availabilityError}{' '}
+                  <Link to="/contact" className="underline hover:text-red-300">
+                    Contactez-nous
+                  </Link>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

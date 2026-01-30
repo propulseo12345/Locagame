@@ -40,9 +40,11 @@ import {
   EventTypesService,
   TimeSlotsService,
   AccessDifficultyService,
+  CheckoutService,
   type EventType,
   type TimeSlot,
-  type AccessDifficultyType
+  type AccessDifficultyType,
+  type CheckoutPayload
 } from '../services';
 import { DistanceService, PRICE_PER_KM } from '../services/distance.service';
 import PickupForm from '../components/checkout/PickupForm';
@@ -344,94 +346,17 @@ export default function CheckoutPage() {
     setSubmitError(null);
 
     try {
-      // ========== VÉRIFICATION DISPONIBILITÉ ==========
-      // Vérifier que tous les produits sont disponibles aux dates demandées
-      for (const item of cartItems) {
-        const startDate = item.start_date || delivery.date;
-        const endDate = item.end_date || delivery.pickupDate || delivery.date;
-
-        const availableStock = await ProductsService.getAvailableStockForDates(
-          item.product.id,
-          startDate,
-          endDate
-        );
-
-        if (availableStock < item.quantity) {
-          throw new Error(
-            `Stock insuffisant pour "${item.product.name}". ` +
-            `Disponible: ${availableStock}, Demandé: ${item.quantity}. ` +
-            `Veuillez modifier votre panier ou choisir d'autres dates.`
-          );
-        }
-      }
-      // =================================================
-
-      // 1. Créer ou récupérer le customer
-      let customerId: string;
-
-      if (user?.id) {
-        // Client connecté - vérifier si un profil customer existe
-        const existingCustomer = await CustomersService.getCustomerByEmail(user.email || customer.email);
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-        } else {
-          // Créer le profil customer
-          const newCustomer = await CustomersService.createCustomer({
-            id: user.id,
-            email: user.email || customer.email,
-            first_name: customer.firstName,
-            last_name: customer.lastName,
-            phone: customer.phone,
-            customer_type: customer.isProfessional ? 'professional' : 'individual',
-            company_name: customer.companyName || undefined,
-            siret: customer.isProfessional ? customer.siret : undefined,
-          });
-          customerId = newCustomer.id;
-        }
-      } else {
-        // Client non connecté - créer un customer invité
-        const existingGuest = await CustomersService.getCustomerByEmail(customer.email);
-        if (existingGuest) {
-          customerId = existingGuest.id;
-        } else {
-          const guestCustomer = await CustomersService.createCustomer({
-            id: crypto.randomUUID(),
-            email: customer.email,
-            first_name: customer.firstName,
-            last_name: customer.lastName,
-            phone: customer.phone,
-            customer_type: customer.isProfessional ? 'professional' : 'individual',
-            company_name: customer.companyName || undefined,
-            siret: customer.isProfessional ? customer.siret : undefined,
-          });
-          customerId = guestCustomer.id;
-        }
-      }
-
-      // 2. Créer l'adresse de livraison (seulement en mode delivery)
-      let deliveryAddressId: string | undefined;
-      if (!isPickup && delivery.address && delivery.city && delivery.postalCode) {
-        const addressData = await AddressesService.createAddress(customerId, {
-          address_line1: delivery.address,
-          address_line2: delivery.addressComplement || undefined,
-          city: delivery.city,
-          postal_code: delivery.postalCode,
-          is_default: false,
-        });
-        deliveryAddressId = addressData.id;
-      }
-
-      // 3. Calculer la durée en jours
-      const calculateDurationDays = (startDate: string, endDate: string | null): number => {
-        if (!endDate) return 1;
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+      // Calculer la durée en jours
+      const calculateDurationDays = (startDateStr: string, endDateStr: string | null): number => {
+        if (!endDateStr) return 1;
+        const start = new Date(startDateStr);
+        const end = new Date(endDateStr);
         const diffTime = Math.abs(end.getTime() - start.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return Math.max(diffDays, 1);
       };
 
-      // 4. Préparer les items de la réservation
+      // Préparer les items
       const reservationItems = cartItems.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity,
@@ -440,11 +365,11 @@ export default function CheckoutPage() {
         subtotal: item.total_price,
       }));
 
-      // 5. Calculer les sous-totaux
+      // Calculer les sous-totaux
       const subtotal = cartItems.reduce((sum, item) => sum + item.total_price, 0);
       const finalDeliveryFee = isPickup ? 0 : calculatedDeliveryFee;
 
-      // 6. Préparer le pricing breakdown combiné pour stockage
+      // Préparer le pricing breakdown combiné
       const combinedPricingBreakdown = {
         items: pricingBreakdowns.map((b, i) => ({
           product_id: cartItems[i].product.id,
@@ -457,33 +382,35 @@ export default function CheckoutPage() {
         total: finalTotal
       };
 
-      // 7. Créer la réservation avec TOUTES les données du checkout
-      const reservation = await ReservationsService.createReservation({
-        customer_id: customerId,
+      // Construire le payload pour le checkout
+      const checkoutPayload: CheckoutPayload = {
+        // Client
+        email: user?.email || customer.email,
+        first_name: customer.firstName,
+        last_name: customer.lastName,
+        phone: customer.phone,
+        customer_type: customer.isProfessional ? 'professional' : 'individual',
+        company_name: customer.companyName || undefined,
+        siret: customer.isProfessional ? customer.siret : undefined,
+
+        // Adresse (si livraison)
+        address: !isPickup && delivery.address ? {
+          address_line1: delivery.address,
+          address_line2: delivery.addressComplement || undefined,
+          city: delivery.city,
+          postal_code: delivery.postalCode,
+        } : undefined,
+
+        // Réservation
         start_date: isPickup ? startDate : delivery.date,
         end_date: isPickup ? endDate : (delivery.pickupDate || delivery.date),
-        delivery_time: isPickup ? undefined : delivery.timeSlot,
+        start_slot: startSlot,
+        end_slot: endSlot,
         delivery_type: selectedDeliveryMode,
-        delivery_address_id: isPickup ? undefined : deliveryAddressId,
+        delivery_time: isPickup ? undefined : delivery.timeSlot,
         pickup_time: isPickup ? pickup.pickupTime : undefined,
         return_time: isPickup ? pickup.returnTime : undefined,
-        pickup_slot: !isPickup ? delivery.pickupTimeSlot : undefined,
         event_type: eventDetails.eventType,
-        items: reservationItems,
-        subtotal: subtotal,
-        delivery_fee: finalDeliveryFee,
-        discount: 0,
-        total: finalTotal, // Inclut les majorations
-        notes: eventDetails.specialRequests || undefined,
-        // Donnees receptionnaire
-        recipient_data: !recipient.sameAsCustomer ? {
-          firstName: recipient.firstName,
-          lastName: recipient.lastName,
-          phone: recipient.phone,
-          email: recipient.email || undefined,
-          sameAsCustomer: false,
-        } : { firstName: '', lastName: '', phone: '', sameAsCustomer: true },
-        // Details evenement complets (mode livraison uniquement)
         event_details: !isPickup ? {
           guestCount: eventDetails.guestCount || undefined,
           venueName: eventDetails.venueName || undefined,
@@ -495,12 +422,34 @@ export default function CheckoutPage() {
           parkingDetails: eventDetails.parkingDetails || undefined,
           electricityAvailable: eventDetails.electricityAvailable,
           setupSpace: eventDetails.setupSpace || undefined,
-        } : null,
-        // Consentements
+        } : undefined,
+        recipient_data: !recipient.sameAsCustomer ? {
+          firstName: recipient.firstName,
+          lastName: recipient.lastName,
+          phone: recipient.phone,
+          email: recipient.email || undefined,
+          sameAsCustomer: false,
+        } : { firstName: '', lastName: '', phone: '', sameAsCustomer: true },
+        notes: eventDetails.specialRequests || undefined,
+
+        // Pricing
+        subtotal: subtotal,
+        delivery_fee: finalDeliveryFee,
+        discount: 0,
+        total: finalTotal,
+        pricing_breakdown: combinedPricingBreakdown,
+
+        // Items
+        items: reservationItems,
+
+        // Flags
         cgv_accepted: payment.acceptCGV,
         newsletter_accepted: payment.acceptNewsletter,
-        // Données de facturation (clients professionnels)
         is_business: customer.isProfessional,
+        delivery_is_mandatory: !isPickup && deliveryIsMandatory,
+        pickup_is_mandatory: !isPickup && pickupIsMandatory,
+
+        // Facturation (si professionnel)
         billing_company_name: customer.isProfessional ? billingAddress.companyName : undefined,
         billing_vat_number: customer.isProfessional && billingAddress.vatNumber ? billingAddress.vatNumber : undefined,
         billing_address_line1: customer.isProfessional ? billingAddress.addressLine1 : undefined,
@@ -508,31 +457,18 @@ export default function CheckoutPage() {
         billing_postal_code: customer.isProfessional ? billingAddress.postalCode : undefined,
         billing_city: customer.isProfessional ? billingAddress.city : undefined,
         billing_country: customer.isProfessional ? billingAddress.country : undefined,
-        // Nouveaux champs pricing rules
-        start_slot: startSlot,
-        end_slot: endSlot,
-        delivery_is_mandatory: !isPickup && deliveryIsMandatory,
-        pickup_is_mandatory: !isPickup && pickupIsMandatory,
-        pricing_breakdown: combinedPricingBreakdown,
-      });
+      };
 
-      // 8. Bloquer le stock pour chaque produit
-      for (const item of cartItems) {
-        const startDate = item.start_date || delivery.date;
-        const endDate = item.end_date || delivery.pickupDate || delivery.date;
+      // Appeler le service de checkout (RPC pour guest, services classiques pour connectés)
+      const result = await CheckoutService.checkout(user?.id || null, checkoutPayload);
 
-        await ProductsService.createReservationAvailability({
-          product_id: item.product.id,
-          start_date: startDate,
-          end_date: endDate,
-          quantity: item.quantity,
-          reservation_id: reservation.id,
-        });
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la création de la réservation');
       }
 
-      // 9. Succès - vider le panier et rediriger
+      // Succès - vider le panier et rediriger
       clearCart();
-      navigate(`/confirmation/${reservation.id}`);
+      navigate(`/confirmation/${result.reservation_id}`);
 
     } catch (error) {
       console.error('Erreur création réservation:', error);

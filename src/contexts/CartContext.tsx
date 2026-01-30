@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { CartItem } from '../types';
+import { calculateDurationDays } from '../utils/pricing';
 
 type DeliveryType = 'delivery' | 'pickup';
 
@@ -28,18 +29,6 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-/**
- * Calcule le nombre de jours de location (inclusif: from et to comptent tous les deux)
- * Ex: du 2025-01-15 au 2025-01-17 = 3 jours
- */
-function calculateDurationDaysInclusive(from: string, to: string): number {
-  const startDate = new Date(from);
-  const endDate = new Date(to);
-  const diffTime = endDate.getTime() - startDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays + 1; // +1 car inclusif
-}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -85,7 +74,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const rentalDurationDays = rentalDateRange
-    ? calculateDurationDaysInclusive(rentalDateRange.from, rentalDateRange.to)
+    ? calculateDurationDays(rentalDateRange.from, rentalDateRange.to)
     : 0;
 
   // Frais de livraison : 0 si pickup, sinon somme des frais par item
