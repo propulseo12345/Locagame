@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { ProductsService } from '../services';
+import { Product } from '../types';
 
 /**
  * Vérifie la disponibilité d'un produit pour une période donnée
@@ -226,4 +227,104 @@ export function formatDateShort(date: string): string {
     day: 'numeric',
     month: 'short'
   });
+}
+
+/**
+ * Récupère les IDs des produits indisponibles pour une période donnée.
+ * Optimisé pour le filtrage du catalogue.
+ *
+ * @param products - Liste des produits à vérifier
+ * @param startDate - Date de début (YYYY-MM-DD)
+ * @param endDate - Date de fin (YYYY-MM-DD)
+ * @returns Set des IDs de produits indisponibles
+ */
+export async function getUnavailableProductIds(
+  products: Product[],
+  startDate: string,
+  endDate: string
+): Promise<Set<string>> {
+  const unavailableIds = new Set<string>();
+
+  if (!products.length || !startDate || !endDate) {
+    return unavailableIds;
+  }
+
+  try {
+    // Récupérer toutes les indisponibilités qui chevauchent la période
+    const { data: availabilities, error } = await supabase
+      .from('product_availability')
+      .select('product_id, start_date, end_date, quantity, status')
+      .lte('start_date', endDate)
+      .gte('end_date', startDate)
+      .in('status', ['reserved', 'blocked', 'maintenance']);
+
+    if (error) {
+      console.error('Error fetching unavailabilities:', error);
+      return unavailableIds; // Fallback: tous disponibles
+    }
+
+    if (!availabilities || availabilities.length === 0) {
+      return unavailableIds;
+    }
+
+    // Créer un map product_id -> stock total pour accès rapide
+    const stockMap = new Map<string, number>();
+    for (const product of products) {
+      stockMap.set(product.id, product.total_stock || 0);
+    }
+
+    // Grouper les indisponibilités par produit
+    const productAvailabilities = new Map<string, typeof availabilities>();
+    for (const avail of availabilities) {
+      const existing = productAvailabilities.get(avail.product_id) || [];
+      existing.push(avail);
+      productAvailabilities.set(avail.product_id, existing);
+    }
+
+    // Vérifier chaque produit concerné
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    for (const [productId, avails] of productAvailabilities) {
+      const totalStock = stockMap.get(productId) || 0;
+
+      // Vérifier chaque jour de la période demandée
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        let reservedQuantity = 0;
+
+        for (const avail of avails) {
+          const availStart = new Date(avail.start_date);
+          const availEnd = new Date(avail.end_date);
+
+          if (d >= availStart && d <= availEnd) {
+            reservedQuantity += avail.quantity || 0;
+          }
+        }
+
+        // Si stock insuffisant pour au moins 1 unité, le produit est indisponible
+        if (totalStock - reservedQuantity < 1) {
+          unavailableIds.add(productId);
+          break; // Pas besoin de continuer pour ce produit
+        }
+      }
+    }
+
+    return unavailableIds;
+  } catch (error) {
+    console.error('Error in getUnavailableProductIds:', error);
+    return unavailableIds;
+  }
+}
+
+/**
+ * Calcule le nombre de jours entre deux dates (inclusif)
+ * Ex: du 2025-01-15 au 2025-01-17 = 3 jours
+ */
+export function calculateDurationDaysInclusive(from: string, to: string): number {
+  const startDate = new Date(from);
+  const endDate = new Date(to);
+  const diffTime = endDate.getTime() - startDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(1, diffDays + 1);
 }

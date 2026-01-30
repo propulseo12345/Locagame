@@ -53,9 +53,11 @@ export function findDeliveryZone(postalCode: string): DeliveryZone | null {
 
 /**
  * Calcule le prix total d'un produit pour une durée donnée
+ * Applique le coefficient multi-jours si durationDays >= 2
  */
 export function calculateProductPrice(product: Product, durationDays: number): number {
   const { pricing } = product;
+  let basePrice: number;
 
   // 1 jour
   if (durationDays === 1) {
@@ -64,30 +66,40 @@ export function calculateProductPrice(product: Product, durationDays: number): n
 
   // 2-3 jours (weekend)
   if (durationDays >= 2 && durationDays <= 3) {
-    return pricing.weekend;
+    basePrice = pricing.weekend;
   }
-
   // 4-7 jours (semaine)
-  if (durationDays >= 4 && durationDays <= 7) {
-    return pricing.week;
+  else if (durationDays >= 4 && durationDays <= 7) {
+    basePrice = pricing.week;
   }
-
   // Plus de 7 jours : vérifier les durées custom
-  if (pricing.customDurations && pricing.customDurations.length > 0) {
+  else if (pricing.customDurations && pricing.customDurations.length > 0) {
     // Trouver la durée custom qui correspond le mieux
     const matchingDuration = pricing.customDurations.find(
       (cd: any) => durationDays >= cd.minDays && durationDays <= cd.maxDays
     );
 
     if (matchingDuration) {
-      return matchingDuration.price;
+      basePrice = matchingDuration.price;
+    } else {
+      // Fallback : calculer au prorata du tarif semaine
+      const weekPrice = pricing.week;
+      const pricePerDay = weekPrice / 7;
+      basePrice = Math.ceil(pricePerDay * durationDays);
     }
+  } else {
+    // Fallback : calculer au prorata du tarif semaine
+    const weekPrice = pricing.week;
+    const pricePerDay = weekPrice / 7;
+    basePrice = Math.ceil(pricePerDay * durationDays);
   }
 
-  // Fallback : calculer au prorata du tarif semaine
-  const weekPrice = pricing.week;
-  const pricePerDay = weekPrice / 7;
-  return Math.ceil(pricePerDay * durationDays);
+  // Appliquer le coefficient multi-jours (uniquement si >= 2 jours)
+  const coefficient = product.multi_day_coefficient ?? 1.00;
+  const finalPrice = basePrice * coefficient;
+
+  // Arrondi à 2 décimales (centime)
+  return Math.round(finalPrice * 100) / 100;
 }
 
 /**

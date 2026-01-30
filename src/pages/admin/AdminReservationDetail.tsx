@@ -20,7 +20,8 @@ import {
   Car,
   Building,
   Layers,
-  MessageSquare
+  MessageSquare,
+  Receipt
 } from 'lucide-react';
 import { ReservationsService } from '../../services';
 import { Order } from '../../types';
@@ -299,6 +300,73 @@ export default function AdminReservationDetail() {
                   </>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Facturation */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-purple-500" />
+              Facturation
+            </h2>
+            <div className="space-y-4">
+              {/* Type de client */}
+              <div className="flex items-center gap-2">
+                {reservation.is_business ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-800 text-sm font-medium rounded-full">
+                    <Building2 className="w-4 h-4" />
+                    Client professionnel
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+                    <User className="w-4 h-4" />
+                    Particulier
+                  </span>
+                )}
+              </div>
+
+              {/* Adresse de facturation (si professionnel) */}
+              {reservation.is_business ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-sm text-gray-500">Raison sociale</div>
+                      <div className="font-medium text-gray-900">
+                        {reservation.billing_company_name || 'Non renseigné'}
+                      </div>
+                    </div>
+                    {reservation.billing_vat_number && (
+                      <div>
+                        <div className="text-sm text-gray-500">N° TVA</div>
+                        <div className="font-medium text-gray-900">{reservation.billing_vat_number}</div>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Adresse de facturation</div>
+                    <div className="font-medium text-gray-900 space-y-0.5">
+                      {reservation.billing_address_line1 ? (
+                        <>
+                          <div>{reservation.billing_address_line1}</div>
+                          {reservation.billing_address_line2 && (
+                            <div>{reservation.billing_address_line2}</div>
+                          )}
+                          <div>
+                            {reservation.billing_postal_code} {reservation.billing_city}
+                          </div>
+                          <div>{reservation.billing_country || 'FR'}</div>
+                        </>
+                      ) : (
+                        <span className="text-gray-400 italic">Non renseignée</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm italic">
+                  Pas d'adresse de facturation spécifique (client particulier)
+                </p>
+              )}
             </div>
           </div>
 
@@ -635,6 +703,58 @@ export default function AdminReservationDetail() {
               </div>
             </div>
           </div>
+
+          {/* Règles tarifaires appliquées */}
+          {(reservation.pricing_breakdown as any) && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-purple-500" />
+                Règles tarifaires
+              </h2>
+              <div className="space-y-3 text-sm">
+                {/* Forfait week-end */}
+                {(reservation.pricing_breakdown as any)?.items?.some((item: any) => item.weekend_flat_rate_applied) && (
+                  <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-purple-500" />
+                    <span className="text-purple-700 font-medium">Forfait week-end appliqué</span>
+                  </div>
+                )}
+
+                {/* Majorations */}
+                {(reservation.pricing_breakdown as any)?.items?.flatMap((item: any) =>
+                  (item.rules_applied || []).filter((r: any) => r.type === 'surcharge')
+                ).map((rule: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center p-2 bg-amber-50 rounded-lg">
+                    <span className="text-amber-700">{rule.name}</span>
+                    <span className="text-amber-700 font-medium">+{rule.amount}€</span>
+                  </div>
+                ))}
+
+                {/* Livraison/reprise impérative */}
+                <div className="pt-3 border-t border-gray-200 space-y-2">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <span>Créneau début:</span>
+                    <span className="font-medium">{reservation.start_slot || 'AM'}</span>
+                    <span className="mx-2">→</span>
+                    <span>Créneau fin:</span>
+                    <span className="font-medium">{reservation.end_slot || 'AM'}</span>
+                  </div>
+                  {reservation.delivery_is_mandatory && (
+                    <div className="flex items-center gap-2 text-amber-600">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span>Livraison impérative demandée</span>
+                    </div>
+                  )}
+                  {reservation.pickup_is_mandatory && (
+                    <div className="flex items-center gap-2 text-amber-600">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span>Reprise impérative demandée</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Statut et Actions */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

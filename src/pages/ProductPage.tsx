@@ -40,7 +40,7 @@ import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, rentalDateRange } = useCart();
   const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState<string>('');
@@ -48,8 +48,9 @@ export default function ProductPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [selectedStartDate, setSelectedStartDate] = useState<string>('');
-  const [selectedEndDate, setSelectedEndDate] = useState<string>('');
+  // Initialiser les dates depuis le contexte global (dates du catalogue)
+  const [selectedStartDate, setSelectedStartDate] = useState<string>(rentalDateRange?.from || '');
+  const [selectedEndDate, setSelectedEndDate] = useState<string>(rentalDateRange?.to || '');
   const [quantity] = useState(1);
   const [priceCalculation, setPriceCalculation] = useState<PriceCalculation | null>(null);
   const [showLightbox, setShowLightbox] = useState(false);

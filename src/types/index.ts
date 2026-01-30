@@ -26,7 +26,14 @@ export interface Product {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  /** Coefficient multiplicateur pour réservations multi-jours (2+ jours). Ex: 0.85 = -15%. Borné 0.50-1.00 */
+  multi_day_coefficient?: number;
+  /** Prix forfaitaire week-end. Si défini, remplace le calcul standard quand la période couvre un week-end */
+  weekend_flat_price?: number | null;
 }
+
+/** Créneau horaire: matin (AM) ou après-midi (PM) */
+export type DaySlot = 'AM' | 'PM';
 
 export interface Category {
   id: string;
@@ -67,6 +74,10 @@ export interface CartItem {
   delivery_fee: number;
   product_price: number;
   total_price: number;
+  /** Créneau de début: AM (matin) ou PM (après-midi) */
+  start_slot?: DaySlot;
+  /** Créneau de fin: AM (matin) ou PM (après-midi) */
+  end_slot?: DaySlot;
 }
 
 export interface Customer {
@@ -106,6 +117,40 @@ export interface EventDetails {
   setupSpace?: string;
 }
 
+/** Données de facturation pour les clients professionnels */
+export interface BillingAddress {
+  company_name: string;
+  vat_number?: string;
+  address_line1: string;
+  address_line2?: string;
+  postal_code: string;
+  city: string;
+  country: string;
+}
+
+/** Règle tarifaire appliquée à une réservation */
+export interface PricingRuleApplied {
+  id: string;
+  name: string;
+  description: string;
+  amount: number;
+  type: 'flat_rate' | 'surcharge' | 'discount';
+}
+
+/** Breakdown complet du pricing pour une réservation */
+export interface PricingBreakdownData {
+  base_price: number;
+  base_price_label: string;
+  quantity: number;
+  product_subtotal: number;
+  duration_days: number;
+  rules_applied: PricingRuleApplied[];
+  surcharges_total: number;
+  total: number;
+  weekend_flat_rate_applied: boolean;
+  info_message?: string;
+}
+
 export interface Order {
   id: string;
   customer: Customer;
@@ -135,6 +180,21 @@ export interface Order {
   event_details?: EventDetails | null;
   cgv_accepted?: boolean;
   newsletter_accepted?: boolean;
+  // Champs de facturation (clients professionnels)
+  is_business?: boolean;
+  billing_company_name?: string;
+  billing_vat_number?: string;
+  billing_address_line1?: string;
+  billing_address_line2?: string;
+  billing_postal_code?: string;
+  billing_city?: string;
+  billing_country?: string;
+  // Champs pricing rules (forfait week-end + majorations)
+  start_slot?: DaySlot;
+  end_slot?: DaySlot;
+  delivery_is_mandatory?: boolean;
+  pickup_is_mandatory?: boolean;
+  pricing_breakdown?: PricingBreakdownData | null;
 }
 
 export interface FilterOptions {

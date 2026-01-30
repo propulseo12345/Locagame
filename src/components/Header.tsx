@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X, User, Search, LogOut, LogIn, Phone } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, Search, LogOut, LogIn, Phone, Instagram } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -153,15 +153,29 @@ export function Header() {
                 04 30 22 03 83
               </span>
             </a>
+
+            {/* Instagram */}
+            <a
+              href="https://www.instagram.com/locagame_13?igsh=MTU3MjM4NWY1a3l5Zw=="
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#33ffcc] hover:text-[#66cccc] transition-all duration-300 group"
+              aria-label="Suivez-nous sur Instagram"
+            >
+              <Instagram className={`group-hover:scale-110 transition-transform ${isScrolled ? 'w-5 h-5' : 'w-7 h-7'}`} />
+            </a>
           </div>
         </div>
 
         {/* === NIVEAU 2 : Navigation === */}
         <div className="hidden md:block border-b border-white/10 bg-gradient-to-b from-[#000033] to-[#000028]">
           <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? 'py-0.5' : 'py-2.5'}`}>
+            <div className={`grid grid-cols-[1fr_auto_1fr] items-center transition-all duration-300 ${isScrolled ? 'py-0.5' : 'py-2.5'}`}>
+              {/* Espace gauche pour équilibrer */}
+              <div></div>
+
               {/* Navigation principale centrée */}
-              <nav className="flex-1 flex items-center justify-center gap-2" aria-label="Navigation principale">
+              <nav className="flex items-center justify-center gap-1" aria-label="Navigation principale">
                 {NAV_LINKS.map(({ path, label }) => (
                   <Link
                     key={path}
@@ -179,7 +193,7 @@ export function Header() {
               </nav>
 
               {/* Actions secondaires */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-end gap-2">
                 {/* Recherche */}
                 {searchOpen ? (
                   <form onSubmit={handleSearch} className="flex items-center">
@@ -327,6 +341,17 @@ export function Header() {
                   <Phone className="w-5 h-5" />
                 </a>
 
+                {/* Instagram */}
+                <a
+                  href="https://www.instagram.com/locagame_13?igsh=MTU3MjM4NWY1a3l5Zw=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-[#33ffcc]"
+                  aria-label="Suivez-nous sur Instagram"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+
                 {/* Panier */}
                 <Link
                   to="/panier"
@@ -449,14 +474,25 @@ export function Header() {
                 )}
               </div>
 
-              {/* Numéro de téléphone mobile */}
-              <a
-                href="tel:0430220383"
-                className="flex items-center justify-center gap-2 px-4 py-3 mt-3 bg-white/5 rounded-lg text-white font-bold"
-              >
-                <Phone className="w-5 h-5 text-[#33ffcc]" />
-                04 30 22 03 83
-              </a>
+              {/* Contact mobile */}
+              <div className="flex items-center justify-center gap-4 mt-3">
+                <a
+                  href="tel:0430220383"
+                  className="flex items-center gap-2 px-4 py-3 bg-white/5 rounded-lg text-white font-bold"
+                >
+                  <Phone className="w-5 h-5 text-[#33ffcc]" />
+                  04 30 22 03 83
+                </a>
+                <a
+                  href="https://www.instagram.com/locagame_13?igsh=MTU3MjM4NWY1a3l5Zw=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-3 bg-white/5 rounded-lg text-[#33ffcc] font-bold hover:bg-white/10 transition-colors"
+                  aria-label="Suivez-nous sur Instagram"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+              </div>
             </div>
           </nav>
         )}

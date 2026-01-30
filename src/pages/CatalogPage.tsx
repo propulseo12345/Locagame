@@ -1,13 +1,15 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, Grid, List, X } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Search, Grid, List, X, Calendar, Loader2 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Product, Category, FilterOptions } from '../types';
 import { ProductsService, CategoriesService } from '../services';
 import { supabase } from '../lib/supabase';
 import ProductCard from '../components/ProductCard';
-import { checkAvailability } from '../utils/availability';
+import { getUnavailableProductIds, calculateDurationDaysInclusive } from '../utils/availability';
 import { SEO } from '../components/SEO';
 import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
+import { useCart } from '../contexts/CartContext';
+import { useDebounce } from '../hooks';
 
 // Mapping des slugs URL vers les noms de catégories
 const CATEGORY_SLUG_MAP: { [key: string]: string } = {
@@ -23,7 +25,9 @@ const CATEGORY_SLUG_MAP: { [key: string]: string } = {
 };
 
 export default function CatalogPage() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { rentalDateRange, setRentalDateRange, rentalDurationDays } = useCart();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,22 +40,171 @@ export default function CatalogPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const productsRef = useRef<HTMLDivElement>(null);
   const hasScrolledToCategory = useRef(false);
+  const isInitialMount = useRef(true);
 
-  // Filtres principaux : dates
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
+  // State pour le filtrage de disponibilité asynchrone
+  const [unavailableProductIds, setUnavailableProductIds] = useState<Set<string>>(new Set());
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
 
-  // Lire les paramètres d'URL au chargement
+  // Dates locales (synchronisées avec URL et CartContext)
+  const [startDate, setStartDateLocal] = useState<string>('');
+  const [endDate, setEndDateLocal] = useState<string>('');
+
+  // Debounce les dates pour éviter trop de requêtes
+  const debouncedStartDate = useDebounce(startDate, 300);
+  const debouncedEndDate = useDebounce(endDate, 300);
+
+  // Helper pour obtenir la date d'aujourd'hui au format YYYY-MM-DD
+  const getTodayString = useCallback(() => {
+    return new Date().toISOString().split('T')[0];
+  }, []);
+
+  // Valider et corriger les dates
+  const validateAndCorrectDates = useCallback((from: string, to: string): { from: string; to: string } => {
+    if (!from && to) {
+      // Si to est choisi sans from, mettre from = to
+      return { from: to, to };
+    }
+    if (from && to && to < from) {
+      // Si to < from, corriger to = from
+      return { from, to: from };
+    }
+    return { from, to };
+  }, []);
+
+  // Mettre à jour les dates avec synchronisation URL + Context
+  const updateDates = useCallback((newFrom: string, newTo: string, options?: { skipUrlUpdate?: boolean }) => {
+    const corrected = validateAndCorrectDates(newFrom, newTo);
+
+    setStartDateLocal(corrected.from);
+    setEndDateLocal(corrected.to);
+
+    // Mettre à jour le CartContext
+    if (corrected.from && corrected.to) {
+      setRentalDateRange({ from: corrected.from, to: corrected.to });
+    } else if (!corrected.from && !corrected.to) {
+      setRentalDateRange(null);
+    }
+
+    // Mettre à jour l'URL (sans empiler l'historique)
+    if (!options?.skipUrlUpdate) {
+      const newParams = new URLSearchParams(searchParams);
+      if (corrected.from) {
+        newParams.set('from', corrected.from);
+      } else {
+        newParams.delete('from');
+      }
+      if (corrected.to) {
+        newParams.set('to', corrected.to);
+      } else {
+        newParams.delete('to');
+      }
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, setRentalDateRange, validateAndCorrectDates]);
+
+  // Handler pour le changement de date de début
+  const handleStartDateChange = useCallback((value: string) => {
+    if (!value) {
+      // Si on efface from, effacer aussi to
+      updateDates('', '');
+    } else {
+      // Garder to si valide, sinon vider
+      const newTo = endDate && endDate >= value ? endDate : '';
+      updateDates(value, newTo);
+    }
+  }, [endDate, updateDates]);
+
+  // Handler pour le changement de date de fin
+  const handleEndDateChange = useCallback((value: string) => {
+    if (!value) {
+      updateDates(startDate, '');
+    } else if (!startDate) {
+      // Si pas de from, mettre from = to
+      updateDates(value, value);
+    } else {
+      updateDates(startDate, value);
+    }
+  }, [startDate, updateDates]);
+
+  // Effacer les dates
+  const clearDates = useCallback(() => {
+    updateDates('', '');
+  }, [updateDates]);
+
+  // Lire les paramètres d'URL au chargement initial
   useEffect(() => {
-    const categorySlug = searchParams.get('category');
+    if (!isInitialMount.current) return;
+    isInitialMount.current = false;
+
     const searchQuery = searchParams.get('search');
+    const fromParam = searchParams.get('from');
+    const toParam = searchParams.get('to');
 
     if (searchQuery) {
       setSearchTerm(searchQuery);
     }
 
-    // Le mapping de catégorie sera fait après le chargement des catégories
-  }, [searchParams]);
+    // Initialiser les dates depuis l'URL ou le CartContext
+    if (fromParam || toParam) {
+      // Priorité aux params URL
+      const from = fromParam || '';
+      const to = toParam || fromParam || ''; // Si pas de to, utiliser from
+      updateDates(from, to, { skipUrlUpdate: true });
+    } else if (rentalDateRange) {
+      // Sinon utiliser le CartContext (restauration depuis localStorage)
+      setStartDateLocal(rentalDateRange.from);
+      setEndDateLocal(rentalDateRange.to);
+      // Mettre à jour l'URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('from', rentalDateRange.from);
+      newParams.set('to', rentalDateRange.to);
+      setSearchParams(newParams, { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Vérifier la disponibilité des produits quand les dates changent
+  useEffect(() => {
+    // Ne rien faire si pas de dates ou pas de produits
+    if (!debouncedStartDate || !debouncedEndDate || products.length === 0) {
+      setUnavailableProductIds(new Set());
+      setCheckingAvailability(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkAvailabilities = async () => {
+      setCheckingAvailability(true);
+
+      try {
+        const unavailable = await getUnavailableProductIds(
+          products,
+          debouncedStartDate,
+          debouncedEndDate
+        );
+
+        if (!cancelled) {
+          setUnavailableProductIds(unavailable);
+        }
+      } catch (error) {
+        console.error('Error checking availabilities:', error);
+        if (!cancelled) {
+          setUnavailableProductIds(new Set());
+        }
+      } finally {
+        if (!cancelled) {
+          setCheckingAvailability(false);
+        }
+      }
+    };
+
+    checkAvailabilities();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [products, debouncedStartDate, debouncedEndDate]);
 
   // Appliquer la catégorie depuis l'URL une fois les catégories chargées
   useEffect(() => {
@@ -260,14 +413,10 @@ export default function CatalogPage() {
     if (filters.players_max !== undefined) {
       filtered = filtered.filter(product => product.specifications.players.min <= filters.players_max!);
     }
-    
-    // Filtre principal : dates de disponibilité
-    if (startDate) {
-      const endDateToUse = endDate || startDate;
-      filtered = filtered.filter(product => {
-        const availability = checkAvailability(product.id, startDate, endDateToUse, 1);
-        return availability.available;
-      });
+
+    // Filtre principal : dates de disponibilité (utilise les IDs pré-calculés)
+    if (startDate && endDate && unavailableProductIds.size > 0) {
+      filtered = filtered.filter(product => !unavailableProductIds.has(product.id));
     }
 
     // Tri
@@ -295,7 +444,7 @@ export default function CatalogPage() {
     }
 
     return filtered;
-  }, [products, filters, searchTerm, selectedCategory, startDate, endDate]);
+  }, [products, filters, searchTerm, selectedCategory, startDate, endDate, unavailableProductIds]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -328,12 +477,11 @@ export default function CatalogPage() {
     }, 100);
   };
 
-  const clearFilters = () => {
+  const clearAllFilters = () => {
     setFilters({});
     setSearchTerm('');
     setSelectedCategory(null);
-    setStartDate('');
-    setEndDate('');
+    clearDates();
   };
 
   const activeFiltersCount = Object.values(filters).filter(Boolean).length +
@@ -407,26 +555,37 @@ export default function CatalogPage() {
               {/* Dates groupées */}
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
+                  <Calendar className="w-4 h-4 text-gray-500 hidden sm:block" />
                   <span className="text-gray-500 text-sm hidden sm:inline">Du</span>
                   <input
                     type="date"
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => handleStartDateChange(e.target.value)}
+                    min={getTodayString()}
                     className="w-[130px] bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
                   />
                   <span className="text-gray-500 text-sm">au</span>
                   <input
                     type="date"
                     value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate || new Date().toISOString().split('T')[0]}
-                    disabled={!startDate}
-                    className="w-[130px] bg-transparent text-white text-sm focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed [color-scheme:dark]"
+                    onChange={(e) => handleEndDateChange(e.target.value)}
+                    min={startDate || getTodayString()}
+                    className="w-[130px] bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
                   />
+                  {/* Affichage du nombre de jours */}
+                  {startDate && endDate && (
+                    <span className="text-[#33ffcc] text-sm font-medium whitespace-nowrap">
+                      {calculateDurationDaysInclusive(startDate, endDate)} jour{calculateDurationDaysInclusive(startDate, endDate) > 1 ? 's' : ''}
+                    </span>
+                  )}
+                  {/* Indicateur de vérification */}
+                  {checkingAvailability && (
+                    <Loader2 className="w-4 h-4 text-[#33ffcc] animate-spin" />
+                  )}
+                  {/* Bouton effacer */}
                   {startDate && (
                     <button
-                      onClick={() => { setStartDate(''); setEndDate(''); }}
+                      onClick={clearDates}
                       className="p-1 text-gray-400 hover:text-[#33ffcc] transition-colors"
                       title="Effacer les dates"
                     >
@@ -484,11 +643,24 @@ export default function CatalogPage() {
                   {filteredProducts.length} résultat{filteredProducts.length > 1 ? 's' : ''}
                 </span>
 
+                {/* Badge indiquant le filtre de dates actif */}
+                {startDate && endDate && (
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-[#33ffcc]/10 border border-[#33ffcc]/30 rounded-full text-xs text-[#33ffcc]">
+                    <Calendar className="w-3 h-3" />
+                    Dispo {new Date(startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - {new Date(endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                    {unavailableProductIds.size > 0 && (
+                      <span className="ml-1 text-gray-400">
+                        ({unavailableProductIds.size} indispo)
+                      </span>
+                    )}
+                  </span>
+                )}
+
                 {activeFiltersCount > 0 && (
                   <div className="hidden sm:flex items-center gap-2 overflow-x-auto">
                     {(startDate || searchTerm) && (
                       <button
-                        onClick={clearFilters}
+                        onClick={clearAllFilters}
                         className="text-xs text-gray-400 hover:text-[#33ffcc] whitespace-nowrap transition-colors"
                       >
                         Effacer filtres
@@ -673,7 +845,7 @@ VITE_SUPABASE_ANON_KEY=votre-cle-anon`}
             <div className="text-center py-20">
               <p className="text-gray-400 mb-4">Aucun produit trouvé pour ces critères</p>
               <button
-                onClick={clearFilters}
+                onClick={clearAllFilters}
                 className="text-[#33ffcc] hover:underline text-sm"
               >
                 Réinitialiser les filtres

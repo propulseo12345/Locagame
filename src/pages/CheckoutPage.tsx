@@ -19,11 +19,19 @@ import {
   Calendar,
   Info,
   Package,
-  Loader2
+  Loader2,
+  FileText
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatPrice } from '../utils/pricing';
+import {
+  calculatePricingBreakdown,
+  serializeBreakdown,
+  type PricingBreakdown
+} from '../utils/pricingRules';
+import { isWeekendOrHoliday, getHolidayName, isWeekend } from '../utils/dateHolidays';
+import type { DaySlot } from '../types';
 import {
   ReservationsService,
   CustomersService,
@@ -64,6 +72,17 @@ export default function CheckoutPage() {
     siret: ''
   });
 
+  // Adresse de facturation (clients professionnels)
+  const [billingAddress, setBillingAddress] = useState({
+    companyName: '',
+    vatNumber: '',
+    addressLine1: '',
+    addressLine2: '',
+    postalCode: '',
+    city: '',
+    country: 'FR'
+  });
+
   // Étape 2: Réceptionnaire (qui reçoit)
   const [recipient, setRecipient] = useState({
     sameAsCustomer: true,
@@ -84,6 +103,14 @@ export default function CheckoutPage() {
     pickupDate: '',
     pickupTimeSlot: ''
   });
+
+  // Options de livraison/reprise impérative (déclenche majorations week-end/férié)
+  const [deliveryIsMandatory, setDeliveryIsMandatory] = useState(false);
+  const [pickupIsMandatory, setPickupIsMandatory] = useState(false);
+
+  // Slots AM/PM pour le pricing
+  const [startSlot, setStartSlot] = useState<DaySlot>('AM');
+  const [endSlot, setEndSlot] = useState<DaySlot>('AM');
 
   // État pour le mode pickup (retrait à l'entrepôt)
   const [pickup, setPickup] = useState({
@@ -150,11 +177,42 @@ export default function CheckoutPage() {
   const [deliveryDistance, setDeliveryDistance] = useState(0);
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
 
-  // Calcul du sous-total produits
-  const productsSubtotal = cartItems.reduce((sum, item) => sum + item.total_price, 0);
+  // Calcul du pricing avec règles tarifaires (forfait week-end + majorations)
+  const pricingBreakdowns: PricingBreakdown[] = cartItems.map(item => {
+    const effectiveDeliveryDate = isPickup ? item.start_date : (delivery.date || item.start_date);
+    const effectivePickupDate = isPickup ? item.end_date : (delivery.pickupDate || item.end_date);
 
-  // Total avec frais de livraison
-  const finalTotal = isPickup ? productsSubtotal : productsSubtotal + calculatedDeliveryFee;
+    return calculatePricingBreakdown({
+      product: item.product,
+      startDate: item.start_date,
+      endDate: item.end_date,
+      startSlot,
+      endSlot,
+      quantity: item.quantity,
+      deliveryIsMandatory: !isPickup && deliveryIsMandatory,
+      pickupIsMandatory: !isPickup && pickupIsMandatory,
+      deliveryDate: effectiveDeliveryDate,
+      pickupDate: effectivePickupDate
+    });
+  });
+
+  // Calcul du sous-total produits avec les nouvelles règles
+  const productsSubtotal = pricingBreakdowns.reduce((sum, breakdown) => sum + breakdown.productSubtotal, 0);
+
+  // Total des majorations (livraison/reprise week-end ou jour férié)
+  const surchargesTotal = pricingBreakdowns.reduce((sum, breakdown) => sum + breakdown.surchargesTotal, 0);
+
+  // Total avec frais de livraison et majorations
+  const finalTotal = isPickup
+    ? productsSubtotal + surchargesTotal
+    : productsSubtotal + calculatedDeliveryFee + surchargesTotal;
+
+  // Vérifie si la date de livraison est un week-end ou jour férié (pour afficher un avertissement)
+  const deliveryDateIsWeekendOrHoliday = delivery.date && isWeekendOrHoliday(delivery.date);
+  const pickupDateIsWeekendOrHoliday = delivery.pickupDate && isWeekendOrHoliday(delivery.pickupDate);
+
+  // Message d'info pour l'UX
+  const pricingInfoMessage = pricingBreakdowns.find(b => b.infoMessage)?.infoMessage;
 
   // Calculer les frais de livraison quand l'adresse change
   const calculateDeliveryFeeFromAddress = useCallback(async () => {
@@ -214,6 +272,14 @@ export default function CheckoutPage() {
         if (!customer.email) newErrors.email = 'Email requis';
         if (!customer.phone) newErrors.phone = 'Téléphone requis';
         if (customer.isProfessional && !customer.companyName) newErrors.companyName = 'Nom entreprise requis';
+        // Validation adresse de facturation pour les professionnels
+        if (customer.isProfessional) {
+          if (!billingAddress.companyName) newErrors.billingCompanyName = 'Raison sociale requise';
+          if (!billingAddress.addressLine1) newErrors.billingAddressLine1 = 'Adresse requise';
+          if (!billingAddress.postalCode) newErrors.billingPostalCode = 'Code postal requis';
+          if (!billingAddress.city) newErrors.billingCity = 'Ville requise';
+          if (!billingAddress.country) newErrors.billingCountry = 'Pays requis';
+        }
         break;
 
       case 'recipient':
@@ -378,7 +444,20 @@ export default function CheckoutPage() {
       const subtotal = cartItems.reduce((sum, item) => sum + item.total_price, 0);
       const finalDeliveryFee = isPickup ? 0 : calculatedDeliveryFee;
 
-      // 6. Créer la réservation avec TOUTES les données du checkout
+      // 6. Préparer le pricing breakdown combiné pour stockage
+      const combinedPricingBreakdown = {
+        items: pricingBreakdowns.map((b, i) => ({
+          product_id: cartItems[i].product.id,
+          product_name: cartItems[i].product.name,
+          ...serializeBreakdown(b)
+        })),
+        products_subtotal: productsSubtotal,
+        surcharges_total: surchargesTotal,
+        delivery_fee: finalDeliveryFee,
+        total: finalTotal
+      };
+
+      // 7. Créer la réservation avec TOUTES les données du checkout
       const reservation = await ReservationsService.createReservation({
         customer_id: customerId,
         start_date: isPickup ? startDate : delivery.date,
@@ -394,7 +473,7 @@ export default function CheckoutPage() {
         subtotal: subtotal,
         delivery_fee: finalDeliveryFee,
         discount: 0,
-        total: subtotal + finalDeliveryFee,
+        total: finalTotal, // Inclut les majorations
         notes: eventDetails.specialRequests || undefined,
         // Donnees receptionnaire
         recipient_data: !recipient.sameAsCustomer ? {
@@ -420,9 +499,24 @@ export default function CheckoutPage() {
         // Consentements
         cgv_accepted: payment.acceptCGV,
         newsletter_accepted: payment.acceptNewsletter,
+        // Données de facturation (clients professionnels)
+        is_business: customer.isProfessional,
+        billing_company_name: customer.isProfessional ? billingAddress.companyName : undefined,
+        billing_vat_number: customer.isProfessional && billingAddress.vatNumber ? billingAddress.vatNumber : undefined,
+        billing_address_line1: customer.isProfessional ? billingAddress.addressLine1 : undefined,
+        billing_address_line2: customer.isProfessional && billingAddress.addressLine2 ? billingAddress.addressLine2 : undefined,
+        billing_postal_code: customer.isProfessional ? billingAddress.postalCode : undefined,
+        billing_city: customer.isProfessional ? billingAddress.city : undefined,
+        billing_country: customer.isProfessional ? billingAddress.country : undefined,
+        // Nouveaux champs pricing rules
+        start_slot: startSlot,
+        end_slot: endSlot,
+        delivery_is_mandatory: !isPickup && deliveryIsMandatory,
+        pickup_is_mandatory: !isPickup && pickupIsMandatory,
+        pricing_breakdown: combinedPricingBreakdown,
       });
 
-      // 7. Bloquer le stock pour chaque produit
+      // 8. Bloquer le stock pour chaque produit
       for (const item of cartItems) {
         const startDate = item.start_date || delivery.date;
         const endDate = item.end_date || delivery.pickupDate || delivery.date;
@@ -436,7 +530,7 @@ export default function CheckoutPage() {
         });
       }
 
-      // 8. Succès - vider le panier et rediriger
+      // 9. Succès - vider le panier et rediriger
       clearCart();
       navigate(`/confirmation/${reservation.id}`);
 
@@ -606,30 +700,126 @@ export default function CheckoutPage() {
               </label>
 
               {customer.isProfessional && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
-                  <div>
-                    <label className={labelClass}>Nom de l'entreprise *</label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <div className="space-y-4">
+                  {/* Infos entreprise */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div>
+                      <label className={labelClass}>Nom de l'entreprise *</label>
+                      <div className="relative">
+                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <input
+                          type="text"
+                          value={customer.companyName}
+                          onChange={(e) => setCustomer({...customer, companyName: e.target.value})}
+                          className={`${inputClass} pl-10`}
+                          placeholder="Ma Société SAS"
+                        />
+                      </div>
+                      {errors.companyName && <p className={errorClass}>{errors.companyName}</p>}
+                    </div>
+                    <div>
+                      <label className={labelClass}>SIRET (optionnel)</label>
                       <input
                         type="text"
-                        value={customer.companyName}
-                        onChange={(e) => setCustomer({...customer, companyName: e.target.value})}
-                        className={`${inputClass} pl-10`}
-                        placeholder="Ma Société SAS"
+                        value={customer.siret}
+                        onChange={(e) => setCustomer({...customer, siret: e.target.value})}
+                        className={inputClass}
+                        placeholder="123 456 789 00012"
                       />
                     </div>
-                    {errors.companyName && <p className={errorClass}>{errors.companyName}</p>}
                   </div>
-                  <div>
-                    <label className={labelClass}>SIRET (optionnel)</label>
-                    <input
-                      type="text"
-                      value={customer.siret}
-                      onChange={(e) => setCustomer({...customer, siret: e.target.value})}
-                      className={inputClass}
-                      placeholder="123 456 789 00012"
-                    />
+
+                  {/* Adresse de facturation */}
+                  <div className="p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                    <h3 className="text-white font-medium mb-4 flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-purple-400" />
+                      Adresse de facturation
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className={labelClass}>Raison sociale *</label>
+                          <input
+                            type="text"
+                            value={billingAddress.companyName}
+                            onChange={(e) => setBillingAddress({...billingAddress, companyName: e.target.value})}
+                            className={inputClass}
+                            placeholder="Ma Société SAS"
+                          />
+                          {errors.billingCompanyName && <p className={errorClass}>{errors.billingCompanyName}</p>}
+                        </div>
+                        <div>
+                          <label className={labelClass}>N° TVA intracommunautaire</label>
+                          <input
+                            type="text"
+                            value={billingAddress.vatNumber}
+                            onChange={(e) => setBillingAddress({...billingAddress, vatNumber: e.target.value})}
+                            className={inputClass}
+                            placeholder="FR12345678901"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className={labelClass}>Adresse *</label>
+                        <input
+                          type="text"
+                          value={billingAddress.addressLine1}
+                          onChange={(e) => setBillingAddress({...billingAddress, addressLine1: e.target.value})}
+                          className={inputClass}
+                          placeholder="123 rue de la Facturation"
+                        />
+                        {errors.billingAddressLine1 && <p className={errorClass}>{errors.billingAddressLine1}</p>}
+                      </div>
+                      <div>
+                        <label className={labelClass}>Complément d'adresse</label>
+                        <input
+                          type="text"
+                          value={billingAddress.addressLine2}
+                          onChange={(e) => setBillingAddress({...billingAddress, addressLine2: e.target.value})}
+                          className={inputClass}
+                          placeholder="Bâtiment B, 2ème étage"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <label className={labelClass}>Code postal *</label>
+                          <input
+                            type="text"
+                            value={billingAddress.postalCode}
+                            onChange={(e) => setBillingAddress({...billingAddress, postalCode: e.target.value})}
+                            className={inputClass}
+                            placeholder="13001"
+                          />
+                          {errors.billingPostalCode && <p className={errorClass}>{errors.billingPostalCode}</p>}
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
+                          <label className={labelClass}>Ville *</label>
+                          <input
+                            type="text"
+                            value={billingAddress.city}
+                            onChange={(e) => setBillingAddress({...billingAddress, city: e.target.value})}
+                            className={inputClass}
+                            placeholder="Marseille"
+                          />
+                          {errors.billingCity && <p className={errorClass}>{errors.billingCity}</p>}
+                        </div>
+                        <div>
+                          <label className={labelClass}>Pays *</label>
+                          <select
+                            value={billingAddress.country}
+                            onChange={(e) => setBillingAddress({...billingAddress, country: e.target.value})}
+                            className={inputClass}
+                          >
+                            <option value="FR">France</option>
+                            <option value="BE">Belgique</option>
+                            <option value="CH">Suisse</option>
+                            <option value="LU">Luxembourg</option>
+                            <option value="MC">Monaco</option>
+                          </select>
+                          {errors.billingCountry && <p className={errorClass}>{errors.billingCountry}</p>}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -896,6 +1086,30 @@ export default function CheckoutPage() {
                         {errors.timeSlot && <p className={errorClass}>{errors.timeSlot}</p>}
                       </div>
                     </div>
+
+                    {/* Option livraison impérative */}
+                    {deliveryDateIsWeekendOrHoliday && (
+                      <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={deliveryIsMandatory}
+                            onChange={(e) => setDeliveryIsMandatory(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-white/20 text-amber-500 focus:ring-amber-500 bg-white/5"
+                          />
+                          <div>
+                            <span className="text-amber-400 font-medium">
+                              Livraison impérative le {isWeekend(delivery.date) ? 'week-end' : getHolidayName(delivery.date)}
+                            </span>
+                            <p className="text-amber-400/70 text-sm mt-1">
+                              {deliveryIsMandatory
+                                ? 'Une majoration de 50€ sera appliquée pour garantir cette date.'
+                                : 'Sans cette option, nous vous contacterons pour planifier la livraison en semaine.'}
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    )}
                   </div>
 
                   {/* Créneaux de récupération */}
@@ -929,6 +1143,30 @@ export default function CheckoutPage() {
                         </select>
                       </div>
                     </div>
+
+                    {/* Option reprise impérative */}
+                    {pickupDateIsWeekendOrHoliday && (
+                      <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={pickupIsMandatory}
+                            onChange={(e) => setPickupIsMandatory(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-white/20 text-amber-500 focus:ring-amber-500 bg-white/5"
+                          />
+                          <div>
+                            <span className="text-amber-400 font-medium">
+                              Reprise impérative le {isWeekend(delivery.pickupDate) ? 'week-end' : getHolidayName(delivery.pickupDate)}
+                            </span>
+                            <p className="text-amber-400/70 text-sm mt-1">
+                              {pickupIsMandatory
+                                ? 'Une majoration de 50€ sera appliquée pour garantir cette date.'
+                                : 'Sans cette option, nous vous contacterons pour planifier la reprise en semaine.'}
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    )}
                   </div>
 
                   {/* Détails de l'événement (intégrés pour la livraison) */}
@@ -985,6 +1223,17 @@ export default function CheckoutPage() {
                       <AlertCircle className="w-5 h-5 text-[#fe1979]" />
                       Accès au lieu
                     </h3>
+
+                    {/* Avertissement gabarit matériel */}
+                    <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+                      <p className="text-amber-400 text-sm flex items-start gap-2">
+                        <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span>
+                          Veillez à vérifier que les dimensions de vos accès (portes, couloirs, escaliers)
+                          permettent le passage du matériel commandé afin d'assurer une livraison sans encombre.
+                        </span>
+                      </p>
+                    </div>
 
                     <div className="space-y-4">
                       <div>
@@ -1121,6 +1370,29 @@ export default function CheckoutPage() {
                   <span className="text-white font-medium">{formatPrice(productsSubtotal)}</span>
                 </div>
 
+                {/* Règles tarifaires appliquées */}
+                {pricingBreakdowns.some(b => b.weekendFlatRateApplied) && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-purple-400 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      Forfait week-end appliqué
+                    </span>
+                    <span className="text-purple-400">Inclus</span>
+                  </div>
+                )}
+
+                {/* Majorations (livraison/reprise week-end ou jour férié) */}
+                {surchargesTotal > 0 && (
+                  <div className="space-y-2 py-2 border-y border-white/10">
+                    {pricingBreakdowns.flatMap(b => b.rulesApplied.filter(r => r.type === 'surcharge')).map((rule, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-sm">
+                        <span className="text-amber-400">{rule.name}</span>
+                        <span className="text-amber-400">+{formatPrice(rule.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Frais de livraison (si mode livraison) */}
                 {!isPickup && (
                   <div className="flex justify-between items-center">
@@ -1141,6 +1413,16 @@ export default function CheckoutPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">Retrait à l'entrepôt</span>
                     <span className="text-green-400 font-medium">Gratuit</span>
+                  </div>
+                )}
+
+                {/* Message d'info UX */}
+                {pricingInfoMessage && (
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <p className="text-blue-400 text-xs flex items-center gap-1">
+                      <Info className="w-3 h-3" />
+                      {pricingInfoMessage}
+                    </p>
                   </div>
                 )}
 

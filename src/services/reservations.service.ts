@@ -52,6 +52,21 @@ export class ReservationsService {
     } | null;
     cgv_accepted?: boolean;
     newsletter_accepted?: boolean;
+    // Champs de facturation (clients professionnels)
+    is_business?: boolean;
+    billing_company_name?: string;
+    billing_vat_number?: string;
+    billing_address_line1?: string;
+    billing_address_line2?: string;
+    billing_postal_code?: string;
+    billing_city?: string;
+    billing_country?: string;
+    // Champs pricing rules (forfait week-end + majorations)
+    start_slot?: 'AM' | 'PM';
+    end_slot?: 'AM' | 'PM';
+    delivery_is_mandatory?: boolean;
+    pickup_is_mandatory?: boolean;
+    pricing_breakdown?: object;
   }): Promise<any> {
     try {
       // 1. Créer la réservation principale
@@ -81,6 +96,21 @@ export class ReservationsService {
           event_details: orderData.event_details,
           cgv_accepted: orderData.cgv_accepted ?? false,
           newsletter_accepted: orderData.newsletter_accepted ?? false,
+          // Champs de facturation
+          is_business: orderData.is_business ?? false,
+          billing_company_name: orderData.billing_company_name,
+          billing_vat_number: orderData.billing_vat_number,
+          billing_address_line1: orderData.billing_address_line1,
+          billing_address_line2: orderData.billing_address_line2,
+          billing_postal_code: orderData.billing_postal_code,
+          billing_city: orderData.billing_city,
+          billing_country: orderData.billing_country,
+          // Champs pricing rules
+          start_slot: orderData.start_slot ?? 'AM',
+          end_slot: orderData.end_slot ?? 'AM',
+          delivery_is_mandatory: orderData.delivery_is_mandatory ?? false,
+          pickup_is_mandatory: orderData.pickup_is_mandatory ?? false,
+          pricing_breakdown: orderData.pricing_breakdown,
         })
         .select('*')
         .single();

@@ -1,15 +1,20 @@
 /**
- * Date fixe configurée : 11/11/2025 5h31 (heure de Paris/FR)
+ * Date fixe configurée : 30/01/2026 12h59 (heure de Paris/FR)
  * Cette date est utilisée dans toutes les interfaces pour avoir une date de référence constante
+ *
+ * IMPORTANT: Ce fichier est synchronisé avec src/constants/time.ts
+ * Toute modification de la date de référence doit être faite dans les deux fichiers.
  */
 
-// Date fixe : 11 novembre 2025 à 5h31 (heure de Paris)
-// Note: JavaScript Date utilise UTC, donc on doit ajuster pour l'heure de Paris (UTC+1 en novembre)
-// 5h31 heure de Paris = 4h31 UTC
-const FIXED_DATE = new Date('2025-11-11T04:31:00.000Z');
+import { REFERENCE_TIME, getReferenceDate } from '../constants/time';
+
+// Date fixe : 30 janvier 2026 à 12h59 (heure de Paris)
+// Note: JavaScript Date utilise UTC, donc on doit ajuster pour l'heure de Paris (UTC+1 en janvier)
+// 12h59 heure de Paris = 11h59 UTC
+const FIXED_DATE = getReferenceDate();
 
 /**
- * Retourne la date fixe configurée (11/11/2025 5h31 Paris)
+ * Retourne la date fixe configurée (30/01/2026 12h59 Paris)
  * Remplace new Date() dans toutes les interfaces
  */
 export function getCurrentDate(): Date {
@@ -20,14 +25,14 @@ export function getCurrentDate(): Date {
  * Retourne la date fixe au format ISO (YYYY-MM-DD)
  */
 export function getCurrentDateISO(): string {
-  return FIXED_DATE.toISOString().split('T')[0];
+  return REFERENCE_TIME.date;
 }
 
 /**
  * Retourne le timestamp de la date fixe
  */
 export function getCurrentTimestamp(): number {
-  return FIXED_DATE.getTime();
+  return REFERENCE_TIME.timestamp;
 }
 
 /**
@@ -40,7 +45,7 @@ export function getCurrentDateFormatted(): string {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'Europe/Paris'
+    timeZone: REFERENCE_TIME.timezone,
   });
 }
 
@@ -49,16 +54,16 @@ export function getCurrentDateFormatted(): string {
  */
 export function isToday(date: string | Date): boolean {
   const checkDate = typeof date === 'string' ? new Date(date + 'T00:00:00') : date;
-  
+
   // Normaliser les deux dates à minuit en heure locale pour comparer uniquement les jours
   const fixedYear = FIXED_DATE.getFullYear();
   const fixedMonth = FIXED_DATE.getMonth();
   const fixedDay = FIXED_DATE.getDate();
-  
+
   const checkYear = checkDate.getFullYear();
   const checkMonth = checkDate.getMonth();
   const checkDay = checkDate.getDate();
-  
+
   return fixedYear === checkYear && fixedMonth === checkMonth && fixedDay === checkDay;
 }
 
@@ -78,3 +83,10 @@ export function isFutureDate(date: string | Date): boolean {
   return checkDate > FIXED_DATE;
 }
 
+/**
+ * Retourne la date de référence (alias pour getCurrentDate)
+ * @deprecated Utiliser getCurrentDate() ou importer depuis constants/time
+ */
+export function getFixedDate(): Date {
+  return getCurrentDate();
+}
