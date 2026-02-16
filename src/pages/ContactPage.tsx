@@ -1,49 +1,32 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Clock, Send, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, CheckCircle, ArrowLeft } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
 import { FaqsService, type FAQ } from '../services';
+import ContactForm from '../components/contact/ContactForm';
+import ContactSidebar from '../components/contact/ContactSidebar';
+import ContactMap from '../components/contact/ContactMap';
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    eventType: '',
-    eventDate: '',
-    message: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [faqsError, setFaqsError] = useState<string | null>(null);
+
+  const fetchFaqs = async () => {
+    setFaqsError(null);
+    try {
+      const data = await FaqsService.getFaqs();
+      setFaqs(data);
+    } catch (error) {
+      console.error('Failed to fetch FAQs:', error);
+      setFaqsError('Impossible de charger les questions fréquentes.');
+    }
+  };
 
   useEffect(() => {
-    async function fetchFaqs() {
-      try {
-        const data = await FaqsService.getFaqs();
-        setFaqs(data);
-      } catch (error) {
-        console.error('Failed to fetch FAQs:', error);
-      }
-    }
     fetchFaqs();
   }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-  };
 
   // État de succès
   if (isSubmitted) {
@@ -145,215 +128,23 @@ export default function ContactPage() {
 
         {/* Contenu principal : Formulaire + Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-
           {/* Formulaire - 2 colonnes */}
           <div className="lg:col-span-2">
-            <div className="bg-white/5 rounded-2xl border border-white/10 p-6 md:p-8">
-              <h2 className="text-xl font-bold text-white mb-6">Demande de devis personnalisé</h2>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Nom + Email */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1.5">Nom complet *</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Jean Dupont"
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#33ffcc] focus:outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1.5">Email *</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="jean@email.com"
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#33ffcc] focus:outline-none transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* Téléphone + Type événement */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1.5">Téléphone</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="06 12 34 56 78"
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#33ffcc] focus:outline-none transition-colors"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-1.5">Type d'événement</label>
-                    <select
-                      name="eventType"
-                      value={formData.eventType}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#33ffcc] focus:outline-none transition-colors"
-                    >
-                      <option value="" className="bg-[#000033]">Sélectionnez</option>
-                      <option value="mariage" className="bg-[#000033]">Mariage</option>
-                      <option value="anniversaire" className="bg-[#000033]">Anniversaire</option>
-                      <option value="entreprise" className="bg-[#000033]">Événement d'entreprise</option>
-                      <option value="festival" className="bg-[#000033]">Festival / Fête</option>
-                      <option value="famille" className="bg-[#000033]">Fête de famille</option>
-                      <option value="autre" className="bg-[#000033]">Autre</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Date événement */}
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1.5">Date de l'événement</label>
-                  <input
-                    type="date"
-                    name="eventDate"
-                    value={formData.eventDate}
-                    onChange={handleInputChange}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#33ffcc] focus:outline-none transition-colors [color-scheme:dark]"
-                  />
-                </div>
-
-                {/* Message */}
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1.5">Votre message *</label>
-                  <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    required
-                    rows={5}
-                    placeholder="Décrivez votre événement, vos besoins, les jeux qui vous intéressent..."
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#33ffcc] focus:outline-none transition-colors resize-none"
-                  />
-                </div>
-
-                {/* Newsletter */}
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5 w-4 h-4 rounded border-white/20 text-[#33ffcc] focus:ring-[#33ffcc] bg-white/5"
-                  />
-                  <span className="text-sm text-gray-400">
-                    Je souhaite recevoir les offres et nouveautés de LocaGame
-                  </span>
-                </label>
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors"
-                >
-                  <Send className="w-5 h-5" />
-                  {isSubmitting ? 'Envoi en cours...' : 'Envoyer le message'}
-                </button>
-              </form>
-            </div>
+            <ContactForm onSubmitSuccess={() => setIsSubmitted(true)} />
           </div>
 
           {/* Sidebar - 1 colonne */}
-          <div className="space-y-8">
-
-            {/* FAQ */}
-            <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Questions fréquentes</h3>
-              <div className="space-y-4">
-                {faqs.map((faq) => (
-                  <div key={faq.id}>
-                    <p className="text-white text-sm font-medium mb-1">{faq.question}</p>
-                    <p className="text-gray-400 text-sm">{faq.answer}</p>
-                  </div>
-                ))}
-              </div>
+          {faqsError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-center lg:col-span-1">
+              <p className="text-red-300 text-sm mb-2">{faqsError}</p>
+              <button onClick={fetchFaqs} className="text-xs text-red-300 underline hover:text-red-200">Réessayer</button>
             </div>
-
-            {/* Horaires détaillés */}
-            <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Horaires d'ouverture</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Lundi - Vendredi</span>
-                  <span className="text-white font-medium">9h - 18h</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Samedi</span>
-                  <span className="text-white font-medium">9h - 12h</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Dimanche</span>
-                  <span className="text-red-400">Fermé</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Engagement réponse */}
-            <div className="bg-[#33ffcc]/10 rounded-2xl border border-[#33ffcc]/20 p-6">
-              <p className="text-white font-medium mb-1">Réponse garantie sous 24h</p>
-              <p className="text-sm text-gray-400">
-                Pour une réponse immédiate, appelez-nous directement.
-              </p>
-            </div>
-          </div>
+          )}
+          {!faqsError && <ContactSidebar faqs={faqs} />}
         </div>
 
         {/* Carte Google Maps */}
-        <div className="mt-14">
-          <div className="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
-            <div className="p-5 border-b border-white/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-bold text-white">Nous trouver</h3>
-                <p className="text-sm text-gray-400">553 rue Saint Pierre, 13012 Marseille</p>
-              </div>
-              <a
-                href="https://www.google.com/maps/dir/?api=1&destination=553+rue+Saint+Pierre+13012+Marseille"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors text-sm"
-              >
-                <MapPin className="w-4 h-4" />
-                Itinéraire
-              </a>
-            </div>
-            <div className="h-[300px]">
-              <iframe
-                title="Localisation LocaGame"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2904.5!2d5.4!3d43.32!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDPCsDE5JzEyLjAiTiA1wrAyNCcwMC4wIkU!5e0!3m2!1sfr!2sfr!4v1234567890&q=553+rue+Saint+Pierre+13012+Marseille"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
-            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm border-t border-white/10">
-              <div className="text-center">
-                <p className="text-white font-medium">Parking gratuit</p>
-                <p className="text-gray-500 text-xs">Sur place</p>
-              </div>
-              <div className="text-center">
-                <p className="text-white font-medium">Accès facile</p>
-                <p className="text-gray-500 text-xs">5 min de l'autoroute</p>
-              </div>
-              <div className="text-center col-span-2 sm:col-span-1">
-                <p className="text-white font-medium">Showroom</p>
-                <p className="text-gray-500 text-xs">Sur rendez-vous</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ContactMap />
 
         {/* Retour */}
         <div className="text-center mt-14">

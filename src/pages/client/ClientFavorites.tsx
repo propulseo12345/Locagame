@@ -9,16 +9,19 @@ export default function ClientFavorites() {
   const { user } = useAuth();
   const [favoriteProducts, setFavoriteProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadFavorites = useCallback(async () => {
     if (!user) return;
+    setError(null);
 
     try {
       setLoading(true);
       const favorites = await FavoritesService.getFavorites(user.id);
       setFavoriteProducts(favorites);
-    } catch (error) {
-      console.error('Error loading favorites:', error);
+    } catch (err) {
+      console.error('Error loading favorites:', err);
+      setError('Impossible de charger vos favoris.');
     } finally {
       setLoading(false);
     }
@@ -78,6 +81,12 @@ export default function ClientFavorites() {
 
   return (
     <div className="space-y-5 mt-6 md:mt-8">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between">
+          <p className="text-red-300">{error}</p>
+          <button onClick={loadFavorites} className="px-4 py-1.5 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium">Réessayer</button>
+        </div>
+      )}
       {/* Header moderne */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#fe1979]/20 via-[#fe1979]/10 to-transparent backdrop-blur-md rounded-2xl border border-white/20 p-6 shadow-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#fe1979]/10 rounded-full blur-3xl"></div>

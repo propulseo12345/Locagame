@@ -13,8 +13,12 @@ export class CustomersService {
       .single();
 
     if (error) {
+      // PGRST116 = no row found → customer doesn't exist yet (expected in checkout)
+      if (error.code === 'PGRST116') {
+        return null;
+      }
       console.error('Error fetching customer:', error);
-      return null;
+      throw error;
     }
 
     return data as Customer;

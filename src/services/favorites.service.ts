@@ -120,7 +120,7 @@ export class FavoritesService {
         return false;
       }
       console.error('Error checking favorite:', error);
-      return false; // Retourner false en cas d'erreur plutôt que de throw
+      throw error;
     }
 
     return !!data;

@@ -1,28 +1,32 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trash2, AlertTriangle } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { CustomersService } from '../../services';
 import { Customer } from '../../types';
+import DeleteCustomerModal from '../../components/admin/DeleteCustomerModal';
 
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<Customer | null>(null);
-  const [deleting, setDeleting] = useState(false);
+
+  const loadCustomers = async () => {
+    setError(null);
+    try {
+      setLoading(true);
+      const data = await CustomersService.getAllCustomers();
+      setCustomers(data);
+    } catch (err) {
+      console.error('Erreur chargement clients:', err);
+      setError('Impossible de charger la liste des clients.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadCustomers = async () => {
-      try {
-        setLoading(true);
-        const data = await CustomersService.getAllCustomers();
-        setCustomers(data);
-      } catch (err) {
-        console.error('Erreur chargement clients:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadCustomers();
   }, []);
 
@@ -37,43 +41,13 @@ export default function AdminCustomers() {
     });
   }, [customers, searchTerm, typeFilter]);
 
-  const getSegmentBadge = (segment: string) => {
-    const styles = {
-      VIP: 'bg-yellow-100 text-yellow-800',
-      nouveau: 'bg-blue-100 text-blue-800',
-      inactif: 'bg-gray-100 text-gray-800',
-      standard: 'bg-green-100 text-green-800'
-    };
-    return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[segment as keyof typeof styles] || 'bg-gray-100'}`}>
-        {segment}
-      </span>
-    );
-  };
-
   const stats = useMemo(() => ({
     total: customers.length,
     particulier: customers.filter(c => c.customer_type === 'individual').length,
     professionnel: customers.filter(c => c.customer_type === 'professional').length,
-    vip: 0, // VIP tracking not implemented yet
-    actif: customers.length // All loaded customers are considered active
+    vip: 0,
+    actif: customers.length
   }), [customers]);
-
-  const handleDelete = async () => {
-    if (!showDeleteConfirm) return;
-    try {
-      setDeleting(true);
-      // Utilise forceDeleteCustomer pour supprimer le client et toutes ses données liées
-      await CustomersService.forceDeleteCustomer(showDeleteConfirm.id);
-      setCustomers(customers.filter(c => c.id !== showDeleteConfirm.id));
-      setShowDeleteConfirm(null);
-    } catch (err) {
-      console.error('Erreur suppression client:', err);
-      alert('Erreur lors de la suppression du client.');
-    } finally {
-      setDeleting(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -85,6 +59,12 @@ export default function AdminCustomers() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+          <p className="text-red-700">{error}</p>
+          <button onClick={loadCustomers} className="px-4 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium">Réessayer</button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -233,57 +213,14 @@ export default function AdminCustomers() {
 
       {/* Modal de confirmation de suppression */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-100 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">Supprimer le client</h3>
-            </div>
-            <p className="text-gray-600 mb-2">
-              Êtes-vous sûr de vouloir supprimer ce client ?
-            </p>
-            <div className="p-3 bg-gray-50 rounded-lg mb-4">
-              <p className="font-semibold text-gray-900">
-                {showDeleteConfirm.first_name} {showDeleteConfirm.last_name}
-              </p>
-              <p className="text-sm text-gray-500">{showDeleteConfirm.email}</p>
-              {showDeleteConfirm.company_name && (
-                <p className="text-sm text-blue-600">{showDeleteConfirm.company_name}</p>
-              )}
-            </div>
-            <p className="text-sm text-red-600 mb-6">
-              Cette action est irréversible. Les réservations associées pourraient bloquer la suppression.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                disabled={deleting}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                {deleting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Suppression...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Supprimer
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteCustomerModal
+          customer={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(null)}
+          onDeleted={(id) => {
+            setCustomers(customers.filter(c => c.id !== id));
+            setShowDeleteConfirm(null);
+          }}
+        />
       )}
     </div>
   );

@@ -1,88 +1,38 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, Edit2, Plus, MapPin } from 'lucide-react';
+import { Trash2, Edit2, Plus, MapPin } from 'lucide-react';
 import { DeliveryService } from '../../services';
 import { DeliveryZone } from '../../types';
+import DeliveryZoneModal from '../../components/admin/DeliveryZoneModal';
 
 export default function AdminDeliveryZones() {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    postal_codes: '',
-    cities: '',
-    delivery_fee: 0,
-    free_delivery_threshold: null as number | null,
-    is_active: true,
-    display_order: 0
-  });
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
+    setError(null);
     try {
       setLoading(true);
       const data = await DeliveryService.getDeliveryZones();
       setZones(data);
-    } catch (error) {
-      console.error('Error loading zones:', error);
+    } catch (err) {
+      console.error('Error loading zones:', err);
+      setError('Impossible de charger les zones de livraison.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleOpenModal = (zone?: DeliveryZone) => {
-    if (zone) {
-      setEditingZone(zone);
-      setFormData({
-        name: zone.name,
-        postal_codes: zone.postal_codes.join(', '),
-        cities: zone.cities.join(', '),
-        delivery_fee: zone.delivery_fee,
-        free_delivery_threshold: zone.free_delivery_threshold,
-        is_active: true,
-        display_order: 0
-      });
-    } else {
-      setEditingZone(null);
-      setFormData({
-        name: '',
-        postal_codes: '',
-        cities: '',
-        delivery_fee: 0,
-        free_delivery_threshold: null,
-        is_active: true,
-        display_order: 0
-      });
-    }
+    setEditingZone(zone || null);
     setShowModal(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const zoneData = {
-        name: formData.name,
-        postal_codes: formData.postal_codes.split(',').map(s => s.trim()).filter(Boolean),
-        cities: formData.cities.split(',').map(s => s.trim()).filter(Boolean),
-        delivery_fee: formData.delivery_fee,
-        free_delivery_threshold: formData.free_delivery_threshold
-      };
-
-      if (editingZone) {
-        await DeliveryService.updateZone(editingZone.id, zoneData);
-      } else {
-        await DeliveryService.createZone(zoneData);
-      }
-      setShowModal(false);
-      loadData();
-    } catch (error) {
-      console.error('Error saving zone:', error);
-    }
   };
 
   const handleDelete = async (id: string) => {
@@ -95,9 +45,6 @@ export default function AdminDeliveryZones() {
     }
   };
 
-  const inputClass = "w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-[#33ffcc] focus:outline-none";
-  const labelClass = "block text-sm font-medium text-gray-400 mb-1";
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -108,6 +55,12 @@ export default function AdminDeliveryZones() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center justify-between">
+          <p className="text-red-300">{error}</p>
+          <button onClick={loadData} className="px-4 py-1.5 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium">Réessayer</button>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Zones de livraison</h1>
@@ -173,89 +126,11 @@ export default function AdminDeliveryZones() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#000033] rounded-xl border border-white/10 w-full max-w-lg">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <h2 className="text-lg font-bold text-white">
-                {editingZone ? 'Modifier la zone' : 'Nouvelle zone'}
-              </h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              <div>
-                <label className={labelClass}>Nom de la zone *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className={inputClass}
-                  required
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Codes postaux (séparés par des virgules)</label>
-                <textarea
-                  value={formData.postal_codes}
-                  onChange={(e) => setFormData({...formData, postal_codes: e.target.value})}
-                  className={`${inputClass} resize-none`}
-                  rows={2}
-                  placeholder="13001, 13002, 13003..."
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Villes (séparées par des virgules)</label>
-                <input
-                  type="text"
-                  value={formData.cities}
-                  onChange={(e) => setFormData({...formData, cities: e.target.value})}
-                  className={inputClass}
-                  placeholder="Marseille, Aix-en-Provence..."
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Frais de livraison (€) *</label>
-                  <input
-                    type="number"
-                    value={formData.delivery_fee}
-                    onChange={(e) => setFormData({...formData, delivery_fee: Number(e.target.value)})}
-                    className={inputClass}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Seuil gratuité (€)</label>
-                  <input
-                    type="number"
-                    value={formData.free_delivery_threshold || ''}
-                    onChange={(e) => setFormData({...formData, free_delivery_threshold: e.target.value ? Number(e.target.value) : null})}
-                    className={inputClass}
-                    min="0"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-400 hover:text-white"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-semibold hover:bg-[#66cccc]"
-                >
-                  {editingZone ? 'Enregistrer' : 'Créer'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <DeliveryZoneModal
+          editingZone={editingZone}
+          onClose={() => setShowModal(false)}
+          onSaved={() => { setShowModal(false); loadData(); }}
+        />
       )}
 
       {/* Delete Confirm */}

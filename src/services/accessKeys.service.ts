@@ -35,7 +35,7 @@ export class AccessKeysService {
 
     if (error) {
       console.error('Error verifying access key:', error);
-      return null;
+      throw error;
     }
 
     if (!data || data.length === 0) {
@@ -61,7 +61,7 @@ export class AccessKeysService {
 
     if (error) {
       console.error('Error creating access key:', error);
-      return null;
+      throw error;
     }
 
     return data as string;
@@ -79,7 +79,7 @@ export class AccessKeysService {
 
     if (error) {
       console.error('Error fetching customer keys:', error);
-      return [];
+      throw error;
     }
 
     return (data || []) as AccessKey[];
@@ -96,7 +96,7 @@ export class AccessKeysService {
 
     if (error) {
       console.error('Error fetching all keys:', error);
-      return [];
+      throw error;
     }
 
     return (data || []) as AccessKey[];
@@ -113,7 +113,7 @@ export class AccessKeysService {
 
     if (error) {
       console.error('Error deactivating key:', error);
-      return false;
+      throw error;
     }
 
     return true;
@@ -130,7 +130,7 @@ export class AccessKeysService {
 
     if (error) {
       console.error('Error deleting key:', error);
-      return false;
+      throw error;
     }
 
     return true;

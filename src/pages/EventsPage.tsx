@@ -10,22 +10,27 @@ export default function EventsPage() {
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    setError(null);
+    try {
+      setLoading(true);
+      const [eventsData, typesData] = await Promise.all([
+        PortfolioEventsService.getPortfolioEvents(),
+        EventTypesService.getEventTypes()
+      ]);
+      setEvents(eventsData);
+      setEventTypes(typesData);
+    } catch (err) {
+      console.error('Failed to fetch events data:', err);
+      setError('Impossible de charger les événements.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [eventsData, typesData] = await Promise.all([
-          PortfolioEventsService.getPortfolioEvents(),
-          EventTypesService.getEventTypes()
-        ]);
-        setEvents(eventsData);
-        setEventTypes(typesData);
-      } catch (error) {
-        console.error('Failed to fetch events data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchData();
   }, []);
 
@@ -51,6 +56,15 @@ export default function EventsPage() {
 
     <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] pt-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        {error && (
+          <div className="mb-8 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-center">
+            <p className="text-red-300 mb-3">{error}</p>
+            <button onClick={fetchData} className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-bold rounded-lg hover:bg-[#66cccc] transition-all text-sm">
+              Réessayer
+            </button>
+          </div>
+        )}
 
         {/* Header */}
         <div className="text-center mb-10">
