@@ -14,7 +14,7 @@ export const ROUTES = {
   EVENTS: '/evenements',
   EVENT_DETAIL: (id: string) => `/evenements/${id}`,
   CONTACT: '/contact',
-  DEMO: '/demo',
+  DEMO: '/demo', // Gated by VITE_ENABLE_DEMO_MODE in App.tsx - redirects to / in prod
 
   // Legal pages
   CGV: '/cgv',

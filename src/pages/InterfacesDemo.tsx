@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom';
 
+/**
+ * DEV ONLY - This page is gated by VITE_ENABLE_DEMO_MODE in App.tsx.
+ * In production, /demo redirects to /.
+ */
 export default function InterfacesDemo() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#000033] to-[#1a1b4b] flex items-center justify-center p-8">
@@ -12,7 +16,7 @@ export default function InterfacesDemo() {
             Choisissez l'interface que vous souhaitez explorer
           </p>
           <p className="text-gray-400 text-sm mt-2">
-            ⚠️ Mode démonstration avec données fictives
+            Mode développement — données Supabase
           </p>
         </div>
 
@@ -66,16 +70,6 @@ export default function InterfacesDemo() {
               </div>
             </div>
           </Link>
-        </div>
-
-        {/* Info technique */}
-        <div className="mt-12 text-center">
-          <div className="inline-block bg-yellow-500/20 border border-yellow-500/50 rounded-lg px-6 py-3">
-            <p className="text-yellow-200 text-sm">
-              💡 <strong>Mode démonstration</strong> : Ces interfaces utilisent des données fictives. 
-              L'intégration Supabase sera effectuée lors de la phase 2.
-            </p>
-          </div>
         </div>
       </div>
     </div>

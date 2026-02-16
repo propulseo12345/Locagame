@@ -10,12 +10,12 @@ import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { FavoritesProvider } from './contexts/FavoritesContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CookieBanner } from './components/CookieBanner';
 import { ROUTES } from './constants/routes';
-import { SupabaseDiagnosticBanner } from './components/SupabaseDiagnosticBanner';
 
 // Auth pages
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -30,7 +30,11 @@ const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
 const EventDetailPage = lazy(() => import('./pages/EventDetailPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
-const InterfacesDemo = lazy(() => import('./pages/InterfacesDemo'));
+// Demo page - only loaded if VITE_ENABLE_DEMO_MODE is enabled
+const DEMO_MODE = import.meta.env.VITE_ENABLE_DEMO_MODE === 'true';
+const InterfacesDemo = DEMO_MODE
+  ? lazy(() => import('./pages/InterfacesDemo'))
+  : () => <Navigate to="/" replace />;
 const CGVPage = lazy(() => import('./pages/CGVPage'));
 const MentionsLegalesPage = lazy(() => import('./pages/MentionsLegalesPage'));
 const ConfidentialitePage = lazy(() => import('./pages/ConfidentialitePage'));
@@ -200,14 +204,15 @@ function App() {
     <ErrorBoundary>
       <Router>
         <AuthProvider>
+          <FavoritesProvider>
           <CartProvider>
             <ToastProvider>
               <ScrollToTop />
-              <SupabaseDiagnosticBanner />
               <AppContent />
               <CookieBanner />
             </ToastProvider>
           </CartProvider>
+          </FavoritesProvider>
         </AuthProvider>
       </Router>
     </ErrorBoundary>
