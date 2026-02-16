@@ -15,6 +15,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CookieBanner } from './components/CookieBanner';
 import { ROUTES } from './constants/routes';
+import { SupabaseDiagnosticBanner } from './components/SupabaseDiagnosticBanner';
 
 // Auth pages
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -103,9 +104,9 @@ function AppContent() {
     location.pathname.startsWith(ROUTES.TECHNICIAN.BASE);
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-hidden">
+    <div className="min-h-screen bg-gray-50">
       {!isAdminOrClientOrTechnician && !isAuthPage && <Header />}
-      <div className="overflow-y-auto">
+      <div>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Pages d'authentification */}
@@ -202,6 +203,7 @@ function App() {
           <CartProvider>
             <ToastProvider>
               <ScrollToTop />
+              <SupabaseDiagnosticBanner />
               <AppContent />
               <CookieBanner />
             </ToastProvider>

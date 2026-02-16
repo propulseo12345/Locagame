@@ -400,10 +400,10 @@ export class ReservationsService {
    * Récupère les réservations non assignées (avec delivery_task mais sans technician_id)
    */
   static async getUnassignedReservations(): Promise<Array<Order & { delivery_task_id?: string }>> {
-    // Récupérer toutes les réservations avec delivery_type = 'delivery'
+    // Récupérer toutes les réservations avec delivery_type = 'delivery' + adresse
     const { data: reservations, error: reservationsError } = await supabase
       .from('reservations')
-      .select('*, customer:customers(*), reservation_items:reservation_items(*)')
+      .select('*, customer:customers(*), reservation_items:reservation_items(*, product:products(name)), delivery_address:addresses!delivery_address_id(*)')
       .eq('delivery_type', 'delivery')
       .in('status', ['pending', 'confirmed', 'preparing'])
       .order('created_at', { ascending: false });

@@ -11,6 +11,7 @@ export function FeaturedProducts() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Variantes d'animation
   const containerVariants = {
@@ -45,8 +46,10 @@ export function FeaturedProducts() {
         ]);
         setFeaturedProducts(productsData.slice(0, 4));
         setCategories(categoriesData);
-      } catch (error) {
-        console.error('Error loading featured products:', error);
+      } catch (err: any) {
+        const message = err?.message || 'Impossible de charger les produits';
+        console.error('[FeaturedProducts] Erreur:', err);
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -92,7 +95,16 @@ export function FeaturedProducts() {
         </div>
 
         {/* Grille de produits */}
-        {loading ? (
+        {error ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center gap-3 px-6 py-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+              <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          </div>
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse">

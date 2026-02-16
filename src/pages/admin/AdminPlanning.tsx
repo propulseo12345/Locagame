@@ -1,23 +1,60 @@
-import { useState, useMemo, useEffect } from 'react';
-import { DeliveryTask, Vehicle, Order } from '../../types';
-import { X, Trash2, Edit2, MoreVertical, Truck } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { DeliveryTask } from '../../types';
+import { X, Trash2, Edit2, MoreVertical, Truck, Loader2 } from 'lucide-react';
 import { DeliveryService, TechniciansService, ReservationsService } from '../../services';
-import { Technician } from '../../services/technicians.service';
+import { Technician, Vehicle } from '../../services/technicians.service';
+import { useToast } from '../../contexts/ToastContext';
+
+// Type pour les réservations non assignées (données brutes Supabase)
+interface UnassignedReservation {
+  id: string;
+  start_date: string;
+  end_date: string;
+  delivery_time?: string;
+  delivery_type: string;
+  delivery_address_id?: string;
+  status: string;
+  total: number;
+  notes?: string;
+  customer?: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone?: string;
+  };
+  reservation_items?: Array<{
+    id: string;
+    product_id: string;
+    quantity: number;
+    product?: { name: string };
+  }>;
+  delivery_address?: {
+    address_line1: string;
+    address_line2?: string;
+    city: string;
+    postal_code: string;
+  };
+  delivery_task_id?: string;
+}
+
+type AssignFilter = 'all' | 'unassigned' | 'assigned';
 
 export default function AdminPlanning() {
+  const toast = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [reservations, setReservations] = useState<Order[]>([]);
+  const [reservations, setReservations] = useState<UnassignedReservation[]>([]);
   const [tasksState, setTasksState] = useState<DeliveryTask[]>([]);
   const [loading, setLoading] = useState(true);
+  const [operationInProgress, setOperationInProgress] = useState<string | null>(null);
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
+  const [assignFilter, setAssignFilter] = useState<AssignFilter>('all');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [assignments, setAssignments] = useState<Record<string, { technicianId: string; vehicleId: string }>>({});
   const [showVehicleModal, setShowVehicleModal] = useState(false);
-  const [editingVehicle, setEditingVehicle] = useState<any>(null);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState<string | null>(null);
   const [vehicleFormData, setVehicleFormData] = useState({
@@ -28,49 +65,75 @@ export default function AdminPlanning() {
     isActive: true
   });
   const [draggedTask, setDraggedTask] = useState<DeliveryTask | null>(null);
-  const [draggedReservation, setDraggedReservation] = useState<any | null>(null);
+  const [draggedReservation, setDraggedReservation] = useState<UnassignedReservation | null>(null);
 
-  // Charger les données au montage
+  // Charger les données
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [vehiclesData, techniciansData, tasksData, unassignedRes] = await Promise.all([
+        TechniciansService.getAllVehicles(),
+        TechniciansService.getAllTechnicians(),
+        DeliveryService.getTasksByDate(selectedDate),
+        ReservationsService.getUnassignedReservations(),
+      ]);
+      setVehicles(vehiclesData);
+      setTechnicians(techniciansData);
+      setTasksState(tasksData);
+      setReservations(unassignedRes as unknown as UnassignedReservation[]);
+    } catch (err) {
+      console.error('Erreur chargement données:', err);
+      toast.error('Erreur lors du chargement des données');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedDate, toast]);
+
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [vehiclesData, techniciansData, tasksData, unassignedRes] = await Promise.all([
-          TechniciansService.getAllVehicles(),
-          TechniciansService.getAllTechnicians(),
-          DeliveryService.getTasksByDate(selectedDate),
-          ReservationsService.getUnassignedReservations(),
-        ]);
-        setVehicles(vehiclesData);
-        setTechnicians(techniciansData);
-        setTasksState(tasksData);
-        setReservations(unassignedRes);
-      } catch (err) {
-        console.error('Erreur chargement données:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadData();
+  }, [loadData]);
+
+  // Rafraîchir uniquement les tâches et réservations (après une opération)
+  const refreshTasksAndReservations = useCallback(async () => {
+    try {
+      const [tasksData, unassignedRes] = await Promise.all([
+        DeliveryService.getTasksByDate(selectedDate),
+        ReservationsService.getUnassignedReservations(),
+      ]);
+      setTasksState(tasksData);
+      setReservations(unassignedRes as unknown as UnassignedReservation[]);
+    } catch (err) {
+      console.error('Erreur rafraîchissement:', err);
+    }
   }, [selectedDate]);
 
-  // Réservations qui nécessitent une livraison/retrait (déjà filtrées par le service)
-  const reservationsNeedingAssignment = reservations;
-
-  // Tâches déjà assignées pour la date sélectionnée
+  // Tâches pour la date sélectionnée
   const existingTasks = useMemo(() => {
     return tasksState.filter(task => task.scheduledDate === selectedDate);
   }, [selectedDate, tasksState]);
 
+  // Filtrer les tâches selon le filtre d'assignation
+  const filteredTasks = useMemo(() => {
+    switch (assignFilter) {
+      case 'unassigned':
+        return existingTasks.filter(t => !t.technicianId);
+      case 'assigned':
+        return existingTasks.filter(t => !!t.technicianId);
+      default:
+        return existingTasks;
+    }
+  }, [existingTasks, assignFilter]);
+
   // Grouper les tâches par technicien
   const tasksByTechnician = useMemo(() => {
-    const grouped: Record<string, typeof existingTasks> = {};
-    
-    existingTasks.forEach(task => {
-      if (!grouped[task.technicianId]) {
-        grouped[task.technicianId] = [];
+    const grouped: Record<string, DeliveryTask[]> = {};
+
+    filteredTasks.forEach(task => {
+      const key = task.technicianId || '__unassigned__';
+      if (!grouped[key]) {
+        grouped[key] = [];
       }
-      grouped[task.technicianId].push(task);
+      grouped[key].push(task);
     });
 
     // Trier par heure
@@ -79,22 +142,20 @@ export default function AdminPlanning() {
     });
 
     return grouped;
-  }, [existingTasks]);
+  }, [filteredTasks]);
 
   // Réservations non encore assignées pour cette date
   const unassignedReservations = useMemo(() => {
     const assignedReservationIds = new Set(existingTasks.map(t => t.reservationId));
-    return reservationsNeedingAssignment.filter(res => {
-      // Support both res.dates?.start and res.start_date formats
-      const deliveryDate = res.dates?.start || res.start_date;
-      return deliveryDate === selectedDate && !assignedReservationIds.has(res.id);
+    return reservations.filter(res => {
+      return res.start_date === selectedDate && !assignedReservationIds.has(res.id);
     });
-  }, [reservationsNeedingAssignment, selectedDate, existingTasks]);
+  }, [reservations, selectedDate, existingTasks]);
 
   // Grouper toutes les tâches par date pour la vue mois
   const allTasksByDate = useMemo(() => {
     const grouped: Record<string, DeliveryTask[]> = {};
-    
+
     tasksState.forEach(task => {
       if (!grouped[task.scheduledDate]) {
         grouped[task.scheduledDate] = [];
@@ -111,14 +172,14 @@ export default function AdminPlanning() {
     const lastDay = new Date(currentYear, currentMonth + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
-    const days: Array<{ date: Date | null; tasks: typeof fakeDeliveryTasks }> = [];
-    
+
+    const days: Array<{ date: Date | null; tasks: DeliveryTask[] }> = [];
+
     // Jours vides avant le premier jour du mois
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push({ date: null, tasks: [] });
     }
-    
+
     // Jours du mois
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentYear, currentMonth, day);
@@ -128,7 +189,7 @@ export default function AdminPlanning() {
         tasks: allTasksByDate[dateStr] || []
       });
     }
-    
+
     return days;
   }, [currentMonth, currentYear, allTasksByDate]);
 
@@ -150,33 +211,80 @@ export default function AdminPlanning() {
     }
   };
 
-  const handleAssign = (reservationId: string, technicianId: string, vehicleId: string) => {
-    setAssignments(prev => ({
-      ...prev,
-      [reservationId]: { technicianId, vehicleId }
-    }));
-    // En production, on enverrait cette assignation au backend
-    // TODO: Implémenter l'appel API pour sauvegarder l'assignation
-    // Ici on pourrait mettre à jour l'état pour refléter l'assignation immédiatement
+  // Assigner un livreur à une réservation via dropdown (créer ou assigner la delivery_task)
+  const handleAssign = async (reservation: UnassignedReservation, technicianId: string, vehicleId: string) => {
+    const opKey = `assign-${reservation.id}`;
+    setOperationInProgress(opKey);
+    try {
+      if (reservation.delivery_task_id) {
+        // La tâche existe déjà : assigner le technicien
+        await DeliveryService.assignTask(reservation.delivery_task_id, technicianId, vehicleId);
+      } else {
+        // Créer une nouvelle tâche
+        await DeliveryService.createDeliveryTask({
+          reservationId: reservation.id,
+          orderNumber: `ORD-${reservation.id.substring(0, 8)}`,
+          type: 'delivery',
+          scheduledDate: reservation.start_date,
+          scheduledTime: reservation.delivery_time || '10:00',
+          vehicleId: vehicleId,
+          technicianId: technicianId,
+          status: 'scheduled',
+          customer: {
+            firstName: reservation.customer?.first_name || '',
+            lastName: reservation.customer?.last_name || '',
+            phone: reservation.customer?.phone || '',
+            email: reservation.customer?.email || ''
+          },
+          address: {
+            street: reservation.delivery_address?.address_line1 || '',
+            city: reservation.delivery_address?.city || '',
+            postalCode: reservation.delivery_address?.postal_code || '',
+            country: 'France'
+          },
+          products: (reservation.reservation_items || []).map(item => ({
+            productId: item.product_id || '',
+            productName: item.product?.name || 'Produit',
+            quantity: item.quantity || 1
+          }))
+        });
+      }
+      toast.success('Livreur assigné avec succès');
+      await refreshTasksAndReservations();
+    } catch (err) {
+      console.error('Erreur assignation:', err);
+      toast.error('Erreur lors de l\'assignation du livreur');
+    } finally {
+      setOperationInProgress(null);
+    }
   };
 
-  const handleUnassign = (taskId: string) => {
-    // En production, on supprimerait la tâche via l'API
+  // Désassigner un technicien d'une tâche
+  const handleUnassign = async (taskId: string) => {
+    setOperationInProgress(`unassign-${taskId}`);
+    try {
+      await DeliveryService.unassignTask(taskId);
+      toast.success('Tâche désassignée');
+      await refreshTasksAndReservations();
+    } catch (err) {
+      console.error('Erreur désassignation:', err);
+      toast.error('Erreur lors de la désassignation');
+    } finally {
+      setOperationInProgress(null);
+    }
   };
 
-  // Gestion du drag & drop
+  // Gestion du drag & drop - tâches existantes
   const handleDragStart = (e: React.DragEvent, task: DeliveryTask) => {
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', task.id);
-    // Style visuel pendant le drag
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '0.5';
     }
   };
 
   const handleDragEnd = (e: React.DragEvent) => {
-    // Restaurer l'opacité
     if (e.currentTarget instanceof HTMLElement) {
       e.currentTarget.style.opacity = '1';
     }
@@ -186,7 +294,6 @@ export default function AdminPlanning() {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    // Style visuel pour la zone de drop
     const target = e.currentTarget as HTMLElement;
     if (target && !target.classList.contains('drag-over')) {
       target.classList.add('drag-over', 'border-[#33ffcc]', 'bg-[#33ffcc]/10');
@@ -194,7 +301,6 @@ export default function AdminPlanning() {
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    // Retirer le style visuel seulement si on quitte vraiment la zone
     const target = e.currentTarget as HTMLElement;
     const relatedTarget = e.relatedTarget as HTMLElement;
     if (target && relatedTarget && !target.contains(relatedTarget)) {
@@ -202,42 +308,40 @@ export default function AdminPlanning() {
     }
   };
 
-  const handleDrop = (e: React.DragEvent, targetTechnicianId: string) => {
+  // Drop d'une tâche existante vers un autre technicien (réassignation)
+  const handleDrop = async (e: React.DragEvent, targetTechnicianId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    // Retirer le style visuel
     const target = e.currentTarget as HTMLElement;
     if (target) {
       target.classList.remove('drag-over', 'border-[#33ffcc]', 'bg-[#33ffcc]/10');
     }
 
     if (!draggedTask) return;
+    if (draggedTask.technicianId === targetTechnicianId) return;
 
-    // Trouver le véhicule du technicien cible
     const targetTechnician = technicians.find(t => t.id === targetTechnicianId);
-    if (!targetTechnician || !targetTechnician.vehicle_id) {
-      console.warn('Technicien ou véhicule introuvable');
-      return;
+    setOperationInProgress(`reassign-${draggedTask.id}`);
+
+    try {
+      await DeliveryService.assignTask(
+        draggedTask.id,
+        targetTechnicianId,
+        targetTechnician?.vehicle_id || undefined
+      );
+      toast.success('Tâche réassignée');
+      await refreshTasksAndReservations();
+    } catch (err) {
+      console.error('Erreur réassignation:', err);
+      toast.error('Erreur lors de la réassignation');
+    } finally {
+      setOperationInProgress(null);
+      setDraggedTask(null);
     }
-
-    // Mettre à jour la tâche avec le nouveau technicien et véhicule
-    setTasksState(prevTasks => 
-      prevTasks.map(task => 
-        task.id === draggedTask.id
-          ? {
-              ...task,
-              technicianId: targetTechnicianId,
-              vehicleId: targetTechnician.vehicle_id!
-            }
-          : task
-      )
-    );
-
-    setDraggedTask(null);
   };
 
-  // Gestion du drag & drop pour les réservations non assignées
-  const handleReservationDragStart = (e: React.DragEvent, reservation: any) => {
+  // Drag & drop pour les réservations non assignées
+  const handleReservationDragStart = (e: React.DragEvent, reservation: UnassignedReservation) => {
     setDraggedReservation(reservation);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', reservation.id);
@@ -253,7 +357,8 @@ export default function AdminPlanning() {
     setDraggedReservation(null);
   };
 
-  const handleReservationDrop = (e: React.DragEvent, targetTechnicianId: string) => {
+  // Drop d'une réservation sur un technicien → créer/assigner la tâche
+  const handleReservationDrop = async (e: React.DragEvent, targetTechnicianId: string) => {
     e.preventDefault();
     e.stopPropagation();
     const target = e.currentTarget as HTMLElement;
@@ -264,43 +369,55 @@ export default function AdminPlanning() {
     if (!draggedReservation) return;
 
     const targetTechnician = technicians.find(t => t.id === targetTechnicianId);
-    if (!targetTechnician || !targetTechnician.vehicle_id) {
-      console.warn('Technicien ou véhicule introuvable');
-      return;
+    setOperationInProgress(`create-${draggedReservation.id}`);
+
+    try {
+      if (draggedReservation.delivery_task_id) {
+        // La tâche existe : assigner le technicien
+        await DeliveryService.assignTask(
+          draggedReservation.delivery_task_id,
+          targetTechnicianId,
+          targetTechnician?.vehicle_id || undefined
+        );
+      } else {
+        // Créer une nouvelle tâche
+        await DeliveryService.createDeliveryTask({
+          reservationId: draggedReservation.id,
+          orderNumber: `ORD-${draggedReservation.id.substring(0, 8)}`,
+          type: 'delivery',
+          scheduledDate: selectedDate,
+          scheduledTime: draggedReservation.delivery_time || '10:00',
+          vehicleId: targetTechnician?.vehicle_id || '',
+          technicianId: targetTechnicianId,
+          status: 'scheduled',
+          customer: {
+            firstName: draggedReservation.customer?.first_name || '',
+            lastName: draggedReservation.customer?.last_name || '',
+            phone: draggedReservation.customer?.phone || '',
+            email: draggedReservation.customer?.email || ''
+          },
+          address: {
+            street: draggedReservation.delivery_address?.address_line1 || '',
+            city: draggedReservation.delivery_address?.city || '',
+            postalCode: draggedReservation.delivery_address?.postal_code || '',
+            country: 'France'
+          },
+          products: (draggedReservation.reservation_items || []).map(item => ({
+            productId: item.product_id || '',
+            productName: item.product?.name || 'Produit',
+            quantity: item.quantity || 1
+          }))
+        });
+      }
+      toast.success('Intervention assignée avec succès');
+      await refreshTasksAndReservations();
+    } catch (err) {
+      console.error('Erreur assignation par drag:', err);
+      toast.error('Erreur lors de l\'assignation');
+    } finally {
+      setOperationInProgress(null);
+      setDraggedReservation(null);
     }
-
-    // Créer une nouvelle tâche à partir de la réservation
-    const newTask: DeliveryTask = {
-      id: `task_${Date.now()}`,
-      reservationId: draggedReservation.id,
-      orderNumber: draggedReservation.order_number || `ORD-${draggedReservation.id.substring(0, 8)}`,
-      type: 'delivery',
-      scheduledDate: selectedDate,
-      scheduledTime: draggedReservation.delivery_time || '10:00',
-      vehicleId: targetTechnician.vehicle_id,
-      technicianId: targetTechnicianId,
-      status: 'scheduled',
-      customer: {
-        firstName: draggedReservation.customer?.first_name || '',
-        lastName: draggedReservation.customer?.last_name || '',
-        phone: draggedReservation.customer?.phone || '',
-        email: draggedReservation.customer?.email || ''
-      },
-      address: {
-        street: 'Adresse à compléter',
-        city: '',
-        postalCode: '',
-        country: 'France'
-      },
-      products: (draggedReservation.reservation_items || []).map((p: any) => ({
-        productId: p.product_id || '',
-        productName: p.product?.name || 'Produit',
-        quantity: p.quantity || 1
-      }))
-    };
-
-    setTasksState(prevTasks => [...prevTasks, newTask]);
-    setDraggedReservation(null);
   };
 
   const navigateDate = (days: number) => {
@@ -326,6 +443,26 @@ export default function AdminPlanning() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed': return 'Terminé';
+      case 'in_progress': return 'En cours';
+      case 'scheduled': return 'Planifié';
+      case 'cancelled': return 'Annulé';
+      default: return status;
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'delivery': return 'Livraison';
+      case 'pickup': return 'Retrait';
+      case 'client_pickup': return 'Retrait client';
+      case 'client_return': return 'Retour client';
+      default: return type;
+    }
+  };
+
   // Fermer le menu en cliquant en dehors
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -337,6 +474,16 @@ export default function AdminPlanning() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMenu]);
 
+  // Loading global
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-[#33ffcc]" />
+        <span className="ml-3 text-gray-600">Chargement des livraisons...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* En-tête avec contrôles */}
@@ -344,76 +491,101 @@ export default function AdminPlanning() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <h1 className="text-2xl font-bold text-gray-900">Livraisons</h1>
-            <button
-              onClick={() => {
-                setEditingVehicle(null);
-                setVehicleFormData({
-                  name: '',
-                  type: 'truck',
-                  capacity: '',
-                  licensePlate: '',
-                  isActive: true
-                });
-                setShowVehicleModal(true);
-              }}
-              className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors flex items-center gap-2"
-            >
-              <Truck className="w-5 h-5" />
-              + Nouveau camion
-            </button>
-            
-            {/* Toggle vue jour/mois */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => setViewMode('day')}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  viewMode === 'day'
-                    ? 'bg-white text-[#000033] font-semibold shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                onClick={() => {
+                  setEditingVehicle(null);
+                  setVehicleFormData({
+                    name: '',
+                    type: 'truck',
+                    capacity: '',
+                    licensePlate: '',
+                    isActive: true
+                  });
+                  setShowVehicleModal(true);
+                }}
+                className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors flex items-center gap-2"
               >
-                Jour
+                <Truck className="w-5 h-5" />
+                + Nouveau camion
               </button>
-              <button
-                onClick={() => setViewMode('month')}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  viewMode === 'month'
-                    ? 'bg-white text-[#000033] font-semibold shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Mois
-              </button>
+
+              {/* Toggle vue jour/mois */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('day')}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    viewMode === 'day'
+                      ? 'bg-white text-[#000033] font-semibold shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Jour
+                </button>
+                <button
+                  onClick={() => setViewMode('month')}
+                  className={`px-4 py-2 rounded-md transition-colors ${
+                    viewMode === 'month'
+                      ? 'bg-white text-[#000033] font-semibold shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Mois
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Contrôles de date selon la vue */}
           {viewMode === 'day' ? (
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigateDate(-1)}
-                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                ←
-              </button>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#33ffcc]"
-              />
-              <button
-                onClick={() => navigateDate(1)}
-                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                →
-              </button>
-              <button
-                onClick={goToToday}
-                className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
-              >
-                Aujourd'hui
-              </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigateDate(-1)}
+                  className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  &larr;
+                </button>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#33ffcc]"
+                />
+                <button
+                  onClick={() => navigateDate(1)}
+                  className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  &rarr;
+                </button>
+                <button
+                  onClick={goToToday}
+                  className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
+                >
+                  Aujourd'hui
+                </button>
+              </div>
+
+              {/* Filtre assignation */}
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                {([
+                  { key: 'all' as const, label: 'Toutes' },
+                  { key: 'unassigned' as const, label: 'Non assignées' },
+                  { key: 'assigned' as const, label: 'Assignées' },
+                ]).map(f => (
+                  <button
+                    key={f.key}
+                    onClick={() => setAssignFilter(f.key)}
+                    className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                      assignFilter === f.key
+                        ? 'bg-white text-[#000033] font-semibold shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-4">
@@ -421,19 +593,19 @@ export default function AdminPlanning() {
                 onClick={() => navigateMonth(-1)}
                 className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
-                ←
+                &larr;
               </button>
               <h2 className="text-lg font-semibold text-gray-900">
-                {new Date(currentYear, currentMonth).toLocaleDateString('fr-FR', { 
-                  month: 'long', 
-                  year: 'numeric' 
+                {new Date(currentYear, currentMonth).toLocaleDateString('fr-FR', {
+                  month: 'long',
+                  year: 'numeric'
                 })}
               </h2>
               <button
                 onClick={() => navigateMonth(1)}
                 className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
-                →
+                &rarr;
               </button>
               <button
                 onClick={() => {
@@ -450,6 +622,16 @@ export default function AdminPlanning() {
           )}
         </div>
       </div>
+
+      {/* Overlay loading pendant une opération */}
+      {operationInProgress && (
+        <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-40 pointer-events-none">
+          <div className="bg-white rounded-lg shadow-lg px-6 py-4 flex items-center gap-3 pointer-events-auto">
+            <Loader2 className="w-5 h-5 animate-spin text-[#33ffcc]" />
+            <span className="text-gray-700 text-sm">Opération en cours...</span>
+          </div>
+        </div>
+      )}
 
       {/* Vue Mois - Calendrier */}
       {viewMode === 'month' && (
@@ -474,14 +656,15 @@ export default function AdminPlanning() {
               const isToday = dateStr === new Date().toISOString().split('T')[0];
               const isSelected = dateStr === selectedDate;
               const tasks = dayData.tasks;
-              
+
               // Grouper les tâches par technicien pour ce jour
               const tasksByTech: Record<string, typeof tasks> = {};
               tasks.forEach(task => {
-                if (!tasksByTech[task.technicianId]) {
-                  tasksByTech[task.technicianId] = [];
+                const key = task.technicianId || '__unassigned__';
+                if (!tasksByTech[key]) {
+                  tasksByTech[key] = [];
                 }
-                tasksByTech[task.technicianId].push(task);
+                tasksByTech[key].push(task);
               });
 
               return (
@@ -509,7 +692,7 @@ export default function AdminPlanning() {
                       <div className="text-xs font-semibold text-gray-700">
                         {tasks.length} intervention(s)
                       </div>
-                      {Object.keys(tasksByTech).slice(0, 2).map(techId => {
+                      {Object.keys(tasksByTech).filter(k => k !== '__unassigned__').slice(0, 2).map(techId => {
                         const tech = technicians.find(t => t.id === techId);
                         return (
                           <div key={techId} className="text-xs text-gray-600 truncate">
@@ -517,6 +700,11 @@ export default function AdminPlanning() {
                           </div>
                         );
                       })}
+                      {tasksByTech['__unassigned__'] && (
+                        <div className="text-xs text-orange-600 truncate">
+                          Non assigné ({tasksByTech['__unassigned__'].length})
+                        </div>
+                      )}
                     </div>
                   )}
                 </button>
@@ -536,30 +724,38 @@ export default function AdminPlanning() {
             {unassignedReservations.map(reservation => (
               <div
                 key={reservation.id}
-                className="p-4 border-2 border-dashed border-orange-300 rounded-lg bg-orange-50 cursor-move hover:border-orange-400 hover:bg-orange-100 transition-all duration-200"
-                draggable
+                className={`p-4 border-2 border-dashed border-orange-300 rounded-lg bg-orange-50 cursor-move hover:border-orange-400 hover:bg-orange-100 transition-all duration-200 ${
+                  operationInProgress?.includes(reservation.id) ? 'opacity-50 pointer-events-none' : ''
+                }`}
+                draggable={!operationInProgress}
                 onDragStart={(e) => handleReservationDragStart(e, reservation)}
                 onDragEnd={handleReservationDragEnd}
               >
                 <div className="mb-3">
                   <p className="font-semibold text-gray-900 text-sm">
-                    {reservation.orderNumber}
+                    ORD-{reservation.id.substring(0, 8)}
                   </p>
                   <p className="text-sm text-gray-700 font-medium mt-1">
-                    {reservation.customer.firstName} {reservation.customer.lastName}
+                    {reservation.customer?.first_name} {reservation.customer?.last_name}
                   </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {reservation.delivery.address.street}
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    {reservation.delivery.address.postalCode} {reservation.delivery.address.city}
-                  </p>
+                  {reservation.delivery_address && (
+                    <>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {reservation.delivery_address.address_line1}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {reservation.delivery_address.postal_code} {reservation.delivery_address.city}
+                      </p>
+                    </>
+                  )}
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-700">
-                      {reservation.dates.deliveryTime}
-                    </span>
+                    {reservation.delivery_time && (
+                      <span className="text-xs font-semibold text-gray-700">
+                        {reservation.delivery_time}
+                      </span>
+                    )}
                     <span className="text-xs text-gray-500">
-                      {reservation.products.length} produit(s)
+                      {reservation.reservation_items?.length || 0} produit(s)
                     </span>
                   </div>
                 </div>
@@ -569,31 +765,26 @@ export default function AdminPlanning() {
                     Assigner à un livreur:
                   </label>
                   <select
+                    disabled={!!operationInProgress}
                     onChange={(e) => {
                       const [technicianId, vehicleId] = e.target.value.split('|');
-                      if (technicianId && vehicleId) {
-                        handleAssign(reservation.id, technicianId, vehicleId);
+                      if (technicianId) {
+                        handleAssign(reservation, technicianId, vehicleId || '');
                         e.target.value = '';
                       }
                     }}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#33ffcc] bg-white"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#33ffcc] bg-white disabled:opacity-50"
                     defaultValue=""
                   >
                     <option value="">Choisir un livreur...</option>
-                    {technicians.map(tech => {
-                      const techVehicle = tech.vehicle_id
-                        ? vehicles.find(v => v.id === tech.vehicle_id)
-                        : null;
-                      if (!techVehicle) return null;
-                      return (
-                        <option
-                          key={tech.id}
-                          value={`${tech.id}|${techVehicle.id}`}
-                        >
-                          {tech.first_name} {tech.last_name}
-                        </option>
-                      );
-                    })}
+                    {technicians.map(tech => (
+                      <option
+                        key={tech.id}
+                        value={`${tech.id}|${tech.vehicle_id || ''}`}
+                      >
+                        {tech.first_name} {tech.last_name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -602,17 +793,88 @@ export default function AdminPlanning() {
         </div>
       )}
 
-      {/* Livraisons par livreur - 4 colonnes - seulement en vue jour */}
+      {/* Livraisons par livreur - seulement en vue jour */}
       {viewMode === 'day' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Livraisons du {new Date(selectedDate).toLocaleDateString('fr-FR', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            Livraisons du {new Date(selectedDate).toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
+            {filteredTasks.length > 0 && (
+              <span className="text-sm font-normal text-gray-500 ml-2">
+                ({filteredTasks.length} tâche{filteredTasks.length > 1 ? 's' : ''})
+              </span>
+            )}
           </h2>
+
+          {/* Tâches non assignées */}
+          {tasksByTechnician['__unassigned__'] && tasksByTechnician['__unassigned__'].length > 0 && (
+            <div className="mb-6 border-2 border-dashed border-orange-300 rounded-lg p-4 bg-orange-50">
+              <h3 className="font-bold text-orange-800 text-base mb-3">
+                Non assignées ({tasksByTechnician['__unassigned__'].length})
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {tasksByTechnician['__unassigned__'].map(task => (
+                  <div key={task.id} className="p-3 bg-white border border-orange-200 rounded-lg shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                        task.type === 'delivery'
+                          ? 'bg-[#33ffcc] text-[#000033]'
+                          : 'bg-orange-500 text-white'
+                      }`}>
+                        {getTypeLabel(task.type)}
+                      </span>
+                      <span className="text-sm font-bold text-gray-900">
+                        {task.scheduledTime}
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {task.customer.firstName} {task.customer.lastName}
+                    </p>
+                    {task.address.street && (
+                      <p className="text-xs text-gray-600 mt-1">
+                        {task.address.street}, {task.address.postalCode} {task.address.city}
+                      </p>
+                    )}
+                    <div className="mt-3">
+                      <select
+                        disabled={!!operationInProgress}
+                        onChange={async (e) => {
+                          const [techId, vehId] = e.target.value.split('|');
+                          if (techId) {
+                            setOperationInProgress(`assign-task-${task.id}`);
+                            try {
+                              await DeliveryService.assignTask(task.id, techId, vehId || undefined);
+                              toast.success('Tâche assignée');
+                              await refreshTasksAndReservations();
+                            } catch (err) {
+                              console.error('Erreur assignation:', err);
+                              toast.error('Erreur lors de l\'assignation');
+                            } finally {
+                              setOperationInProgress(null);
+                            }
+                            e.target.value = '';
+                          }
+                        }}
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#33ffcc] bg-white disabled:opacity-50"
+                        defaultValue=""
+                      >
+                        <option value="">Assigner un livreur...</option>
+                        {technicians.map(tech => (
+                          <option key={tech.id} value={`${tech.id}|${tech.vehicle_id || ''}`}>
+                            {tech.first_name} {tech.last_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto">
           {technicians.map(technicianItem => {
@@ -623,11 +885,10 @@ export default function AdminPlanning() {
 
             return (
               <div
-                key={technicianItem.id} 
+                key={technicianItem.id}
                 className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50 min-h-[500px] transition-all duration-200"
                 onDragOver={(e) => {
                   handleDragOver(e);
-                  // Permettre aussi le drop de réservations
                   if (draggedReservation) {
                     e.preventDefault();
                     e.dataTransfer.dropEffect = 'move';
@@ -665,11 +926,14 @@ export default function AdminPlanning() {
                     </div>
                   ) : (
                     tasks.map(task => {
+                      const isTaskBusy = operationInProgress?.includes(task.id);
                       return (
                         <div
                           key={task.id}
-                          className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm cursor-move hover:shadow-md transition-all duration-200"
-                          draggable
+                          className={`p-3 bg-white border border-gray-200 rounded-lg shadow-sm cursor-move hover:shadow-md transition-all duration-200 ${
+                            isTaskBusy ? 'opacity-50 pointer-events-none' : ''
+                          }`}
+                          draggable={!operationInProgress}
                           onDragStart={(e) => handleDragStart(e, task)}
                           onDragEnd={handleDragEnd}
                         >
@@ -677,11 +941,11 @@ export default function AdminPlanning() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                                  task.type === 'delivery' 
-                                    ? 'bg-[#33ffcc] text-[#000033]' 
+                                  task.type === 'delivery'
+                                    ? 'bg-[#33ffcc] text-[#000033]'
                                     : 'bg-orange-500 text-white'
                                 }`}>
-                                  {task.type === 'delivery' ? 'Livraison' : 'Retrait'}
+                                  {getTypeLabel(task.type)}
                                 </span>
                                 <span className="text-sm font-bold text-gray-900">
                                   {task.scheduledTime}
@@ -690,40 +954,45 @@ export default function AdminPlanning() {
                               <p className="text-sm font-semibold text-gray-900">
                                 {task.customer.firstName} {task.customer.lastName}
                               </p>
-                              <p className="text-xs text-gray-600 mt-1">
-                                {task.address.street}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                {task.address.postalCode} {task.address.city}
-                              </p>
+                              {task.address.street && (
+                                <>
+                                  <p className="text-xs text-gray-600 mt-1">
+                                    {task.address.street}
+                                  </p>
+                                  <p className="text-xs text-gray-600">
+                                    {task.address.postalCode} {task.address.city}
+                                  </p>
+                                </>
+                              )}
                               <p className="text-xs text-gray-500 mt-1">
                                 {task.orderNumber}
                               </p>
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {task.products.slice(0, 2).map((product, idx) => (
-                                  <span key={idx} className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
-                                    {product.productName}
-                                  </span>
-                                ))}
-                                {task.products.length > 2 && (
-                                  <span className="text-xs text-gray-500">
-                                    +{task.products.length - 2}
-                                  </span>
-                                )}
-                              </div>
+                              {task.products.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {task.products.slice(0, 2).map((product, idx) => (
+                                    <span key={idx} className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                                      {product.productName}
+                                    </span>
+                                  ))}
+                                  {task.products.length > 2 && (
+                                    <span className="text-xs text-gray-500">
+                                      +{task.products.length - 2}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <button
                               onClick={() => handleUnassign(task.id)}
-                              className="text-red-600 hover:text-red-800 text-sm ml-2"
+                              disabled={!!operationInProgress}
+                              className="text-red-600 hover:text-red-800 text-sm ml-2 disabled:opacity-50"
                               title="Désassigner"
                             >
                               ✕
                             </button>
                           </div>
                           <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getStatusColor(task.status)}`}>
-                            {task.status === 'completed' ? 'Terminé' :
-                             task.status === 'in_progress' ? 'En cours' :
-                             task.status === 'scheduled' ? 'Planifié' : task.status}
+                            {getStatusLabel(task.status)}
                           </span>
                         </div>
                       );
@@ -737,10 +1006,10 @@ export default function AdminPlanning() {
         </div>
       )}
 
-      {viewMode === 'day' && unassignedReservations.length === 0 && existingTasks.length === 0 && (
+      {viewMode === 'day' && unassignedReservations.length === 0 && filteredTasks.length === 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <p className="text-gray-500 text-lg">
-            Aucune réservation à assigner pour cette date
+            Aucune intervention pour cette date
           </p>
         </div>
       )}
@@ -771,7 +1040,7 @@ export default function AdminPlanning() {
                   </div>
                 </div>
                 <div className="relative menu-container">
-                  <button 
+                  <button
                     onClick={() => setShowMenu(showMenu === vehicle.id ? null : vehicle.id)}
                     className="text-gray-600 hover:text-gray-900 p-1"
                   >
@@ -837,26 +1106,28 @@ export default function AdminPlanning() {
             <form onSubmit={(e) => {
               e.preventDefault();
               if (editingVehicle) {
-                setVehicles(prev => prev.map(v => 
-                  v.id === editingVehicle.id 
+                setVehicles(prev => prev.map(v =>
+                  v.id === editingVehicle.id
                     ? {
                         ...v,
                         name: vehicleFormData.name,
                         type: vehicleFormData.type as 'truck' | 'van',
                         capacity: parseFloat(vehicleFormData.capacity),
-                        licensePlate: vehicleFormData.licensePlate,
-                        isActive: vehicleFormData.isActive
+                        license_plate: vehicleFormData.licensePlate,
+                        is_active: vehicleFormData.isActive
                       }
                     : v
                 ));
               } else {
-                const newVehicle = {
+                const newVehicle: Vehicle = {
                   id: `veh_${Date.now()}`,
                   name: vehicleFormData.name,
                   type: vehicleFormData.type as 'truck' | 'van',
                   capacity: parseFloat(vehicleFormData.capacity),
-                  licensePlate: vehicleFormData.licensePlate,
-                  isActive: vehicleFormData.isActive
+                  license_plate: vehicleFormData.licensePlate,
+                  is_active: vehicleFormData.isActive,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
                 };
                 setVehicles(prev => [...prev, newVehicle]);
               }
@@ -976,4 +1247,3 @@ export default function AdminPlanning() {
     </div>
   );
 }
-

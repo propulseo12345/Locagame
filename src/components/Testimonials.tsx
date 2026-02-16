@@ -8,14 +8,17 @@ import { TestimonialsService, type Testimonial } from '../services';
 export function Testimonials() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchTestimonials() {
       try {
         const data = await TestimonialsService.getFeaturedTestimonials();
         setTestimonials(data);
-      } catch (error) {
-        console.error('Failed to fetch testimonials:', error);
+      } catch (err: any) {
+        const message = err?.message || 'Impossible de charger les avis';
+        console.error('[Testimonials] Erreur:', err);
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -96,6 +99,36 @@ export function Testimonials() {
         </div>
 
         {/* Témoignages */}
+        {error ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center gap-3 px-6 py-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+              <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          </div>
+        ) : loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse p-8 bg-white/[0.03] rounded-2xl border border-white/10">
+                <div className="h-10 w-10 bg-white/5 rounded mb-6" />
+                <div className="space-y-2 mb-8">
+                  <div className="h-4 bg-white/5 rounded w-full" />
+                  <div className="h-4 bg-white/5 rounded w-3/4" />
+                  <div className="h-4 bg-white/5 rounded w-1/2" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white/5 rounded-full" />
+                  <div className="space-y-2">
+                    <div className="h-4 bg-white/5 rounded w-24" />
+                    <div className="h-3 bg-white/5 rounded w-32" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
         <motion.div
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
           variants={containerVariants}
@@ -135,6 +168,7 @@ export function Testimonials() {
             </motion.div>
           ))}
         </motion.div>
+        )}
 
         {/* CTA */}
         <ScrollReveal animation="scale" delay={0.3}>

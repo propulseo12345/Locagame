@@ -387,8 +387,9 @@ export default function CatalogPage() {
 
         setProducts(mappedProducts);
         setCategories(categoriesData);
-      } catch (error) {
-        console.error('Error loading catalog data:', error);
+      } catch (err: any) {
+        console.error('[CatalogPage] Erreur chargement:', err);
+        setError(err?.message || 'Impossible de charger le catalogue');
       } finally {
         setLoading(false);
       }

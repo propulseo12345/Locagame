@@ -30,14 +30,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Vérifier la session existante
     const initAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          const userProfile = await loadUserProfile(session.user);
-          setUser(userProfile);
+        console.log('[Auth] Initialisation de la session...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error('[Auth] Erreur getSession:', sessionError.message);
+          return;
         }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
+
+        if (session?.user) {
+          console.log('[Auth] Session trouvée, chargement du profil...');
+          const userProfile = await loadUserProfile(session.user);
+          if (userProfile) {
+            console.log('[Auth] Profil chargé:', userProfile.role);
+          } else {
+            console.warn('[Auth] Profil non trouvé pour user:', session.user.id);
+          }
+          setUser(userProfile);
+        } else {
+          console.log('[Auth] Pas de session active');
+        }
+      } catch (error: any) {
+        console.error('[Auth] Erreur initialisation:', error?.message || error);
       } finally {
         setLoading(false);
       }
@@ -67,12 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    console.log('[Auth] Tentative de connexion:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
+      console.error('[Auth] Erreur signIn:', error.message, '| status:', error.status);
       throw new Error(error.message || 'Email ou mot de passe incorrect');
     }
 

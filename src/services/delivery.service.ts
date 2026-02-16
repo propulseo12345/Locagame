@@ -249,15 +249,19 @@ export class DeliveryService {
   static async assignTask(
     taskId: string,
     technicianId: string,
-    vehicleId: string
+    vehicleId?: string
   ): Promise<DeliveryTask> {
+    const updates: Record<string, string | null> = {
+      technician_id: technicianId,
+      status: 'scheduled',
+    };
+    if (vehicleId) {
+      updates.vehicle_id = vehicleId;
+    }
+
     const { data, error } = await supabase
       .from('delivery_tasks')
-      .update({
-        technician_id: technicianId,
-        vehicle_id: vehicleId,
-        status: 'scheduled',
-      })
+      .update(updates)
       .eq('id', taskId)
       .select()
       .single();
@@ -268,5 +272,84 @@ export class DeliveryService {
     }
 
     return mapRowToDeliveryTask(data);
+  }
+
+  /**
+   * Récupère toutes les tâches de livraison avec filtres (admin)
+   */
+  static async getAllTasks(filters?: {
+    unassignedOnly?: boolean;
+    assignedOnly?: boolean;
+    fromDate?: string;
+    toDate?: string;
+    excludeCompleted?: boolean;
+  }): Promise<DeliveryTask[]> {
+    let query = supabase
+      .from('delivery_tasks')
+      .select('*')
+      .order('scheduled_date', { ascending: true })
+      .order('scheduled_time', { ascending: true });
+
+    if (filters?.unassignedOnly) {
+      query = query.is('technician_id', null);
+    }
+    if (filters?.assignedOnly) {
+      query = query.not('technician_id', 'is', null);
+    }
+    if (filters?.fromDate) {
+      query = query.gte('scheduled_date', filters.fromDate);
+    }
+    if (filters?.toDate) {
+      query = query.lte('scheduled_date', filters.toDate);
+    }
+    if (filters?.excludeCompleted) {
+      query = query.not('status', 'in', '("completed","cancelled")');
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching all tasks:', error);
+      throw error;
+    }
+
+    return (data || []).map(mapRowToDeliveryTask);
+  }
+
+  /**
+   * Désassigne un technicien d'une tâche (remet technician_id à null)
+   */
+  static async unassignTask(taskId: string): Promise<DeliveryTask> {
+    const { data, error } = await supabase
+      .from('delivery_tasks')
+      .update({
+        technician_id: null,
+        vehicle_id: null,
+      })
+      .eq('id', taskId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error unassigning task:', error);
+      throw error;
+    }
+
+    return mapRowToDeliveryTask(data);
+  }
+
+  /**
+   * Supprime une tâche de livraison (admin)
+   */
+  static async deleteTask(taskId: string): Promise<void> {
+    const { error } = await supabase
+      .from('delivery_tasks')
+      .delete()
+      .eq('id', taskId);
+
+    if (error) {
+      console.error('Error deleting task:', error);
+      throw error;
+    }
   }
 }
