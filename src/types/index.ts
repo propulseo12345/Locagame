@@ -7,7 +7,7 @@ export interface Product {
   category_id: string;
   images: string[];
   specifications: {
-    dimensions: string;
+    dimensions: { length: number; width: number; height?: number };
     weight: number;
     players: {
       min: number;
@@ -15,6 +15,7 @@ export interface Product {
     };
     electricity: boolean;
     setup_time: number;
+    power_requirements?: string;
   };
   pricing: {
     oneDay: number;
@@ -173,8 +174,14 @@ export interface Order {
   delivery_fee: number;
   discount: number;
   total: number;
-  status: 'pending' | 'confirmed' | 'preparing' | 'delivered' | 'returned' | 'cancelled';
+  status: 'pending_payment' | 'pending' | 'confirmed' | 'preparing' | 'delivered' | 'returned' | 'completed' | 'cancelled';
+  payment_status?: 'unpaid' | 'pending_payment' | 'paid' | 'failed' | 'expired' | 'refunded';
+  payment_intent_id?: string;
+  stripe_checkout_session_id?: string;
+  paid_at?: string;
+  payment_method?: string;
   created_at: string;
+  updated_at?: string;
   // Nouveaux champs
   recipient_data?: RecipientData | null;
   event_details?: EventDetails | null;

@@ -11,6 +11,7 @@ export const ROUTES = {
   PRODUCT: (id: string) => `/produit/${id}`,
   CART: '/panier',
   CHECKOUT: '/checkout',
+  CONFIRMATION: (id: string) => `/confirmation/${id}`,
   EVENTS: '/evenements',
   EVENT_DETAIL: (id: string) => `/evenements/${id}`,
   CONTACT: '/contact',

@@ -1,6 +1,56 @@
 import { supabase } from '../lib/supabase';
 import { Product, FilterOptions } from '../types';
 
+const DEFAULT_SPECIFICATIONS: Product['specifications'] = {
+  dimensions: { length: 0, width: 0, height: 0 },
+  weight: 0,
+  players: { min: 1, max: 10 },
+  electricity: false,
+  setup_time: 0,
+};
+
+const DEFAULT_PRICING: Product['pricing'] = {
+  oneDay: 0,
+  weekend: 0,
+  week: 0,
+  custom: 0,
+};
+
+/** Normalise un produit brut de Supabase en garantissant specifications/pricing/images */
+function normalizeProduct(raw: any): Product {
+  const specs = raw.specifications;
+  const pricing = raw.pricing;
+
+  return {
+    ...raw,
+    description: raw.description || '',
+    images: Array.isArray(raw.images) ? raw.images : [],
+    total_stock: raw.total_stock || 0,
+    is_active: raw.is_active ?? true,
+    specifications: specs && typeof specs === 'object'
+      ? {
+          dimensions: specs.dimensions && typeof specs.dimensions === 'object'
+            ? { length: specs.dimensions.length || 0, width: specs.dimensions.width || 0, height: specs.dimensions.height || 0 }
+            : DEFAULT_SPECIFICATIONS.dimensions,
+          weight: specs.weight || 0,
+          players: specs.players && typeof specs.players === 'object'
+            ? { min: specs.players.min || 1, max: specs.players.max || 10 }
+            : DEFAULT_SPECIFICATIONS.players,
+          electricity: specs.electricity || false,
+          setup_time: specs.setup_time || specs.setupTime || 0,
+        }
+      : { ...DEFAULT_SPECIFICATIONS },
+    pricing: pricing && typeof pricing === 'object'
+      ? {
+          oneDay: pricing.oneDay || pricing.one_day || pricing.daily || 0,
+          weekend: pricing.weekend || 0,
+          week: pricing.week || pricing.weekly || 0,
+          custom: pricing.custom || 0,
+        }
+      : { ...DEFAULT_PRICING },
+  };
+}
+
 export class ProductsService {
   /**
    * Récupère tous les produits avec filtres optionnels
@@ -52,7 +102,68 @@ export class ProductsService {
       throw error;
     }
 
-    return data as Product[];
+    return (data || []).map(normalizeProduct);
+  }
+
+  /**
+   * Récupère les produits mis en avant (limité, léger)
+   */
+  static async getFeaturedProducts(limit = 4): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*, category:categories(*)')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching featured products:', error);
+      throw error;
+    }
+
+    return (data || []).map(normalizeProduct);
+  }
+
+  /**
+   * Recherche de produits par texte (pour autocomplete)
+   */
+  static async searchProducts(query: string, limit = 8): Promise<Product[]> {
+    if (!query.trim()) return [];
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name, images, pricing, category:categories(name)')
+      .eq('is_active', true)
+      .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
+      .limit(limit);
+
+    if (error) {
+      console.error('Error searching products:', error);
+      throw error;
+    }
+
+    return (data || []).map(normalizeProduct);
+  }
+
+  /**
+   * Récupère le nombre de produits par catégorie (requête légère)
+   */
+  static async getProductCountsByCategory(): Promise<Record<string, number>> {
+    const { data, error } = await supabase
+      .from('products')
+      .select('category_id')
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error fetching product counts:', error);
+      throw error;
+    }
+
+    const counts: Record<string, number> = {};
+    for (const row of data || []) {
+      counts[row.category_id] = (counts[row.category_id] || 0) + 1;
+    }
+    return counts;
   }
 
   /**
@@ -70,7 +181,7 @@ export class ProductsService {
       throw error;
     }
 
-    return data as Product;
+    return data ? normalizeProduct(data) : null;
   }
 
   /**

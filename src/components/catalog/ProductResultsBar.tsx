@@ -1,4 +1,4 @@
-import { Grid, List } from 'lucide-react';
+import { Grid, List, Calendar } from 'lucide-react';
 import { FilterOptions } from '../../types';
 
 interface ProductResultsBarProps {
@@ -10,6 +10,9 @@ interface ProductResultsBarProps {
   onViewModeChange: (mode: 'grid' | 'list') => void;
   onClearFilters: () => void;
   hasDateOrSearch: boolean;
+  startDate?: string;
+  endDate?: string;
+  unavailableCount?: number;
 }
 
 export function ProductResultsBar({
@@ -20,7 +23,10 @@ export function ProductResultsBar({
   onSortChange,
   onViewModeChange,
   onClearFilters,
-  hasDateOrSearch
+  hasDateOrSearch,
+  startDate,
+  endDate,
+  unavailableCount,
 }: ProductResultsBarProps) {
   return (
     <div className="sticky top-[var(--header-height)] z-30 bg-[#000033]/90 backdrop-blur-md py-3 mb-6 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 border-b border-white/5">
@@ -28,8 +34,21 @@ export function ProductResultsBar({
         {/* Compteur et filtres actifs */}
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-white font-medium whitespace-nowrap">
-            {totalResults} résultat{totalResults > 1 ? 's' : ''}
+            {totalResults} resultat{totalResults > 1 ? 's' : ''}
           </span>
+
+          {/* Date availability badge */}
+          {startDate && endDate && (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-[#33ffcc]/10 border border-[#33ffcc]/30 rounded-full text-xs text-[#33ffcc]">
+              <Calendar className="w-3 h-3" />
+              Dispo {new Date(startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - {new Date(endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+              {unavailableCount != null && unavailableCount > 0 && (
+                <span className="ml-1 text-gray-400">
+                  ({unavailableCount} indispo)
+                </span>
+              )}
+            </span>
+          )}
 
           {activeFiltersCount > 0 && (
             <div className="hidden sm:flex items-center gap-2 overflow-x-auto">

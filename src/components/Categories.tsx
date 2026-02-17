@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { CategoriesService, ProductsService } from '../services';
 import type { Category } from '../services/categories.service';
-import { Product } from '../types';
 
 // Mapping des icônes par slug de catégorie
 const iconMap: Record<string, typeof Dices> = {
@@ -37,14 +36,14 @@ export function Categories() {
     const loadCategories = async () => {
       try {
         setLoading(true);
-        const [categoriesData, productsData] = await Promise.all([
+        const [categoriesData, counts] = await Promise.all([
           CategoriesService.getCategories(),
-          ProductsService.getProducts()
+          ProductsService.getProductCountsByCategory()
         ]);
 
         // Enrichir les catégories avec les compteurs et les icônes
         const enrichedCategories = categoriesData.map(cat => {
-          const count = productsData.filter(p => p.category_id === cat.id).length;
+          const count = counts[cat.id] || 0;
           const Icon = iconMap[cat.slug] || Dices;
           const image = defaultImages[cat.slug] || 'https://images.pexels.com/photos/163888/foosball-fun-game-team-163888.jpeg?auto=compress&cs=tinysrgb&w=800';
           
@@ -117,6 +116,9 @@ export function Categories() {
                 <img
                   src={category.image}
                   alt={category.name}
+                  width={400}
+                  height={400}
+                  loading="lazy"
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#000033] via-[#000033]/70 to-transparent group-hover:from-[#000033]/90 group-hover:via-[#000033]/80 transition-all duration-500"></div>

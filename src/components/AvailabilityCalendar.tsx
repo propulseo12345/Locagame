@@ -74,10 +74,6 @@ export default function AvailabilityCalendar({
     }
   };
 
-  const handleClearSelection = () => {
-    onClearSelection();
-  };
-
   const navigateMonth = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
       if (currentMonth === 1) {
@@ -150,12 +146,6 @@ export default function AvailabilityCalendar({
     }
 
     return baseClasses;
-  };
-
-  const getSelectionState = () => {
-    if (!selectedStartDate) return 'start';
-    if (!selectedEndDate) return 'end';
-    return 'complete';
   };
 
   return (

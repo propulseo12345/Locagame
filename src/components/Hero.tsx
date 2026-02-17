@@ -1,6 +1,6 @@
 import { Search, Calendar, ArrowRight, Gamepad2, Loader2, Sparkles, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductsService, CategoriesService } from '../services';
@@ -180,6 +180,36 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+// Hook for search suggestions via Supabase
+function useProductSearch(debouncedQuery: string) {
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (debouncedQuery.length < 1) {
+      setSuggestions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const search = async () => {
+      setIsSearching(true);
+      try {
+        const results = await ProductsService.searchProducts(debouncedQuery, 5);
+        if (!cancelled) setSuggestions(results);
+      } catch {
+        if (!cancelled) setSuggestions([]);
+      } finally {
+        if (!cancelled) setIsSearching(false);
+      }
+    };
+    search();
+    return () => { cancelled = true; };
+  }, [debouncedQuery]);
+
+  return { suggestions, isSearching };
+}
+
 // Calcul durée
 function calculateDays(from: string, to: string): number {
   const start = new Date(from);
@@ -194,10 +224,8 @@ export function Hero() {
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState(rentalDateRange?.from || '');
   const [endDate, setEndDate] = useState(rentalDateRange?.to || '');
-  const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
@@ -213,8 +241,8 @@ export function Hero() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const debouncedQuery = useDebounce(searchQuery, 150);
-  const isSearching = searchQuery !== debouncedQuery;
+  const debouncedQuery = useDebounce(searchQuery, 300);
+  const { suggestions, isSearching } = useProductSearch(debouncedQuery);
 
   const getTodayString = useCallback(() => new Date().toISOString().split('T')[0], []);
 
@@ -226,41 +254,12 @@ export function Hero() {
     return () => clearInterval(interval);
   }, []);
 
-  // Chargement données
+  // Chargement catégories uniquement
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const [productsData, categoriesData] = await Promise.all([
-          ProductsService.getProducts(),
-          CategoriesService.getCategories()
-        ]);
-        setProducts(productsData);
-        setCategories(categoriesData);
-      } catch (error) {
-        console.error('Error loading data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
+    CategoriesService.getCategories()
+      .then(setCategories)
+      .catch((error) => console.error('Error loading categories:', error));
   }, []);
-
-  // Suggestions
-  const suggestions = useMemo(() => {
-    if (debouncedQuery.length < 1 || products.length === 0) return [];
-    const query = debouncedQuery.toLowerCase().trim();
-    return products
-      .filter(p => p.name?.toLowerCase().includes(query) || p.description?.toLowerCase().includes(query))
-      .sort((a, b) => {
-        const aStarts = a.name?.toLowerCase().startsWith(query);
-        const bStarts = b.name?.toLowerCase().startsWith(query);
-        if (aStarts && !bStarts) return -1;
-        if (!aStarts && bStarts) return 1;
-        return 0;
-      })
-      .slice(0, 5);
-  }, [debouncedQuery, products]);
 
   useEffect(() => {
     setShowSuggestions(debouncedQuery.length >= 1 && isSearchFocused);
@@ -436,7 +435,7 @@ export function Hero() {
                         className="w-full bg-transparent text-white placeholder-white/40 focus:outline-none text-base"
                         autoComplete="off"
                       />
-                      {(isSearching || isLoading) && searchQuery.length > 0 && (
+                      {isSearching && searchQuery.length > 0 && (
                         <Loader2 className="w-5 h-5 text-[#33ffcc] animate-spin ml-2" />
                       )}
                     </div>

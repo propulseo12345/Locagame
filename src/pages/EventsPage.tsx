@@ -126,6 +126,9 @@ export default function EventsPage() {
                   <img
                     src={event.featured_image || event.images[0] || 'https://images.unsplash.com/photo-1511882150382-421056c89033?w=800'}
                     alt={event.title}
+                    width={800}
+                    height={208}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#000033] via-transparent to-transparent"></div>

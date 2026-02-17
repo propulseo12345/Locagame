@@ -6,6 +6,7 @@ interface SEOProps {
   keywords?: string;
   image?: string;
   url?: string;
+  canonical?: string;
   type?: 'website' | 'article' | 'product';
 }
 
@@ -18,6 +19,7 @@ export function SEO({
   keywords,
   image = '/logo-client.png',
   url,
+  canonical,
   type = 'website',
 }: SEOProps) {
   useEffect(() => {
@@ -45,6 +47,18 @@ export function SEO({
       metaKeywords.setAttribute('content', keywords);
     }
 
+    // Canonical link
+    const canonicalUrl = canonical || url;
+    if (canonicalUrl) {
+      let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', 'canonical');
+        document.head.appendChild(link);
+      }
+      link.setAttribute('href', canonicalUrl);
+    }
+
     // Open Graph
     updateMetaTag('og:title', title || document.title);
     updateMetaTag('og:description', description);
@@ -56,7 +70,7 @@ export function SEO({
     updateMetaTag('twitter:title', title || document.title, 'name');
     updateMetaTag('twitter:description', description, 'name');
     updateMetaTag('twitter:image', image, 'name');
-  }, [title, description, keywords, image, url, type]);
+  }, [title, description, keywords, image, url, canonical, type]);
 
   return null;
 }

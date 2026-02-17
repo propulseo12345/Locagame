@@ -41,9 +41,7 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
       <div className="p-6">
         {activeTab === 'description' && (
           <div className="space-y-4">
-            <p className="text-white/70 leading-relaxed">
-              {product.description}
-            </p>
+            <div className="text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1" dangerouslySetInnerHTML={{ __html: product.description }} />
             {product.shortDescription && (
               <p className="text-white/50 text-sm italic">
                 {product.shortDescription}

@@ -90,7 +90,8 @@ export class ReservationsService {
           discount: orderData.discount,
           deposit_amount: orderData.deposit || 0,
           total: orderData.total,
-          status: 'pending',
+          status: 'pending_payment',
+          payment_status: 'unpaid',
           // Nouveaux champs
           recipient_data: orderData.recipient_data,
           event_details: orderData.event_details,
@@ -324,6 +325,35 @@ export class ReservationsService {
     }
 
     return data as Order;
+  }
+
+  /**
+   * Synchronise le statut de paiement avec Stripe (admin only)
+   */
+  static async syncPaymentWithStripe(reservationId: string): Promise<{
+    status: string;
+    payment_confirmed: boolean;
+    reservation_status?: string;
+    payment_status?: string;
+    message?: string;
+  }> {
+    const { data, error } = await supabase.functions.invoke('sync-reservation-payment', {
+      body: { reservation_id: reservationId },
+    });
+
+    if (error) {
+      console.error('[ReservationsService] Sync payment error:', error);
+      let errorMessage = 'Erreur de synchronisation';
+      try {
+        if (error.context && typeof error.context.json === 'function') {
+          const body = await error.context.json();
+          errorMessage = body?.error || errorMessage;
+        }
+      } catch { /* ignore */ }
+      throw new Error(errorMessage);
+    }
+
+    return data;
   }
 
   /**

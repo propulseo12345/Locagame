@@ -48,7 +48,7 @@ export default function EventDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#000033] via-[#001144] to-[#000033] pt-header flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">{error}</h1>
+          <h2 className="text-2xl font-bold text-white mb-4">{error}</h2>
           <button
             onClick={loadEvent}
             className="px-6 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-all"
@@ -64,7 +64,7 @@ export default function EventDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#000033] via-[#001144] to-[#000033] pt-header flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-black text-white mb-4">Événement non trouvé</h1>
+          <h2 className="text-4xl font-black text-white mb-4">Événement non trouvé</h2>
           <Link
             to="/evenements"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-all duration-300"

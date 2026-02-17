@@ -116,6 +116,9 @@ export function ProductGallery({
                 <img
                   src={image}
                   alt={`${productName} ${index + 1}`}
+                  width={120}
+                  height={120}
+                  loading="lazy"
                   className="w-full h-full object-cover"
                 />
               </button>

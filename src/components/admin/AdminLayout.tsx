@@ -1,7 +1,29 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { LogOut } from 'lucide-react';
+import {
+  LogOut,
+  LayoutDashboard,
+  Package,
+  CalendarCheck,
+  Truck,
+  Users,
+  PartyPopper,
+  Clock,
+  MessageSquareQuote,
+  HelpCircle,
+  Images,
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+  type LucideIcon,
+} from 'lucide-react';
+
+interface MenuItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+}
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -13,88 +35,131 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
-  const menuItems = [
-    { label: 'Dashboard', href: '/admin/dashboard' },
-    { label: 'Produits', href: '/admin/products' },
-    { label: 'Réservations', href: '/admin/reservations' },
-    { label: 'Livraisons', href: '/admin/livraisons' },
-    { label: 'Clients', href: '/admin/customers' },
-    { label: 'Types d\'événements', href: '/admin/event-types' },
-    { label: 'Créneaux horaires', href: '/admin/time-slots' },
-    { label: 'Témoignages', href: '/admin/testimonials' },
-    { label: 'FAQ', href: '/admin/faqs' },
-    { label: 'Portfolio', href: '/admin/portfolio' },
-    { label: 'Paramètres', href: '/admin/settings' }
+  const menuItems: MenuItem[] = [
+    { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'Produits', href: '/admin/products', icon: Package },
+    { label: 'Réservations', href: '/admin/reservations', icon: CalendarCheck },
+    { label: 'Livraisons', href: '/admin/livraisons', icon: Truck },
+    { label: 'Clients', href: '/admin/customers', icon: Users },
+    { label: 'Types d\'événements', href: '/admin/event-types', icon: PartyPopper },
+    { label: 'Créneaux horaires', href: '/admin/time-slots', icon: Clock },
+    { label: 'Témoignages', href: '/admin/testimonials', icon: MessageSquareQuote },
+    { label: 'FAQ', href: '/admin/faqs', icon: HelpCircle },
+    { label: 'Portfolio', href: '/admin/portfolio', icon: Images },
+    { label: 'Paramètres', href: '/admin/settings', icon: Settings },
   ];
+
+  const userInitials = user
+    ? `${user.firstName[0]}${user.lastName[0]}`
+    : 'AD';
+  const userName = user ? `${user.firstName} ${user.lastName}` : 'Admin';
+  const userEmail = user ? user.email : 'Non connecté';
 
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <aside className={`bg-[#000033] text-white transition-all duration-300 h-full ${sidebarOpen ? 'w-64' : 'w-20'}`}>
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-8">
-            <Link to="/" className="flex items-center group">
-              <img src="/logo-client.png" alt="LOCAGAME" className="h-8 w-auto group-hover:scale-105 transition-transform" />
-            </Link>
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-[#33ffcc] hover:text-white transition-colors"
-            >
-              {sidebarOpen ? '◀' : '▶'}
-            </button>
-          </div>
-
-          <nav className="space-y-2">
-            {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                  location.pathname === item.href
-                    ? 'bg-[#33ffcc] text-[#000033]'
-                    : 'hover:bg-white/10'
-                }`}
-              >
-                {sidebarOpen && (
-                  <span className="font-medium">{item.label}</span>
-                )}
-              </Link>
-            ))}
-          </nav>
+      <aside
+        className={`relative flex flex-col bg-[#000033] text-white overflow-hidden shrink-0 transition-[width] duration-200 ease-out ${
+          sidebarOpen ? 'w-64' : 'w-[72px]'
+        }`}
+      >
+        {/* Header: logo + toggle */}
+        <div className={`flex items-center border-b border-white/10 ${sidebarOpen ? 'px-5 py-4 justify-between' : 'px-0 py-4 justify-center flex-col gap-3'}`}>
+          <Link to="/" className="flex items-center shrink-0 group">
+            {sidebarOpen ? (
+              <img
+                src="/logo-client.png"
+                alt="LOCAGAME"
+                className="h-8 w-auto group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-[#33ffcc] flex items-center justify-center text-[#000033] font-bold text-lg group-hover:scale-105 transition-transform">
+                L
+              </div>
+            )}
+          </Link>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-white/60 hover:text-[#33ffcc] transition-colors"
+            aria-label={sidebarOpen ? 'Réduire la sidebar' : 'Ouvrir la sidebar'}
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="w-5 h-5" />
+            ) : (
+              <PanelLeftOpen className="w-5 h-5" />
+            )}
+          </button>
         </div>
 
-        {/* User info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
-          {user ? (
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-[#33ffcc] flex items-center justify-center text-[#000033] font-bold">
-                {user.firstName[0]}{user.lastName[0]}
+        {/* Navigation */}
+        <nav className={`flex-1 overflow-y-auto overflow-x-hidden py-3 ${sidebarOpen ? 'px-3' : 'px-2'}`}>
+          <div className="space-y-1">
+            {menuItems.map((item) => {
+              const isActive = location.pathname === item.href;
+              const Icon = item.icon;
+
+              return (
+                <div key={item.href} className="relative group">
+                  <Link
+                    to={item.href}
+                    className={`flex items-center rounded-xl transition-colors whitespace-nowrap ${
+                      isActive
+                        ? 'bg-[#33ffcc] text-[#000033]'
+                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                    } ${
+                      sidebarOpen
+                        ? 'h-11 px-4 gap-3'
+                        : 'h-11 w-11 justify-center mx-auto'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    {sidebarOpen && (
+                      <span className="text-sm font-medium truncate">{item.label}</span>
+                    )}
+                  </Link>
+
+                  {/* Tooltip (collapsed only) */}
+                  {!sidebarOpen && (
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                      {item.label}
+                      <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Footer: user info */}
+        <div className={`border-t border-white/10 ${sidebarOpen ? 'p-4' : 'p-3'}`}>
+          <div className="relative group">
+            <div className={`flex items-center ${sidebarOpen ? '' : 'justify-center'}`}>
+              <div className="w-10 h-10 rounded-full bg-[#33ffcc] flex items-center justify-center text-[#000033] font-bold text-sm shrink-0">
+                {userInitials}
               </div>
               {sidebarOpen && (
-                <div className="ml-3 flex-1">
-                  <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
-                  <p className="text-xs text-gray-400">{user.email}</p>
+                <div className="ml-3 min-w-0">
+                  <p className="text-sm font-medium truncate">{userName}</p>
+                  <p className="text-xs text-gray-400 truncate">{userEmail}</p>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-[#33ffcc] flex items-center justify-center text-[#000033] font-bold">
-                AD
+
+            {/* Tooltip user (collapsed only) */}
+            {!sidebarOpen && (
+              <div className="absolute left-full bottom-0 ml-3 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+                <p>{userName}</p>
+                <p className="text-gray-400">{userEmail}</p>
+                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900" />
               </div>
-              {sidebarOpen && (
-                <div className="ml-3">
-                  <p className="text-sm font-medium">Admin</p>
-                  <p className="text-xs text-gray-400">Non connecté</p>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto min-w-0">
         {/* Top bar */}
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
           <div className="flex items-center justify-between px-8 py-4">

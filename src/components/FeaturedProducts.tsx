@@ -41,10 +41,10 @@ export function FeaturedProducts() {
       try {
         setLoading(true);
         const [productsData, categoriesData] = await Promise.all([
-          ProductsService.getProducts(),
+          ProductsService.getFeaturedProducts(4),
           CategoriesService.getCategories()
         ]);
-        setFeaturedProducts(productsData.slice(0, 4));
+        setFeaturedProducts(productsData);
         setCategories(categoriesData);
       } catch (err: any) {
         const message = err?.message || 'Impossible de charger les produits';
@@ -143,6 +143,9 @@ export function FeaturedProducts() {
                       <img
                         src={productImage}
                         alt={product.name}
+                        width={400}
+                        height={300}
+                        loading="lazy"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
 

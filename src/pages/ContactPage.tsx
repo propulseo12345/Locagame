@@ -36,7 +36,7 @@ export default function ContactPage() {
           <div className="inline-flex p-4 bg-[#33ffcc]/20 rounded-full mb-6">
             <CheckCircle className="w-12 h-12 text-[#33ffcc]" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-3">Message envoyé !</h1>
+          <h2 className="text-3xl font-bold text-white mb-3">Message envoyé !</h2>
           <p className="text-gray-400 mb-8">
             Merci pour votre message. Nous vous répondrons sous 24h ouvrées.
           </p>
