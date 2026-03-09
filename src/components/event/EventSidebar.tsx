@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { type PortfolioEvent } from '../../services';
 
@@ -46,27 +45,6 @@ export default function EventSidebar({ event }: EventSidebarProps) {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="bg-gradient-to-br from-[#33ffcc]/20 to-[#66cccc]/20 backdrop-blur-xl rounded-2xl border border-[#33ffcc]/30 p-6 text-center">
-          <h3 className="text-lg font-black text-white mb-3">
-            Intéressé par un événement similaire ?
-          </h3>
-          <p className="text-gray-300 text-sm mb-4">
-            Contactez-nous pour organiser votre événement
-          </p>
-          <Link
-            to="/contact"
-            className="block w-full py-3 px-4 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-all duration-300 hover:scale-105"
-          >
-            Demander un devis
-          </Link>
-          <Link
-            to="/catalogue"
-            className="block w-full mt-3 py-3 px-4 border-2 border-white/20 text-white font-semibold rounded-xl hover:border-[#33ffcc] hover:bg-white/10 transition-all duration-300"
-          >
-            Voir nos jeux
-          </Link>
-        </div>
       </div>
     </div>
   );

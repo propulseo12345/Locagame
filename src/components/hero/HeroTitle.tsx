@@ -10,7 +10,7 @@ export function HeroTitle() {
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-sm">
           <Sparkles className="w-4 h-4 text-[#33ffcc]" />
           <span className="text-sm text-white/80">
-            <span className="text-[#33ffcc] font-semibold">+2000</span> evenements reussis en PACA
+            <span className="text-[#33ffcc] font-semibold">+2000</span> événements réussis en PACA
           </span>
         </div>
       </motion.div>
@@ -31,7 +31,7 @@ export function HeroTitle() {
           </span>
         </h1>
         <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto font-light">
-          Baby-foot, poker, bornes arcade, jeux en bois... Tout pour animer vos evenements en region PACA
+          Baby-foot, poker, bornes arcade, jeux en bois... Tout pour animer vos événements en région PACA
         </p>
       </motion.div>
     </>

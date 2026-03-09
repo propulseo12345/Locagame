@@ -284,12 +284,12 @@ describe('pricingRules', () => {
       });
 
       // Forfait week-end: 125€ × 2 = 250€
-      // + Majoration livraison week-end: 50€
-      // + Majoration reprise week-end: 50€
-      // Total: 350€
+      // + Majoration livraison week-end: 47€
+      // + Majoration reprise week-end: 47€
+      // Total: 344€
       expect(breakdown.productSubtotal).toBe(250);
-      expect(breakdown.surchargesTotal).toBe(100);
-      expect(breakdown.total).toBe(350);
+      expect(breakdown.surchargesTotal).toBe(94);
+      expect(breakdown.total).toBe(344);
     });
 
     it('should not add surcharge for non-mandatory delivery on weekend', () => {
@@ -316,6 +316,88 @@ describe('pricingRules', () => {
 
       expect(breakdown.rulesApplied.some(r => r.id === 'delivery_holiday_surcharge')).toBe(true);
       expect(breakdown.surchargesTotal).toBe(HOLIDAY_SURCHARGE);
+    });
+  });
+
+  describe('delivery people count multiplier', () => {
+    it('should default to 1 person when no param provided', () => {
+      const surcharges = calculateDeliverySurcharges(
+        '2026-01-31', // Samedi
+        '2026-02-02', // Lundi
+        true,
+        false
+      );
+      expect(surcharges).toHaveLength(1);
+      expect(surcharges[0].amount).toBe(47);
+    });
+
+    it('should multiply surcharge by delivery people count', () => {
+      const surcharges = calculateDeliverySurcharges(
+        '2026-01-31', // Samedi
+        '2026-02-02', // Lundi
+        true,
+        false,
+        2, // 2 personnes livraison
+        1
+      );
+      expect(surcharges).toHaveLength(1);
+      expect(surcharges[0].amount).toBe(94); // 47 x 2
+    });
+
+    it('should multiply both delivery and pickup surcharges independently', () => {
+      const surcharges = calculateDeliverySurcharges(
+        '2026-01-31', // Samedi
+        '2026-02-01', // Dimanche
+        true,
+        true,
+        2, // 2 personnes livraison
+        2  // 2 personnes reprise
+      );
+      expect(surcharges).toHaveLength(2);
+      // Livraison: 47 x 2 = 94
+      expect(surcharges[0].amount).toBe(94);
+      // Reprise: 47 x 2 = 94
+      expect(surcharges[1].amount).toBe(94);
+      // Total: 188
+      const total = surcharges.reduce((sum, s) => sum + s.amount, 0);
+      expect(total).toBe(188);
+    });
+
+    it('should use product delivery_people_count in full breakdown', () => {
+      const productWith2People = {
+        ...babyfootProduct,
+        delivery_people_count: 2,
+        pickup_people_count: 3,
+      };
+
+      const breakdown = calculatePricingBreakdown({
+        product: productWith2People,
+        startDate: '2026-01-31', // Samedi
+        endDate: '2026-02-01',   // Dimanche
+        deliveryIsMandatory: true,
+        pickupIsMandatory: true,
+        deliveryDate: '2026-01-31',
+        pickupDate: '2026-02-01',
+        deliveryPeopleCount: 2,
+        pickupPeopleCount: 3,
+      });
+
+      // Livraison: 47 x 2 = 94
+      // Reprise: 47 x 3 = 141
+      expect(breakdown.surchargesTotal).toBe(235);
+    });
+
+    it('should include people count in surcharge description', () => {
+      const surcharges = calculateDeliverySurcharges(
+        '2026-01-31', // Samedi
+        '2026-02-02',
+        true,
+        false,
+        3,
+        1
+      );
+      expect(surcharges[0].description).toContain('3 pers.');
+      expect(surcharges[0].description).toContain('47');
     });
   });
 });

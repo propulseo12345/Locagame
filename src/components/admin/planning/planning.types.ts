@@ -53,12 +53,14 @@ export const DEFAULT_VEHICLE_FORM: VehicleFormData = {
 
 export function getStatusColor(status: string): string {
   switch (status) {
-    case 'completed':
+    case 'delivered':
       return 'bg-green-100 text-green-800';
-    case 'in_progress':
+    case 'en_route':
       return 'bg-blue-100 text-blue-800';
-    case 'scheduled':
+    case 'assigned':
       return 'bg-yellow-100 text-yellow-800';
+    case 'scheduled':
+      return 'bg-gray-100 text-gray-600';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -66,8 +68,9 @@ export function getStatusColor(status: string): string {
 
 export function getStatusLabel(status: string): string {
   switch (status) {
-    case 'completed': return 'Termin\u00e9';
-    case 'in_progress': return 'En cours';
+    case 'delivered': return 'Livr\u00e9';
+    case 'en_route': return 'En route';
+    case 'assigned': return 'Assign\u00e9';
     case 'scheduled': return 'Planifi\u00e9';
     case 'cancelled': return 'Annul\u00e9';
     default: return status;

@@ -28,6 +28,14 @@ export interface UnassignedReservation extends Order {
   delivery_task_id?: string;
 }
 
+export interface DeliveryTaskInfo {
+  id: string;
+  reservationId: string;
+  technicianId: string;
+  status: string;
+  technicianName?: string;
+}
+
 export interface ReservationStats {
   total: number;
   pending_payment: number;

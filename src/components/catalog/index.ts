@@ -3,3 +3,8 @@ export { ProductResultsBar } from './ProductResultsBar';
 export { CatalogSearchBar } from './CatalogSearchBar';
 export { CatalogHeroSearch } from './CatalogHeroSearch';
 export { CatalogProductGrid } from './CatalogProductGrid';
+export { CatalogHeroSection } from './CatalogHeroSection';
+export { CatalogCategoriesBar } from './CatalogCategoriesBar';
+export { CatalogProductsGrid } from './CatalogProductsGrid';
+export { CatalogPagination } from './CatalogPagination';
+export { CatalogResultsBar } from './CatalogResultsBar';

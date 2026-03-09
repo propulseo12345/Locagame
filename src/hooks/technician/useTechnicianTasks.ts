@@ -15,7 +15,7 @@ export function useTechnicianTasks() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('list');
   const [selectedDate, setSelectedDate] = useState(
     dateFromUrl && /^\d{4}-\d{2}-\d{2}$/.test(dateFromUrl)
       ? dateFromUrl

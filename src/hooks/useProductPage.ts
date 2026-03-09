@@ -29,6 +29,7 @@ export interface UseProductPageReturn {
   priceCalculation: PriceCalculation | null;
   handlePriceChange: (calculation: PriceCalculation) => void;
   // Cart
+  canAddToCart: boolean;
   isAddingToCart: boolean;
   handleAddToCart: () => Promise<void>;
   availabilityError: string;
@@ -98,9 +99,16 @@ export function useProductPage(): UseProductPageReturn {
     setPriceCalculation(calculation);
   };
 
+  const canAddToCart = !!(product && product.pricing?.oneDay > 0);
+
   const handleAddToCart = async () => {
     if (!product || !selectedStartDate || !selectedEndDate) {
       setAvailabilityError('Veuillez s\u00e9lectionner vos dates de location');
+      return;
+    }
+
+    if (!canAddToCart) {
+      setAvailabilityError('Ce produit n\'est pas disponible \u00e0 la location');
       return;
     }
 
@@ -193,6 +201,7 @@ export function useProductPage(): UseProductPageReturn {
     getSelectedDays,
     priceCalculation,
     handlePriceChange,
+    canAddToCart,
     isAddingToCart,
     handleAddToCart,
     availabilityError,

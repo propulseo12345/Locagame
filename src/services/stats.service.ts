@@ -222,8 +222,8 @@ export class StatsService {
         .eq('technician_id', technicianId);
 
       const totalTasks = tasksData?.length || 0;
-      const completedTasks = tasksData?.filter((t) => t.status === 'completed').length || 0;
-      const pendingTasks = tasksData?.filter((t) => t.status === 'scheduled' || t.status === 'in_progress').length || 0;
+      const completedTasks = tasksData?.filter((t) => t.status === 'delivered').length || 0;
+      const pendingTasks = tasksData?.filter((t) => t.status === 'assigned' || t.status === 'en_route').length || 0;
       const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
       return {

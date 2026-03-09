@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Package, Calendar, Clock, Euro, ChevronRight, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Package, Calendar, Clock, Euro, ChevronRight, CheckCircle, XCircle, AlertCircle, CreditCard } from 'lucide-react';
 
 interface ReservationItem {
   id: string;
@@ -36,10 +36,15 @@ interface ReservationCardProps {
 
 function getStatusConfig(status: string) {
   const configs = {
+    pending_payment: {
+      style: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+      icon: <CreditCard className="w-4 h-4" />,
+      label: 'Paiement en attente'
+    },
     pending: {
       style: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
       icon: <AlertCircle className="w-4 h-4" />,
-      label: '⏳ En attente'
+      label: 'En attente'
     },
     confirmed: {
       style: 'bg-blue-500/20 text-blue-400 border-blue-500/30',

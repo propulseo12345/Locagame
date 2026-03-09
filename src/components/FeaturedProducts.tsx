@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ProductsService, CategoriesService } from '../services';
 import { Product } from '../types';
+import { formatPrice } from '../utils/pricing';
 import { ScrollReveal } from './ui';
 
 export function FeaturedProducts() {
@@ -188,7 +189,7 @@ export function FeaturedProducts() {
                       {/* Prix et joueurs */}
                       <div className="flex items-center justify-between pt-2">
                         <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-black text-white">{productPrice}€</span>
+                          <span className="text-2xl font-black text-white">{formatPrice(productPrice)}</span>
                           <span className="text-gray-500 text-sm">/jour</span>
                         </div>
                         {players && (

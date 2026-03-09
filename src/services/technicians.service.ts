@@ -70,12 +70,17 @@ export class TechniciansService {
   /**
    * Récupère tous les techniciens (admin)
    */
-  static async getAllTechnicians(): Promise<Technician[]> {
-    const { data, error } = await supabase
+  static async getAllTechnicians(includeInactive = false): Promise<Technician[]> {
+    let query = supabase
       .from('technicians')
       .select('*')
-      .eq('is_active', true)
       .order('first_name', { ascending: true });
+
+    if (!includeInactive) {
+      query = query.eq('is_active', true);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching technicians:', error);
@@ -151,5 +156,50 @@ export class TechniciansService {
    */
   static async assignVehicle(technicianId: string, vehicleId: string): Promise<Technician> {
     return this.updateTechnician(technicianId, { vehicle_id: vehicleId });
+  }
+
+  /**
+   * Crée un technicien via Edge Function (crée aussi le compte auth)
+   */
+  static async createTechnician(params: {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    vehicleId?: string;
+  }): Promise<Technician> {
+    const { data, error } = await supabase.functions.invoke(
+      'admin-create-technician',
+      { body: params }
+    );
+    if (error) throw new Error(error.message || 'Erreur lors de la cr\u00e9ation');
+    if (data?.error) throw new Error(data.error);
+    return data.technician as Technician;
+  }
+
+  /**
+   * Supprime ou désactive un technicien via Edge Function
+   */
+  static async deleteTechnician(technicianId: string): Promise<{ mode: 'deleted' | 'deactivated' }> {
+    const { data, error } = await supabase.functions.invoke(
+      'admin-delete-technician',
+      { body: { technicianId } }
+    );
+    if (error) throw new Error(error.message || 'Erreur lors de la suppression');
+    if (data?.error) throw new Error(data.error);
+    return { mode: data.mode };
+  }
+
+  /**
+   * Réinitialise le mot de passe d'un technicien via Edge Function
+   */
+  static async resetPassword(technicianId: string, newPassword: string): Promise<void> {
+    const { data, error } = await supabase.functions.invoke(
+      'admin-reset-technician-password',
+      { body: { technicianId, newPassword } }
+    );
+    if (error) throw new Error(error.message || 'Erreur lors du reset');
+    if (data?.error) throw new Error(data.error);
   }
 }

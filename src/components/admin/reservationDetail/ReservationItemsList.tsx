@@ -64,13 +64,15 @@ export default function ReservationItemsList({
                     <div className="flex items-center gap-2 mb-2">
                       <TaskTypeBadge type={task.type} />
                       <span className={`px-2 py-1 text-xs font-medium rounded ${
-                        task.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        task.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                        task.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                        task.status === 'en_route' ? 'bg-blue-100 text-blue-800' :
+                        task.status === 'assigned' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {task.status === 'completed' ? 'Terminee' :
-                         task.status === 'in_progress' ? 'En cours' :
-                         'Planifiee'}
+                        {task.status === 'delivered' ? 'Livr\u00e9' :
+                         task.status === 'en_route' ? 'En route' :
+                         task.status === 'assigned' ? 'Assign\u00e9' :
+                         'Planifi\u00e9'}
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">

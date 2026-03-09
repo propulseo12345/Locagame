@@ -1,23 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { User, loadUserProfile } from '../lib/auth-helpers';
-
-interface SignUpMetadata {
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, metadata: SignUpMetadata) => Promise<void>;
-  signOut: () => Promise<void>;
-  isAuthenticated: boolean;
-  hasRole: (role: 'admin' | 'client' | 'technician') => boolean;
-  updateUserProfile: (updates: Partial<User>) => Promise<void>;
-}
+import { SignUpMetadata, SignUpResult, AuthContextType } from './authContext.types';
+import { buildWelcomeHtml } from './authContext.utils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -105,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userProfile);
   };
 
-  const signUp = async (email: string, password: string, metadata: SignUpMetadata) => {
+  const signUp = async (email: string, password: string, metadata: SignUpMetadata): Promise<SignUpResult> => {
     // Créer l'utilisateur dans Supabase Auth
     // Le trigger handle_new_user() crée automatiquement le profil dans customers
     const { data, error } = await supabase.auth.signUp({
@@ -128,15 +113,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Erreur lors de la création du compte');
     }
 
-    // Le profil customer est créé automatiquement par le trigger DB
+    // Envoyer l'email de bienvenue (best-effort, non-bloquant)
+    try {
+      await supabase.functions.invoke('send-email', {
+        body: {
+          to: email,
+          subject: 'Bienvenue sur LOCAGAME',
+          html: buildWelcomeHtml(`${metadata.firstName} ${metadata.lastName}`),
+        },
+      });
+    } catch {
+      // Ne pas bloquer l'inscription si l'email échoue
+    }
+
+    // Si une session est retournée, l'utilisateur est auto-confirmé
+    if (data.session) {
+      const userProfile = await loadUserProfile(data.user);
+      if (userProfile) {
+        setUser(userProfile);
+      }
+      return { needsEmailConfirmation: false };
+    }
+
+    // Sinon, l'utilisateur doit confirmer son email
+    return { needsEmailConfirmation: true };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
-    }
     setUser(null);
+    supabase.auth.signOut().catch((err) => {
+      console.error('Error signing out:', err);
+    });
   };
 
   const hasRole = (role: 'admin' | 'client' | 'technician'): boolean => {

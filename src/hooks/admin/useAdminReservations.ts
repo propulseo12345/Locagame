@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ReservationsService, DeliveryService, TechniciansService } from '../../services';
+import { supabase } from '../../lib/supabase';
 import { Order } from '../../types';
 import type {
   ReservationTechnician,
   ReservationVehicle,
   UnassignedReservation,
   ReservationStats,
+  DeliveryTaskInfo,
 } from '../../components/admin/reservations/types';
 
 export function useAdminReservations() {
@@ -24,22 +26,42 @@ export function useAdminReservations() {
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [assigning, setAssigning] = useState(false);
 
+  // Delivery tasks map (reservationId → task info)
+  const [deliveryTasksMap, setDeliveryTasksMap] = useState<Record<string, DeliveryTaskInfo>>({});
+
   // Expanded row state
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [allRes, unassignedRes, techs, vehs] = await Promise.all([
+      const [allRes, unassignedRes, techs, vehs, allTasks] = await Promise.all([
         ReservationsService.getAllReservations(),
         ReservationsService.getUnassignedReservations(),
         TechniciansService.getAllTechnicians(),
         TechniciansService.getAllVehicles(),
+        DeliveryService.getAllTasks(),
       ]);
       setAllReservations(allRes);
       setUnassignedReservations(unassignedRes);
       setTechnicians(techs);
       setVehicles(vehs);
+
+      // Build delivery tasks map by reservationId
+      const techMap = new Map(techs.map(t => [t.id, `${t.first_name} ${t.last_name}`]));
+      const tasksMap: Record<string, DeliveryTaskInfo> = {};
+      for (const task of allTasks) {
+        if (task.reservationId && task.technicianId) {
+          tasksMap[task.reservationId] = {
+            id: task.id,
+            reservationId: task.reservationId,
+            technicianId: task.technicianId,
+            status: task.status,
+            technicianName: techMap.get(task.technicianId),
+          };
+        }
+      }
+      setDeliveryTasksMap(tasksMap);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -76,17 +98,6 @@ export function useAdminReservations() {
     completed: allReservations.filter(r => r.status === 'completed').length,
     unassigned: unassignedReservations.length,
   }), [allReservations, unassignedReservations]);
-
-  const handleValidateReservation = useCallback(async (reservationId: string) => {
-    if (!confirm('Valider cette demande de reservation ?')) return;
-    try {
-      await ReservationsService.updateReservationStatus(reservationId, 'confirmed');
-      await loadData();
-    } catch (error) {
-      console.error('Error validating reservation:', error);
-      alert('Erreur lors de la validation');
-    }
-  }, [loadData]);
 
   const handleRejectReservation = useCallback(async (reservationId: string) => {
     const reason = prompt('Motif du refus (optionnel):');
@@ -137,27 +148,7 @@ export function useAdminReservations() {
     }
   }, [selectedReservation, selectedTechnician, selectedVehicle, loadData]);
 
-  // Sync payment state
-  const [syncingId, setSyncingId] = useState<string | null>(null);
-
-  const handleSyncPayment = useCallback(async (reservationId: string) => {
-    setSyncingId(reservationId);
-    try {
-      const result = await ReservationsService.syncPaymentWithStripe(reservationId);
-      if (result.payment_confirmed) {
-        await loadData();
-      } else {
-        alert(result.message || 'Aucun paiement confirme sur Stripe');
-      }
-    } catch (error) {
-      console.error('Error syncing payment:', error);
-      alert(error instanceof Error ? error.message : 'Erreur de synchronisation');
-    } finally {
-      setSyncingId(null);
-    }
-  }, [loadData]);
-
-  // Auto-refresh quand il y a des pending_payment (toutes les 30s)
+  // Auto-refresh quand il y a des pending_payment (toutes les 10s)
   const hasPendingPayments = useMemo(
     () => allReservations.some(r => r.status === 'pending_payment'),
     [allReservations]
@@ -167,9 +158,42 @@ export function useAdminReservations() {
     if (!hasPendingPayments) return;
     const interval = setInterval(() => {
       loadData();
-    }, 30000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [hasPendingPayments, loadData]);
+
+  // Realtime: subscribe to delivery_tasks changes for live status updates
+  const techniciansRef = useRef(technicians);
+  techniciansRef.current = technicians;
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('delivery_tasks_changes')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'delivery_tasks',
+      }, (payload) => {
+        const updated = payload.new as { id: string; reservation_id: string; technician_id: string; status: string };
+        if (!updated.reservation_id || !updated.technician_id) return;
+        const techName = techniciansRef.current.find(t => t.id === updated.technician_id);
+        setDeliveryTasksMap(prev => ({
+          ...prev,
+          [updated.reservation_id]: {
+            id: updated.id,
+            reservationId: updated.reservation_id,
+            technicianId: updated.technician_id,
+            status: updated.status,
+            technicianName: techName ? `${techName.first_name} ${techName.last_name}` : undefined,
+          },
+        }));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleCloseAssignModal = useCallback(() => {
     setShowAssignModal(false);
@@ -194,6 +218,7 @@ export function useAdminReservations() {
     stats,
     technicians,
     vehicles,
+    deliveryTasksMap,
 
     // Filters
     statusFilter,
@@ -206,13 +231,8 @@ export function useAdminReservations() {
     setExpandedRow,
 
     // Actions
-    handleValidateReservation,
     handleRejectReservation,
     handleAssignClick,
-
-    // Sync payment
-    handleSyncPayment,
-    syncingId,
 
     // Assign modal
     showAssignModal,

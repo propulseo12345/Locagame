@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { ProductsService } from '../services';
+import { ProductsService } from '../services/products.service';
 
 /** Résultat de vérification de disponibilité */
 export interface AvailabilityResult {

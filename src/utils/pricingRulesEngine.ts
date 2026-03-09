@@ -52,9 +52,13 @@ export function calculateDeliverySurcharges(
   deliveryDate: string | Date,
   pickupDate: string | Date,
   deliveryIsMandatory: boolean,
-  pickupIsMandatory: boolean
+  pickupIsMandatory: boolean,
+  deliveryPeopleCount: number = 1,
+  pickupPeopleCount: number = 1
 ): PricingRuleApplied[] {
   const rules: PricingRuleApplied[] = [];
+  const deliveryCount = Math.max(1, deliveryPeopleCount);
+  const pickupCount = Math.max(1, pickupPeopleCount);
 
   // Majoration livraison
   if (deliveryIsMandatory) {
@@ -63,16 +67,16 @@ export function calculateDeliverySurcharges(
       rules.push({
         id: 'delivery_holiday_surcharge',
         name: 'Majoration livraison jour férié',
-        description: `Livraison impérative le ${holidayName}`,
-        amount: HOLIDAY_SURCHARGE,
+        description: `Livraison impérative le ${holidayName} (${deliveryCount} pers. x ${HOLIDAY_SURCHARGE} €)`,
+        amount: HOLIDAY_SURCHARGE * deliveryCount,
         type: 'surcharge',
       });
     } else if (isWeekend(deliveryDate)) {
       rules.push({
         id: 'delivery_weekend_surcharge',
         name: 'Majoration livraison week-end',
-        description: 'Livraison impérative le week-end',
-        amount: WEEKEND_DELIVERY_SURCHARGE,
+        description: `Livraison impérative le week-end (${deliveryCount} pers. x ${WEEKEND_DELIVERY_SURCHARGE} €)`,
+        amount: WEEKEND_DELIVERY_SURCHARGE * deliveryCount,
         type: 'surcharge',
       });
     }
@@ -85,16 +89,16 @@ export function calculateDeliverySurcharges(
       rules.push({
         id: 'pickup_holiday_surcharge',
         name: 'Majoration reprise jour férié',
-        description: `Reprise impérative le ${holidayName}`,
-        amount: HOLIDAY_SURCHARGE,
+        description: `Reprise impérative le ${holidayName} (${pickupCount} pers. x ${HOLIDAY_SURCHARGE} €)`,
+        amount: HOLIDAY_SURCHARGE * pickupCount,
         type: 'surcharge',
       });
     } else if (isWeekend(pickupDate)) {
       rules.push({
         id: 'pickup_weekend_surcharge',
         name: 'Majoration reprise week-end',
-        description: 'Reprise impérative le week-end',
-        amount: WEEKEND_DELIVERY_SURCHARGE,
+        description: `Reprise impérative le week-end (${pickupCount} pers. x ${WEEKEND_DELIVERY_SURCHARGE} €)`,
+        amount: WEEKEND_DELIVERY_SURCHARGE * pickupCount,
         type: 'surcharge',
       });
     }
@@ -118,6 +122,8 @@ export function calculatePricingBreakdown(input: PricingInput): PricingBreakdown
     pickupIsMandatory = false,
     deliveryDate,
     pickupDate,
+    deliveryPeopleCount = 1,
+    pickupPeopleCount = 1,
   } = input;
 
   const durationDays = calculateDurationDays(startDate, endDate);
@@ -144,10 +150,25 @@ export function calculatePricingBreakdown(input: PricingInput): PricingBreakdown
       type: 'flat_rate',
     });
   } else {
-    // Calcul standard
-    basePrice = calculateProductPrice(product, durationDays);
+    // Calcul standard — coefficient uniquement si 100% semaine (lun-ven)
+    const isWeekdayOnly = !periodContainsWeekend(startDate, endDate);
+    basePrice = calculateProductPrice(product, durationDays, isWeekdayOnly);
     basePriceLabel =
       durationDays === 1 ? '1 jour' : `${durationDays} jours`;
+
+    if (isWeekdayOnly && durationDays >= 2) {
+      const coefficient = product.multi_day_coefficient ?? 1.00;
+      if (coefficient < 1) {
+        const discount = Math.round((1 - coefficient) * 100);
+        rulesApplied.push({
+          id: 'multi_day_discount',
+          name: `Réduction multi-jours (-${discount}%)`,
+          description: `Coefficient ${coefficient} appliqué pour ${durationDays} jours en semaine`,
+          amount: 0,
+          type: 'discount',
+        });
+      }
+    }
   }
 
   const productSubtotal = basePrice * quantity;
@@ -160,7 +181,9 @@ export function calculatePricingBreakdown(input: PricingInput): PricingBreakdown
     effectiveDeliveryDate,
     effectivePickupDate,
     deliveryIsMandatory,
-    pickupIsMandatory
+    pickupIsMandatory,
+    deliveryPeopleCount,
+    pickupPeopleCount
   );
   rulesApplied.push(...deliverySurcharges);
 

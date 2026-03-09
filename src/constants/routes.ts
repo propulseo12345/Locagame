@@ -31,6 +31,7 @@ export const ROUTES = {
     RESERVATIONS: '/admin/reservations',
     LIVRAISONS: '/admin/livraisons',
     CUSTOMERS: '/admin/customers',
+    TECHNICIANS: '/admin/technicians',
     SETTINGS: '/admin/settings',
   },
 

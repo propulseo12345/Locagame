@@ -99,6 +99,11 @@ export function Footer() {
                     Mentions légales
                   </Link>
                 </li>
+                <li>
+                  <Link to="/confidentialite" className="text-gray-400 hover:text-[#33ffcc] transition-colors">
+                    Politique de confidentialité
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

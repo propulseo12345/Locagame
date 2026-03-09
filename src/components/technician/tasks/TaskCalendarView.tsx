@@ -98,7 +98,7 @@ export function TaskCalendarView({
               const isInCurrentMonth = isCurrentMonth(date);
               const deliveries = tasks.filter((t) => t.type === 'delivery');
               const pickups = tasks.filter((t) => t.type === 'pickup');
-              const hasUrgent = tasks.some((t) => t.status === 'in_progress');
+              const hasUrgent = tasks.some((t) => t.status === 'en_route');
 
               return (
                 <button

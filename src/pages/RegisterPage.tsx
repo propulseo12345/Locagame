@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Input } from '../components/ui';
 import { Lock, Mail, Eye, EyeOff, AlertCircle, UserPlus, User, Phone, ArrowLeft } from 'lucide-react';
@@ -21,6 +21,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
 
   const { signUp } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,12 +55,16 @@ export default function RegisterPage() {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      await signUp(formData.email, formData.password, {
+      const result = await signUp(formData.email, formData.password, {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
       });
-      setSuccess(true);
+      if (result.needsEmailConfirmation) {
+        setSuccess(true);
+      } else {
+        navigate('/client/dashboard');
+      }
     } catch (err: any) {
       if (err.message?.includes('already registered')) {
         setError('Cette adresse email est déjà utilisée');

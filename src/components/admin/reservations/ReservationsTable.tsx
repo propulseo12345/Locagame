@@ -1,27 +1,31 @@
 import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Truck, Package, Users, RefreshCw } from 'lucide-react';
+import { ChevronDown, ChevronUp, Truck, Package, Users } from 'lucide-react';
 import { Order, RecipientData } from '../../../types';
 import ReservationStatusBadge from './ReservationStatusBadge';
 import ReservationExpandedRow from './ReservationExpandedRow';
+import type { DeliveryTaskInfo } from './types';
+
+const DELIVERY_STATUS_BADGE: Record<string, { label: string; color: string }> = {
+  assigned: { label: 'Assign\u00e9', color: 'bg-yellow-100 text-yellow-800' },
+  en_route: { label: 'En route', color: 'bg-blue-100 text-blue-800' },
+  delivered: { label: 'Livr\u00e9', color: 'bg-green-100 text-green-800' },
+  scheduled: { label: 'Planifi\u00e9', color: 'bg-gray-100 text-gray-600' },
+};
 
 interface ReservationsTableProps {
   reservations: Order[];
   expandedRow: string | null;
   onToggleRow: (id: string | null) => void;
-  onValidate: (id: string) => void;
   onReject: (id: string) => void;
-  onSyncPayment?: (id: string) => void;
-  syncingId?: string | null;
+  deliveryTasksMap?: Record<string, DeliveryTaskInfo>;
 }
 
 export default function ReservationsTable({
   reservations,
   expandedRow,
   onToggleRow,
-  onValidate,
   onReject,
-  onSyncPayment,
-  syncingId,
+  deliveryTasksMap = {},
 }: ReservationsTableProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -36,6 +40,7 @@ export default function ReservationsTable({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Livreur</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -46,8 +51,7 @@ export default function ReservationsTable({
               const recipientData = (reservation as any).recipient_data as RecipientData | null;
               const isExpanded = expandedRow === reservation.id;
               const deliveryType = (reservation as any).delivery_type;
-              const isSyncing = syncingId === reservation.id;
-
+              const taskInfo = deliveryTasksMap[reservation.id];
               return (
                 <>
                   <tr key={reservation.id} className="hover:bg-gray-50">
@@ -151,33 +155,31 @@ export default function ReservationsTable({
                         paymentStatus={reservation.payment_status}
                       />
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {taskInfo ? (
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{taskInfo.technicianName}</p>
+                          <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${
+                            DELIVERY_STATUS_BADGE[taskInfo.status]?.color || 'bg-gray-100 text-gray-600'
+                          }`}>
+                            {DELIVERY_STATUS_BADGE[taskInfo.status]?.label || taskInfo.status}
+                          </span>
+                        </div>
+                      ) : deliveryType === 'delivery' ? (
+                        <span className="text-xs text-gray-400">Non assign\u00e9</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">&mdash;</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
-                        {reservation.status === 'pending_payment' && onSyncPayment && (
+                        {reservation.status === 'pending_payment' && (
                           <button
-                            onClick={() => onSyncPayment(reservation.id)}
-                            disabled={isSyncing}
-                            className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                            onClick={() => onReject(reservation.id)}
+                            className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors"
                           >
-                            <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
-                            {isSyncing ? 'Sync...' : 'Verifier paiement'}
+                            Annuler
                           </button>
-                        )}
-                        {reservation.status === 'pending' && (
-                          <>
-                            <button
-                              onClick={() => onValidate(reservation.id)}
-                              className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-lg transition-colors"
-                            >
-                              Valider
-                            </button>
-                            <button
-                              onClick={() => onReject(reservation.id)}
-                              className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors"
-                            >
-                              Refuser
-                            </button>
-                          </>
                         )}
                         <Link
                           to={`/admin/reservations/${reservation.id}`}

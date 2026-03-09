@@ -61,6 +61,8 @@ export function useCheckoutPricing({
       pickupIsMandatory: !isPickup && pickupIsMandatory,
       deliveryDate: effectiveDeliveryDate,
       pickupDate: effectivePickupDate,
+      deliveryPeopleCount: item.product.delivery_people_count ?? 1,
+      pickupPeopleCount: item.product.pickup_people_count ?? 1,
     });
   });
 

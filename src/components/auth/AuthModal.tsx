@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { X, Heart, Mail, Lock, User, Phone, Eye, EyeOff, AlertCircle, LogIn, UserPlus } from 'lucide-react';
+import { X, Heart, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, Input } from '../ui';
-
-type Tab = 'login' | 'register';
+import { useAuthModal } from '../../hooks/useAuthModal';
+import { Button } from '../ui';
+import { AuthTabs } from './AuthTabs';
+import { LoginForm } from './LoginForm';
+import { RegisterForm } from './RegisterForm';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -13,111 +14,14 @@ interface AuthModalProps {
 
 export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
   const { signIn, signUp } = useAuth();
-  const [tab, setTab] = useState<Tab>('login');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [registerSuccess, setRegisterSuccess] = useState(false);
-
-  // Login form
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-
-  // Register form
-  const [registerData, setRegisterData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const {
+    tab, error, loading, showPassword, setShowPassword, registerSuccess,
+    loginEmail, setLoginEmail, loginPassword, setLoginPassword,
+    registerData, handleClose, handleTabChange,
+    handleLogin, handleRegister, handleRegisterChange,
+  } = useAuthModal({ signIn, signUp, onClose });
 
   if (!isOpen) return null;
-
-  const resetForms = () => {
-    setError('');
-    setLoginEmail('');
-    setLoginPassword('');
-    setRegisterData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
-    setShowPassword(false);
-    setRegisterSuccess(false);
-  };
-
-  const handleClose = () => {
-    resetForms();
-    onClose();
-  };
-
-  const handleTabChange = (newTab: Tab) => {
-    setTab(newTab);
-    setError('');
-    setRegisterSuccess(false);
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!loginEmail || !loginPassword) {
-      setError('Veuillez remplir tous les champs');
-      return;
-    }
-    setError('');
-    setLoading(true);
-    try {
-      await signIn(loginEmail, loginPassword);
-      // signIn sets user in AuthContext, FavoritesContext will detect the change
-      // We need the user id - get it after signIn succeeds
-      // The onAuthSuccess callback is handled by FavoritesContext watching user changes
-      handleClose();
-    } catch (err: any) {
-      setError(err.message || 'Email ou mot de passe incorrect');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { firstName, lastName, email, password, confirmPassword } = registerData;
-
-    if (!firstName || !lastName || !email || !password) {
-      setError('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
-      return;
-    }
-
-    setError('');
-    setLoading(true);
-    try {
-      await signUp(email, password, {
-        firstName,
-        lastName,
-        phone: registerData.phone,
-      });
-      // signUp may or may not auto-login depending on email confirmation settings
-      // Show success message - FavoritesContext handles pendingProductId via localStorage
-      setRegisterSuccess(true);
-    } catch (err: any) {
-      if (err.message?.includes('already registered')) {
-        setError('Cette adresse email est déjà utilisée. Connectez-vous !');
-      } else {
-        setError(err.message || 'Erreur lors de la création du compte');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRegisterData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
 
   // Registration success screen
   if (registerSuccess) {
@@ -153,7 +57,6 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           >
             <X className="w-5 h-5" />
           </button>
-
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2.5 bg-[#fe1979]/20 rounded-xl">
               <Heart className="w-6 h-6 text-[#fe1979] fill-[#fe1979]" />
@@ -165,31 +68,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-white/10">
-          <button
-            onClick={() => handleTabChange('login')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-all ${
-              tab === 'login'
-                ? 'text-[#33ffcc] border-b-2 border-[#33ffcc]'
-                : 'text-white/50 hover:text-white/70'
-            }`}
-          >
-            <LogIn className="w-4 h-4" />
-            Connexion
-          </button>
-          <button
-            onClick={() => handleTabChange('register')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-all ${
-              tab === 'register'
-                ? 'text-[#33ffcc] border-b-2 border-[#33ffcc]'
-                : 'text-white/50 hover:text-white/70'
-            }`}
-          >
-            <UserPlus className="w-4 h-4" />
-            Inscription
-          </button>
-        </div>
+        <AuthTabs tab={tab} onTabChange={handleTabChange} />
 
         {/* Error */}
         {error && (
@@ -202,135 +81,18 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
         {/* Forms */}
         <div className="p-6">
           {tab === 'login' ? (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <Input
-                type="email"
-                label="Email"
-                value={loginEmail}
-                onChange={e => setLoginEmail(e.target.value)}
-                leftIcon={<Mail className="w-4 h-4" />}
-                placeholder="votre@email.com"
-                autoComplete="email"
-                required
-                fullWidth
-              />
-              <div className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  label="Mot de passe"
-                  value={loginPassword}
-                  onChange={e => setLoginPassword(e.target.value)}
-                  leftIcon={<Lock className="w-4 h-4" />}
-                  placeholder="Votre mot de passe"
-                  autoComplete="current-password"
-                  required
-                  fullWidth
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-[38px] text-gray-400 hover:text-white transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <Button type="submit" variant="primary" size="md" fullWidth isLoading={loading} leftIcon={<LogIn className="w-4 h-4" />}>
-                Se connecter
-              </Button>
-            </form>
+            <LoginForm
+              loginEmail={loginEmail} loginPassword={loginPassword}
+              setLoginEmail={setLoginEmail} setLoginPassword={setLoginPassword}
+              showPassword={showPassword} setShowPassword={setShowPassword}
+              loading={loading} onSubmit={handleLogin}
+            />
           ) : (
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  type="text"
-                  name="firstName"
-                  label="Prénom"
-                  value={registerData.firstName}
-                  onChange={handleRegisterChange}
-                  leftIcon={<User className="w-4 h-4" />}
-                  placeholder="Jean"
-                  autoComplete="given-name"
-                  required
-                  fullWidth
-                />
-                <Input
-                  type="text"
-                  name="lastName"
-                  label="Nom"
-                  value={registerData.lastName}
-                  onChange={handleRegisterChange}
-                  leftIcon={<User className="w-4 h-4" />}
-                  placeholder="Dupont"
-                  autoComplete="family-name"
-                  required
-                  fullWidth
-                />
-              </div>
-              <Input
-                type="email"
-                name="email"
-                label="Email"
-                value={registerData.email}
-                onChange={handleRegisterChange}
-                leftIcon={<Mail className="w-4 h-4" />}
-                placeholder="votre@email.com"
-                autoComplete="email"
-                required
-                fullWidth
-              />
-              <Input
-                type="tel"
-                name="phone"
-                label="Téléphone"
-                value={registerData.phone}
-                onChange={handleRegisterChange}
-                leftIcon={<Phone className="w-4 h-4" />}
-                placeholder="06 12 34 56 78"
-                autoComplete="tel"
-                fullWidth
-              />
-              <div className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  label="Mot de passe"
-                  value={registerData.password}
-                  onChange={handleRegisterChange}
-                  leftIcon={<Lock className="w-4 h-4" />}
-                  placeholder="Minimum 6 caractères"
-                  autoComplete="new-password"
-                  required
-                  fullWidth
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-[38px] text-gray-400 hover:text-white transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                name="confirmPassword"
-                label="Confirmer"
-                value={registerData.confirmPassword}
-                onChange={handleRegisterChange}
-                leftIcon={<Lock className="w-4 h-4" />}
-                placeholder="Retapez le mot de passe"
-                autoComplete="new-password"
-                required
-                fullWidth
-              />
-              <Button type="submit" variant="primary" size="md" fullWidth isLoading={loading} leftIcon={<UserPlus className="w-4 h-4" />}>
-                Créer mon compte
-              </Button>
-              <p className="text-gray-500 text-[11px] text-center leading-relaxed">
-                En créant un compte, vous acceptez nos Conditions Générales et notre Politique de Confidentialité.
-              </p>
-            </form>
+            <RegisterForm
+              registerData={registerData} onRegisterChange={handleRegisterChange}
+              showPassword={showPassword} setShowPassword={setShowPassword}
+              loading={loading} onSubmit={handleRegister}
+            />
           )}
         </div>
       </div>

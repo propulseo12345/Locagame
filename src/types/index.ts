@@ -31,6 +31,10 @@ export interface Product {
   multi_day_coefficient?: number;
   /** Prix forfaitaire week-end. Si défini, remplace le calcul standard quand la période couvre un week-end */
   weekend_flat_price?: number | null;
+  /** Nombre de personnes nécessaires pour la livraison */
+  delivery_people_count?: number;
+  /** Nombre de personnes nécessaires pour la récupération */
+  pickup_people_count?: number;
 }
 
 /** Créneau horaire: matin (AM) ou après-midi (PM) */
@@ -267,7 +271,7 @@ export interface DeliveryTask {
   scheduledTime: string; // Heure prévue
   vehicleId: string;
   technicianId: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'scheduled' | 'assigned' | 'en_route' | 'delivered' | 'cancelled';
   customer: {
     firstName: string;
     lastName: string;

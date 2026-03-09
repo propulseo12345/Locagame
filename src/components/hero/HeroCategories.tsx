@@ -11,7 +11,7 @@ export function HeroCategories({ categories, onCategoryClick }: HeroCategoriesPr
   return (
     <motion.div variants={animations.fadeUp} className="pt-4">
       <p className="text-center text-white/40 text-sm mb-5 uppercase tracking-wider">
-        Explorer par categorie
+        Explorer par catégorie
       </p>
       <div className="flex flex-wrap justify-center gap-2 md:gap-3 max-w-4xl mx-auto">
         {categories.slice(0, 8).map((category, idx) => {

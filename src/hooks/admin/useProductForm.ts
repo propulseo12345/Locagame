@@ -21,6 +21,8 @@ export interface ProductFormData {
   featured: boolean;
   meta_title: string;
   meta_description: string;
+  delivery_people_count: number;
+  pickup_people_count: number;
 }
 
 const EMPTY_FORM: ProductFormData = {
@@ -42,6 +44,8 @@ const EMPTY_FORM: ProductFormData = {
   featured: false,
   meta_title: '',
   meta_description: '',
+  delivery_people_count: 1,
+  pickup_people_count: 1,
 };
 
 export function useProductForm(onSuccess: () => void) {
@@ -78,6 +82,8 @@ export function useProductForm(onSuccess: () => void) {
         featured: product.featured || false,
         meta_title: product.meta_title || '',
         meta_description: product.meta_description || '',
+        delivery_people_count: product.delivery_people_count ?? 1,
+        pickup_people_count: product.pickup_people_count ?? 1,
       });
     } else {
       setEditingProduct(null);
@@ -125,6 +131,8 @@ export function useProductForm(onSuccess: () => void) {
         featured: formData.featured,
         meta_title: formData.meta_title || null,
         meta_description: formData.meta_description || null,
+        delivery_people_count: formData.delivery_people_count,
+        pickup_people_count: formData.pickup_people_count,
       };
 
       if (editingProduct) {

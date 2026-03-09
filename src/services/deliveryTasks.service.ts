@@ -66,8 +66,8 @@ export class DeliveryTasksService {
     status: DeliveryTask['status']
   ): Promise<DeliveryTask> {
     const updates: Record<string, string | null> = { status };
-    if (status === 'in_progress') updates.started_at = new Date().toISOString();
-    if (status === 'completed') updates.completed_at = new Date().toISOString();
+    if (status === 'en_route') updates.started_at = new Date().toISOString();
+    if (status === 'delivered') updates.completed_at = new Date().toISOString();
 
     const { data, error } = await supabase
       .from('delivery_tasks')
@@ -137,7 +137,7 @@ export class DeliveryTasksService {
   ): Promise<DeliveryTask> {
     const updates: Record<string, string | null> = {
       technician_id: technicianId,
-      status: 'scheduled',
+      status: 'assigned',
     };
     if (vehicleId) {
       updates.vehicle_id = vehicleId;
@@ -183,7 +183,7 @@ export class DeliveryTasksService {
       query = query.lte('scheduled_date', filters.toDate);
     }
     if (filters?.excludeCompleted) {
-      query = query.not('status', 'in', '("completed","cancelled")');
+      query = query.not('status', 'in', '("delivered","cancelled")');
     }
 
     const { data, error } = await query;

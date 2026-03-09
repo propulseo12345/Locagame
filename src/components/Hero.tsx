@@ -1,376 +1,33 @@
-import { Search, Calendar, ArrowRight, Gamepad2, Loader2, Sparkles, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ProductsService, CategoriesService } from '../services';
-import { Product, Category } from '../types';
-import { useCart } from '../contexts/CartContext';
-
-// Composant Dropdown rendu via Portal - FOND 100% OPAQUE
-interface DropdownPortalProps {
-  suggestions: Product[];
-  onSelect: (e: React.MouseEvent, id: string) => void;
-  anchorRef: React.RefObject<HTMLElement>;
-  isVisible: boolean;
-  dropdownRef: React.RefObject<HTMLDivElement>;
-}
-
-function DropdownPortal({ suggestions, onSelect, anchorRef, isVisible, dropdownRef }: DropdownPortalProps) {
-  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
-
-  useEffect(() => {
-    if (anchorRef.current && isVisible) {
-      const rect = anchorRef.current.getBoundingClientRect();
-      setPosition({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
-        width: rect.width
-      });
-    }
-  }, [anchorRef, isVisible]);
-
-  if (!isVisible || suggestions.length === 0) return null;
-
-  return createPortal(
-    <div
-      ref={dropdownRef}
-      style={{
-        position: 'absolute',
-        top: position.top,
-        left: position.left,
-        width: position.width,
-        zIndex: 999999,
-        backgroundColor: '#0f0f23',
-        borderRadius: '12px',
-        border: '2px solid #3b82f6',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.95), 0 0 0 4px rgba(0,0,0,0.5)',
-        overflow: 'hidden'
-      }}
-    >
-      {/* Header */}
-      <div style={{ backgroundColor: '#1a1a3e', padding: '12px 16px', borderBottom: '2px solid #3b82f6' }}>
-        <p style={{ color: '#ffffff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          Résultats de recherche
-        </p>
-      </div>
-
-      {/* Liste */}
-      <div style={{ maxHeight: '320px', overflowY: 'auto', backgroundColor: '#0f0f23' }}>
-        {suggestions.map((product) => (
-          <button
-            key={product.id}
-            type="button"
-            onClick={(e) => onSelect(e, product.id)}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-              padding: '12px 16px',
-              textAlign: 'left',
-              backgroundColor: '#0f0f23',
-              border: 'none',
-              borderBottom: '1px solid #2a2a4a',
-              cursor: 'pointer',
-              transition: 'background-color 0.15s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1e1e3f'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0f0f23'}
-          >
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              flexShrink: 0,
-              backgroundColor: '#2a2a4a',
-              border: '1px solid #3b3b5c'
-            }}>
-              {product.images?.[0] ? (
-                <img src={product.images[0]} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Gamepad2 style={{ width: '24px', height: '24px', color: '#6b7280' }} />
-                </div>
-              )}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ color: '#ffffff', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
-                {product.name}
-              </p>
-              <p style={{ color: '#9ca3af', fontSize: '14px', marginTop: '4px' }}>
-                {product.pricing?.oneDay ? (
-                  <>
-                    <span style={{ color: '#33ffcc', fontWeight: 700 }}>{product.pricing.oneDay}€</span>
-                    <span style={{ color: '#6b7280' }}> /jour</span>
-                  </>
-                ) : 'Prix sur demande'}
-              </p>
-            </div>
-            <ChevronRight style={{ width: '20px', height: '20px', color: '#6b7280' }} />
-          </button>
-        ))}
-      </div>
-    </div>,
-    document.body
-  );
-}
-
-// Animations orchestrées
-const animations = {
-  container: {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.1 }
-    }
-  },
-  fadeUp: {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] }
-    }
-  },
-  searchBar: {
-    hidden: { opacity: 0, y: 30, scale: 0.96 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }
-    }
-  },
-  staggerItem: {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  }
-};
-
-// Images de fond
-const heroImages = [
-  'https://images.pexels.com/photos/4691567/pexels-photo-4691567.jpeg?auto=compress&cs=tinysrgb&w=1920',
-  'https://images.pexels.com/photos/163888/pexels-photo-163888.jpeg?auto=compress&cs=tinysrgb&w=1920',
-  'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?auto=compress&cs=tinysrgb&w=1920',
-  'https://images.pexels.com/photos/1111597/pexels-photo-1111597.jpeg?auto=compress&cs=tinysrgb&w=1920',
-];
-
-// Icônes catégories avec images
-const categoryVisuals: Record<string, { gradient: string; emoji: string }> = {
-  'Casino & Poker': { gradient: 'from-red-500 to-orange-600', emoji: '🎰' },
-  'Jeux de Bar': { gradient: 'from-amber-500 to-yellow-600', emoji: '🎱' },
-  'Jeux Vidéo': { gradient: 'from-purple-500 to-pink-600', emoji: '🎮' },
-  'Jeux en Bois': { gradient: 'from-orange-600 to-amber-700', emoji: '🪵' },
-  'Kermesse': { gradient: 'from-green-500 to-emerald-600', emoji: '🎪' },
-  'Jeux Sportifs': { gradient: 'from-blue-500 to-cyan-600', emoji: '⚽' },
-  'Loto & Bingo': { gradient: 'from-pink-500 to-rose-600', emoji: '🎯' },
-  'Décoration': { gradient: 'from-violet-500 to-purple-600', emoji: '✨' },
-  'Son & Lumière': { gradient: 'from-cyan-500 to-blue-600', emoji: '🔊' },
-};
-
-// Hook debounce
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-  return debouncedValue;
-}
-
-// Hook for search suggestions via Supabase
-function useProductSearch(debouncedQuery: string) {
-  const [suggestions, setSuggestions] = useState<Product[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-
-  useEffect(() => {
-    if (debouncedQuery.length < 1) {
-      setSuggestions([]);
-      return;
-    }
-
-    let cancelled = false;
-    const search = async () => {
-      setIsSearching(true);
-      try {
-        const results = await ProductsService.searchProducts(debouncedQuery, 5);
-        if (!cancelled) setSuggestions(results);
-      } catch {
-        if (!cancelled) setSuggestions([]);
-      } finally {
-        if (!cancelled) setIsSearching(false);
-      }
-    };
-    search();
-    return () => { cancelled = true; };
-  }, [debouncedQuery]);
-
-  return { suggestions, isSearching };
-}
-
-// Calcul durée
-function calculateDays(from: string, to: string): number {
-  const start = new Date(from);
-  const end = new Date(to);
-  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-}
+import { ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useHero } from '../hooks/useHero';
+import { animations } from './hero/constants';
+import { HeroBackground } from './hero/HeroBackground';
+import { HeroTitle } from './hero/HeroTitle';
+import { HeroSearchBar } from './hero/HeroSearchBar';
+import { HeroCategories } from './hero/HeroCategories';
+import { HeroStats } from './hero/HeroStats';
+import { DropdownPortal } from './hero/DropdownPortal';
 
 export function Hero() {
-  const navigate = useNavigate();
-  const { rentalDateRange, setRentalDateRange } = useCart();
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [startDate, setStartDate] = useState(rentalDateRange?.from || '');
-  const [endDate, setEndDate] = useState(rentalDateRange?.to || '');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-  const searchInputDesktopRef = useRef<HTMLDivElement>(null);
-  const searchInputMobileRef = useRef<HTMLDivElement>(null);
-  const dropdownPortalRef = useRef<HTMLDivElement>(null);
-
-  // Détecter la taille de l'écran
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const debouncedQuery = useDebounce(searchQuery, 300);
-  const { suggestions, isSearching } = useProductSearch(debouncedQuery);
-
-  const getTodayString = useCallback(() => new Date().toISOString().split('T')[0], []);
-
-  // Diaporama
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 7000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Chargement catégories uniquement
-  useEffect(() => {
-    CategoriesService.getCategories()
-      .then(setCategories)
-      .catch((error) => console.error('Error loading categories:', error));
-  }, []);
-
-  useEffect(() => {
-    setShowSuggestions(debouncedQuery.length >= 1 && isSearchFocused);
-  }, [debouncedQuery, isSearchFocused]);
-
-  // Click outside - exclure le dropdown portal
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      const isInsideSearchContainer = searchContainerRef.current?.contains(target);
-      const isInsideDropdownPortal = dropdownPortalRef.current?.contains(target);
-
-      if (!isInsideSearchContainer && !isInsideDropdownPortal) {
-        setShowSuggestions(false);
-        setIsSearchFocused(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Handlers
-  const handleStartDateChange = (value: string) => {
-    setStartDate(value);
-    if (value && endDate && endDate < value) setEndDate(value);
-  };
-
-  const handleEndDateChange = (value: string) => {
-    if (!startDate && value) setStartDate(value);
-    setEndDate(value);
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowSuggestions(false);
-    if (startDate && endDate) setRentalDateRange({ from: startDate, to: endDate });
-
-    const params = new URLSearchParams();
-    if (searchQuery.trim()) params.set('search', searchQuery.trim());
-    if (startDate) params.set('from', startDate);
-    if (endDate) params.set('to', endDate);
-    navigate(`/catalogue${params.toString() ? `?${params.toString()}` : ''}`);
-  };
-
-  const handleSelectProduct = (e: React.MouseEvent, productId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Naviguer immédiatement vers la page produit
-    navigate(`/produit/${productId}`);
-    // Puis nettoyer l'état
-    setShowSuggestions(false);
-    setSearchQuery('');
-  };
-
-  const handleCategoryClick = (categorySlug: string) => {
-    if (startDate && endDate) setRentalDateRange({ from: startDate, to: endDate });
-    const params = new URLSearchParams();
-    params.set('category', categorySlug);
-    if (startDate) params.set('from', startDate);
-    if (endDate) params.set('to', endDate);
-    navigate(`/catalogue?${params.toString()}`);
-  };
-
-  const getCategorySlug = (name: string): string => {
-    const slugMap: Record<string, string> = {
-      'Casino & Poker': 'casino-poker',
-      'Jeux de Bar': 'jeux-bar',
-      'Jeux Vidéo': 'jeux-video',
-      'Jeux en Bois': 'jeux-bois',
-      'Kermesse': 'kermesse',
-      'Jeux Sportifs': 'jeux-sportifs',
-      'Loto & Bingo': 'loto-bingo',
-      'Décoration': 'decoration',
-      'Son & Lumière': 'son-lumiere'
-    };
-    return slugMap[name] || name.toLowerCase().replace(/\s+/g, '-');
-  };
-
-  const durationDays = startDate && endDate ? calculateDays(startDate, endDate) : 0;
+  const {
+    searchQuery, setSearchQuery,
+    startDate, endDate,
+    categories,
+    showSuggestions, setShowSuggestions,
+    currentImageIndex,
+    isSearchFocused, setIsSearchFocused,
+    isDesktop, isSearching, suggestions,
+    durationDays, getTodayString,
+    handleStartDateChange, handleEndDateChange,
+    handleSearch, handleSelectProduct, handleCategoryClick,
+    searchContainerRef, searchInputDesktopRef,
+    searchInputMobileRef, dropdownPortalRef,
+  } = useHero();
 
   return (
     <section className="relative min-h-[100svh] flex flex-col justify-center overflow-hidden">
-      {/* Background avec parallax subtil */}
-      <div className="absolute inset-0">
-        {heroImages.map((image, index) => (
-          <motion.div
-            key={index}
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url('${image}')` }}
-            initial={false}
-            animate={{
-              opacity: index === currentImageIndex ? 1 : 0,
-              scale: index === currentImageIndex ? 1 : 1.1
-            }}
-            transition={{ duration: 1.5, ease: 'easeInOut' }}
-          />
-        ))}
-
-        {/* Overlay complexe pour profondeur */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#000033]/90 via-[#000033]/75 to-[#000033]/95" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_0%,#000033_70%)]" />
-
-        {/* Noise texture subtil */}
-        <div
-          className="absolute inset-0 opacity-[0.015] mix-blend-overlay"
-          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }}
-        />
-
-        {/* Accent lumineux */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#33ffcc]/5 blur-[150px] rounded-full" />
-      </div>
+      <HeroBackground currentImageIndex={currentImageIndex} />
 
       {/* Contenu principal */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">
@@ -380,211 +37,34 @@ export function Hero() {
           animate="visible"
           className="space-y-8 md:space-y-10"
         >
-          {/* Badge de confiance */}
-          <motion.div variants={animations.fadeUp} className="flex justify-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-sm">
-              <Sparkles className="w-4 h-4 text-[#33ffcc]" />
-              <span className="text-sm text-white/80">
-                <span className="text-[#33ffcc] font-semibold">+2000</span> événements réussis en PACA
-              </span>
-            </div>
-          </motion.div>
+          <HeroTitle />
 
-          {/* Titre */}
-          <motion.div variants={animations.fadeUp} className="text-center space-y-4">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
-              <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-[#33ffcc] via-[#66ffdd] to-[#33ffcc] bg-clip-text text-transparent">
-                  Loue & Joue
-                </span>
-                <motion.span
-                  className="absolute -bottom-2 left-0 right-0 h-3 bg-[#33ffcc]/20 rounded-full -skew-x-3"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.8, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                />
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto font-light">
-              Baby-foot, poker, bornes arcade, jeux en bois... Tout pour animer vos événements en région PACA
-            </p>
-          </motion.div>
+          <HeroSearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={handleStartDateChange}
+            onEndDateChange={handleEndDateChange}
+            durationDays={durationDays}
+            isSearchFocused={isSearchFocused}
+            setIsSearchFocused={setIsSearchFocused}
+            setShowSuggestions={setShowSuggestions}
+            isSearching={isSearching}
+            isLoading={false}
+            getTodayString={getTodayString}
+            onSubmit={handleSearch}
+            searchContainerRef={searchContainerRef}
+            searchInputDesktopRef={searchInputDesktopRef}
+            searchInputMobileRef={searchInputMobileRef}
+          />
 
-          {/* Barre de recherche premium */}
-          <motion.div variants={animations.searchBar} className="max-w-4xl mx-auto" ref={searchContainerRef}>
-            <form onSubmit={handleSearch}>
-              <div className={`
-                relative bg-white/[0.07] backdrop-blur-xl rounded-2xl border transition-all duration-300
-                ${isSearchFocused ? 'border-[#33ffcc]/40 shadow-[0_0_40px_rgba(51,255,204,0.15)]' : 'border-white/10'}
-              `}>
-                {/* Desktop layout */}
-                <div className="hidden lg:flex items-stretch">
-                  {/* Recherche */}
-                  <div className="flex-1 border-r border-white/10" ref={searchInputDesktopRef}>
-                    <div className="flex items-center h-full px-5 py-4">
-                      <Search className="w-5 h-5 text-white/40 mr-3 flex-shrink-0" />
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={() => {
-                          setIsSearchFocused(true);
-                          if (searchQuery.length >= 1) setShowSuggestions(true);
-                        }}
-                        placeholder="Quel jeu recherchez-vous ?"
-                        className="w-full bg-transparent text-white placeholder-white/40 focus:outline-none text-base"
-                        autoComplete="off"
-                      />
-                      {isSearching && searchQuery.length > 0 && (
-                        <Loader2 className="w-5 h-5 text-[#33ffcc] animate-spin ml-2" />
-                      )}
-                    </div>
-                  </div>
+          <HeroCategories
+            categories={categories}
+            onCategoryClick={handleCategoryClick}
+          />
 
-                  {/* Dates groupées */}
-                  <div className="flex items-center gap-1 px-4 py-4 border-r border-white/10">
-                    <Calendar className="w-5 h-5 text-[#33ffcc] flex-shrink-0 mr-2" />
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => handleStartDateChange(e.target.value)}
-                      min={getTodayString()}
-                      className="w-[130px] bg-transparent text-white focus:outline-none text-sm [color-scheme:dark] cursor-pointer"
-                    />
-                    <span className="text-white/30 mx-1">→</span>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => handleEndDateChange(e.target.value)}
-                      min={startDate || getTodayString()}
-                      className="w-[130px] bg-transparent text-white focus:outline-none text-sm [color-scheme:dark] cursor-pointer"
-                    />
-                    {durationDays > 0 && (
-                      <span className="ml-2 px-2 py-1 bg-[#33ffcc]/20 text-[#33ffcc] rounded-md text-sm font-semibold">
-                        {durationDays}j
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Bouton recherche */}
-                  <button
-                    type="submit"
-                    className="px-8 bg-[#33ffcc] hover:bg-[#4dffdd] text-[#000033] font-bold rounded-r-2xl flex items-center gap-2 transition-all hover:shadow-[0_0_30px_rgba(51,255,204,0.4)] active:scale-[0.98]"
-                  >
-                    <Search className="w-5 h-5" />
-                    <span>Rechercher</span>
-                  </button>
-                </div>
-
-                {/* Mobile/Tablet layout */}
-                <div className="lg:hidden p-4 space-y-3">
-                  <div ref={searchInputMobileRef}>
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onFocus={() => {
-                          setIsSearchFocused(true);
-                          if (searchQuery.length >= 1) setShowSuggestions(true);
-                        }}
-                        placeholder="Quel jeu recherchez-vous ?"
-                        className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#33ffcc]/50"
-                        autoComplete="off"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <div className="flex-1 relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#33ffcc]" />
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => handleStartDateChange(e.target.value)}
-                        min={getTodayString()}
-                        className="w-full pl-10 pr-2 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#33ffcc]/50 [color-scheme:dark]"
-                      />
-                    </div>
-                    <div className="flex-1 relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#33ffcc]" />
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => handleEndDateChange(e.target.value)}
-                        min={startDate || getTodayString()}
-                        className="w-full pl-10 pr-2 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#33ffcc]/50 [color-scheme:dark]"
-                      />
-                    </div>
-                    {durationDays > 0 && (
-                      <div className="flex items-center px-3 bg-[#33ffcc]/20 text-[#33ffcc] rounded-xl text-sm font-semibold">
-                        {durationDays}j
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-4 bg-[#33ffcc] hover:bg-[#4dffdd] text-[#000033] font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
-                  >
-                    <Search className="w-5 h-5" />
-                    <span>Rechercher</span>
-                  </button>
-                </div>
-              </div>
-            </form>
-          </motion.div>
-
-          {/* Catégories */}
-          <motion.div variants={animations.fadeUp} className="pt-4">
-            <p className="text-center text-white/40 text-sm mb-5 uppercase tracking-wider">
-              Explorer par catégorie
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 md:gap-3 max-w-4xl mx-auto">
-              {categories.slice(0, 8).map((category, idx) => {
-                const visual = categoryVisuals[category.name] || { gradient: 'from-gray-500 to-gray-600', emoji: '🎲' };
-                return (
-                  <motion.button
-                    key={category.id}
-                    variants={animations.staggerItem}
-                    custom={idx}
-                    onClick={() => handleCategoryClick(getCategorySlug(category.name))}
-                    className="group relative px-4 py-2.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/20 transition-all duration-300 hover:bg-white/[0.08]"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{visual.emoji}</span>
-                      <span className="text-white/80 text-sm font-medium group-hover:text-white transition-colors">
-                        {category.name}
-                      </span>
-                    </div>
-
-                    {/* Glow effect on hover */}
-                    <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${visual.gradient} opacity-0 group-hover:opacity-10 transition-opacity blur-xl`} />
-                  </motion.button>
-                );
-              })}
-            </div>
-          </motion.div>
-
-          {/* Stats en bas */}
-          <motion.div
-            variants={animations.fadeUp}
-            className="flex flex-wrap justify-center items-center gap-8 md:gap-12 pt-6 border-t border-white/5 mt-8"
-          >
-            {[
-              { value: '200+', label: 'Jeux disponibles' },
-              { value: '10 ans', label: "d'expérience" },
-              { value: '98%', label: 'Clients satisfaits' },
-            ].map((stat, idx) => (
-              <div key={idx} className="text-center">
-                <div className="text-2xl md:text-3xl font-black text-[#33ffcc]">{stat.value}</div>
-                <div className="text-sm text-white/40">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
+          <HeroStats />
         </motion.div>
       </div>
 
@@ -606,7 +86,7 @@ export function Hero() {
         </motion.div>
       </motion.div>
 
-      {/* Dropdown Portal - Rendu via createPortal dans document.body pour fond 100% opaque */}
+      {/* Dropdown Portal */}
       <DropdownPortal
         suggestions={suggestions}
         onSelect={handleSelectProduct}

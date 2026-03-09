@@ -129,7 +129,7 @@ export default function ClientReservations() {
             className="flex-1 sm:flex-none px-4 py-2.5 bg-white/10 border-2 border-white/20 rounded-xl text-white focus:ring-2 focus:ring-[#33ffcc] focus:border-[#33ffcc] focus:outline-none transition-all font-medium"
           >
             <option value="all" className="bg-[#000033]">Toutes les réservations</option>
-            <option value="pending" className="bg-[#000033]">En attente</option>
+            <option value="pending_payment" className="bg-[#000033]">Paiement en attente</option>
             <option value="confirmed" className="bg-[#000033]">Confirmées</option>
             <option value="preparing" className="bg-[#000033]">En préparation</option>
             <option value="delivered" className="bg-[#000033]">Livrées</option>

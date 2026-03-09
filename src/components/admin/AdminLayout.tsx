@@ -13,6 +13,7 @@ import {
   MessageSquareQuote,
   HelpCircle,
   Images,
+  Wrench,
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
@@ -46,6 +47,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { label: 'Témoignages', href: '/admin/testimonials', icon: MessageSquareQuote },
     { label: 'FAQ', href: '/admin/faqs', icon: HelpCircle },
     { label: 'Portfolio', href: '/admin/portfolio', icon: Images },
+    { label: 'Techniciens', href: '/admin/technicians', icon: Wrench },
     { label: 'Paramètres', href: '/admin/settings', icon: Settings },
   ];
 

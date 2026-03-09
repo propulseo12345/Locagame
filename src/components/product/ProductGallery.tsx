@@ -34,7 +34,7 @@ export function ProductGallery({
         {/* Image principale */}
         <div className="relative group overflow-hidden rounded-3xl aspect-[4/3] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20">
           <img
-            src={images[currentImageIndex] || '/placeholder-product.jpg'}
+            src={images[currentImageIndex] || '/placeholder-product.svg'}
             alt={`${productName} - Location de jeu pour événement en région PACA. ${shortDescription || 'Jeu disponible à la location avec installation professionnelle.'}`}
             className="w-full h-full object-cover cursor-zoom-in transition-transform duration-500 group-hover:scale-105"
             onClick={() => setShowLightbox(true)}

@@ -159,6 +159,33 @@ export default function ProductFormModal({
             onChange={(specs) => setFormData(prev => ({ ...prev, specifications: specs }))}
           />
 
+          {/* Personnel logistique */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">Personnel logistique</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Personnes pour la livraison</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.delivery_people_count}
+                  onChange={(e) => setFormData(prev => ({ ...prev, delivery_people_count: Math.max(1, parseInt(e.target.value) || 1) }))}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Personnes pour la recuperation</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.pickup_people_count}
+                  onChange={(e) => setFormData(prev => ({ ...prev, pickup_people_count: Math.max(1, parseInt(e.target.value) || 1) }))}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Stock et Statut */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">Stock et Statut</h3>

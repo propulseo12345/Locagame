@@ -52,10 +52,10 @@ export function TaskFilters({
             className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#33ffcc] bg-white min-w-[150px]"
           >
             <option value="all">Tous les statuts</option>
-            <option value="scheduled">Planifie</option>
-            <option value="in_progress">En cours</option>
-            <option value="completed">Termine</option>
-            <option value="cancelled">Annule</option>
+            <option value="assigned">Assign\u00e9</option>
+            <option value="en_route">En route</option>
+            <option value="delivered">Livr\u00e9</option>
+            <option value="cancelled">Annul\u00e9</option>
           </select>
           <select
             value={typeFilter}

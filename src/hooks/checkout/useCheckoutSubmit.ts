@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { CartItem, DaySlot } from '../../types';
 import { serializeBreakdown, type PricingBreakdown } from '../../utils/pricingRules';
@@ -74,13 +74,16 @@ export function useCheckoutSubmit({
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
 
   const startDate = cartItems[0]?.start_date || '';
   const endDate = cartItems[0]?.end_date || '';
 
   const handleSubmit = async () => {
+    if (isSubmittingRef.current) return;
     if (!validatePayment()) return;
 
+    isSubmittingRef.current = true;
     setIsProcessing(true);
     setSubmitError(null);
 
@@ -91,6 +94,8 @@ export function useCheckoutSubmit({
         duration_days: calculateDurationDays(item.start_date, item.end_date),
         unit_price: item.product.pricing?.oneDay || item.product_price || 0,
         subtotal: item.total_price,
+        delivery_people_count: item.product.delivery_people_count ?? 1,
+        pickup_people_count: item.product.pickup_people_count ?? 1,
       }));
 
       const subtotal = cartItems.reduce((sum, item) => sum + item.total_price, 0);
@@ -177,6 +182,9 @@ export function useCheckoutSubmit({
         throw new Error(result.error || 'Erreur lors de la creation de la reservation');
       }
 
+      // Stocker le reservationId en session pour les guests
+      sessionStorage.setItem('lastReservationId', result.reservation_id!);
+
       // Créer la session Stripe Checkout et rediriger
       const confirmationUrl = `${window.location.origin}/confirmation/${result.reservation_id}`;
       const { session_url } = await CheckoutService.createStripeCheckoutSession(
@@ -196,6 +204,7 @@ export function useCheckoutSubmit({
       }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
+      isSubmittingRef.current = false;
       setIsProcessing(false);
     }
   };

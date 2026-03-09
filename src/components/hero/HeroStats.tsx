@@ -3,7 +3,7 @@ import { animations } from './constants';
 
 const stats = [
   { value: '200+', label: 'Jeux disponibles' },
-  { value: '10 ans', label: "d'experience" },
+  { value: '10 ans', label: "d'expérience" },
   { value: '98%', label: 'Clients satisfaits' },
 ];
 

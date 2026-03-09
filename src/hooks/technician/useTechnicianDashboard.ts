@@ -22,7 +22,7 @@ export interface MonthStats {
 }
 
 export function useTechnicianDashboard() {
-  const { userProfile } = useAuth();
+  const { user } = useAuth();
   const fixedDate = getCurrentDate();
 
   const [selectedDate, setSelectedDate] = useState(getCurrentDateISO());
@@ -39,13 +39,18 @@ export function useTechnicianDashboard() {
   // Load data from Supabase
   useEffect(() => {
     const loadData = async () => {
-      if (!userProfile?.id) return;
+      if (!user?.id) return;
 
       try {
         setLoading(true);
         setError(null);
+        const technician = await TechniciansService.getTechnicianByUserId(user.id);
+        if (!technician) {
+          setError('Profil technicien introuvable');
+          return;
+        }
         const [tasksData, vehiclesData] = await Promise.all([
-          DeliveryService.getTechnicianTasks(userProfile.id),
+          DeliveryService.getTechnicianTasks(technician.id),
           TechniciansService.getAllVehicles(),
         ]);
         setAllTasks(tasksData);
@@ -59,7 +64,7 @@ export function useTechnicianDashboard() {
     };
 
     loadData();
-  }, [userProfile]);
+  }, [user]);
 
   // Group tasks by date
   const tasksByDate = useMemo(() => {
@@ -95,15 +100,15 @@ export function useTechnicianDashboard() {
 
     const deliveries = monthTasks.filter((t) => t.type === 'delivery');
     const pickups = monthTasks.filter((t) => t.type === 'pickup');
-    const completed = monthTasks.filter((t) => t.status === 'completed');
+    const completed = monthTasks.filter((t) => t.status === 'delivered');
 
     return {
       total: monthTasks.length,
       deliveries: deliveries.length,
       pickups: pickups.length,
       completed: completed.length,
-      pending: monthTasks.filter((t) => t.status === 'scheduled').length,
-      inProgress: monthTasks.filter((t) => t.status === 'in_progress').length,
+      pending: monthTasks.filter((t) => t.status === 'assigned').length,
+      inProgress: monthTasks.filter((t) => t.status === 'en_route').length,
       completionRate:
         monthTasks.length > 0
           ? Math.round((completed.length / monthTasks.length) * 100)

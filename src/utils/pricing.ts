@@ -53,9 +53,9 @@ export function findDeliveryZone(postalCode: string): DeliveryZone | null {
 
 /**
  * Calcule le prix total d'un produit pour une durée donnée
- * Applique le coefficient multi-jours si durationDays >= 2
+ * Le coefficient multi-jours ne s'applique que pour les locations semaine (lun-ven)
  */
-export function calculateProductPrice(product: Product, durationDays: number): number {
+export function calculateProductPrice(product: Product, durationDays: number, applyCoefficient: boolean = true): number {
   const { pricing } = product;
   let basePrice: number;
 
@@ -94,12 +94,14 @@ export function calculateProductPrice(product: Product, durationDays: number): n
     basePrice = Math.ceil(pricePerDay * durationDays);
   }
 
-  // Appliquer le coefficient multi-jours (uniquement si >= 2 jours)
-  const coefficient = product.multi_day_coefficient ?? 1.00;
-  const finalPrice = basePrice * coefficient;
+  // Coefficient multi-jours : uniquement pour les locations semaine (lun-ven)
+  if (applyCoefficient) {
+    const coefficient = product.multi_day_coefficient ?? 1.00;
+    const finalPrice = basePrice * coefficient;
+    return Math.round(finalPrice * 100) / 100;
+  }
 
-  // Arrondi à 2 décimales (centime)
-  return Math.round(finalPrice * 100) / 100;
+  return basePrice;
 }
 
 /**

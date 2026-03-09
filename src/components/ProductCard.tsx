@@ -40,6 +40,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
   const handleImageError = () => { setImageError(true); setImageLoaded(true); };
 
   const specs = product.specifications;
+  const canAddToCart = product.pricing?.oneDay > 0;
 
   if (viewMode === 'list') {
     return (
@@ -77,6 +78,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
             <ProductCardActions
               isAddingToCart={isAddingToCart} addedToCart={addedToCart}
               onAddToCart={handleAddToCart} productName={product.name} variant="list"
+              canAddToCart={canAddToCart}
             />
           </div>
         </div>
@@ -121,6 +123,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
         <ProductCardActions
           isAddingToCart={isAddingToCart} addedToCart={addedToCart}
           onAddToCart={handleAddToCart} productName={product.name} variant="grid"
+          canAddToCart={canAddToCart}
         />
       </div>
     </Link>

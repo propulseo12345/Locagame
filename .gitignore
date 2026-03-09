@@ -29,6 +29,9 @@ dist-ssr
 .env.production
 .env.development
 
+# Claude Code local settings (may contain credentials)
+.claude/settings.local.json
+
 # Build files
 build/
 *.tsbuildinfo

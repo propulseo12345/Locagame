@@ -25,6 +25,8 @@ export interface ProductFormData {
   meta_title: string;
   meta_description: string;
   multi_day_coefficient: number;
+  delivery_people_count: number;
+  pickup_people_count: number;
 }
 
 export interface NewAvailability {
@@ -59,7 +61,9 @@ export const INITIAL_FORM_DATA: ProductFormData = {
   },
   meta_title: '',
   meta_description: '',
-  multi_day_coefficient: 1.00
+  multi_day_coefficient: 1.00,
+  delivery_people_count: 1,
+  pickup_people_count: 1
 };
 
 export const INITIAL_AVAILABILITY: NewAvailability = {

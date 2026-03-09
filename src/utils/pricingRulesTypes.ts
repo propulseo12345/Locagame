@@ -10,12 +10,12 @@ import { DaySlot } from './dateHolidays';
 /**
  * Surcharge pour livraison/reprise impérative le week-end (en euros)
  */
-export const WEEKEND_DELIVERY_SURCHARGE = 50;
+export const WEEKEND_DELIVERY_SURCHARGE = 47;
 
 /**
  * Surcharge pour livraison/reprise impérative un jour férié (en euros)
  */
-export const HOLIDAY_SURCHARGE = 50;
+export const HOLIDAY_SURCHARGE = 47;
 
 /**
  * Forfait week-end par défaut si le produit n'a pas de prix spécifique
@@ -46,6 +46,10 @@ export interface PricingInput {
   deliveryDate?: string | Date;
   /** Date de reprise (par défaut = endDate) */
   pickupDate?: string | Date;
+  /** Nombre de personnes pour la livraison */
+  deliveryPeopleCount?: number;
+  /** Nombre de personnes pour la récupération */
+  pickupPeopleCount?: number;
 }
 
 export interface PricingRuleApplied {

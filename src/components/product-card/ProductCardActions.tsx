@@ -6,10 +6,11 @@ interface ProductCardActionsProps {
   onAddToCart: (e?: React.MouseEvent) => void;
   productName: string;
   variant: 'grid' | 'list';
+  canAddToCart?: boolean;
 }
 
 export function ProductCardActions({
-  isAddingToCart, addedToCart, onAddToCart, productName, variant,
+  isAddingToCart, addedToCart, onAddToCart, productName, variant, canAddToCart = true,
 }: ProductCardActionsProps) {
   const isGrid = variant === 'grid';
 
@@ -17,7 +18,7 @@ export function ProductCardActions({
     <div className={`flex items-center ${isGrid ? 'justify-between' : ''} gap-${isGrid ? '2' : '3'} ${isGrid ? '' : 'mt-auto'}`}>
       <button
         onClick={onAddToCart}
-        disabled={isAddingToCart || addedToCart}
+        disabled={isAddingToCart || addedToCart || !canAddToCart}
         className={`${isGrid ? 'flex-1' : ''} flex items-center justify-center gap-2 ${
           isGrid ? 'px-4 py-2.5' : 'px-6 py-3'
         } rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 font-bold ${

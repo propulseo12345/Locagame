@@ -46,7 +46,7 @@ export function DropdownPortal({ suggestions, onSelect, anchorRef, isVisible, dr
       {/* Header */}
       <div style={{ backgroundColor: '#1a1a3e', padding: '12px 16px', borderBottom: '2px solid #3b82f6' }}>
         <p style={{ color: '#ffffff', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          Resultats de recherche
+          Résultats de recherche
         </p>
       </div>
 

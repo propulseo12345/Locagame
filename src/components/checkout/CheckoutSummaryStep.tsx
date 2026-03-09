@@ -64,7 +64,7 @@ export function CheckoutSummaryStep({
         {cartItems.map((item, index) => (
           <div key={index} className="flex gap-4 p-3 bg-white/5 rounded-xl">
             <img
-              src={item.product.images[0] || '/placeholder.jpg'}
+              src={item.product.images?.[0] || '/placeholder-product.svg'}
               alt={item.product.name}
               className="w-16 h-16 object-cover rounded-lg"
             />

@@ -150,6 +150,35 @@ export default function ProductSpecificationsSection({ formData, setFormData }: 
           />
         </div>
       </div>
+
+      {/* Personnel logistique */}
+      <h2 className="text-xl font-bold text-gray-900 mt-6 mb-4">Personnel logistique</h2>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Personnes pour la livraison
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={formData.delivery_people_count}
+            onChange={(e) => setFormData({ ...formData, delivery_people_count: Math.max(1, parseInt(e.target.value) || 1) })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Personnes pour la recuperation
+          </label>
+          <input
+            type="number"
+            min="1"
+            value={formData.pickup_people_count}
+            onChange={(e) => setFormData({ ...formData, pickup_people_count: Math.max(1, parseInt(e.target.value) || 1) })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
+          />
+        </div>
+      </div>
     </div>
   );
 }

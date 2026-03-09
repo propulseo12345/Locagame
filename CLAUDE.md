@@ -14,13 +14,20 @@ LOCAGAME est une plateforme SaaS de location de jeux et animations pour événem
 | Supabase | Backend (PostgreSQL + Auth) |
 | Framer Motion | Animations |
 | React Router v7 | Routage (lazy loading) |
+| Lucide React | Icônes |
+| @dnd-kit | Drag & drop (planning admin) |
+| xlsx | Import/export Excel |
 
 ## Commandes
 
 ```bash
-npm run dev      # Serveur dev (port 5173)
+npm run dev      # Serveur dev (port 1974)
 npm run build    # Build production
 npm run preview  # Preview du build
+npm run typecheck       # Vérification TypeScript
+npm run supabase:test   # Test connexion Supabase
+npm run supabase:seed   # Seed base de données
+npm run generate:sitemap # Génération sitemap
 ```
 
 ## Structure du projet
@@ -30,25 +37,40 @@ src/
 ├── App.tsx              # Routeur principal (utilise ROUTES constants)
 ├── main.tsx             # Point d'entrée
 ├── index.css            # Styles globaux + CSS variables
-├── pages/               # Pages (suffixe Page)
-│   ├── admin/           # Interface admin
-│   ├── client/          # Espace client
-│   └── technician/      # Interface technicien
+├── pages/               # 40 pages (suffixe Page)
+│   ├── admin/           # 14 pages admin
+│   ├── client/          # 6 pages client
+│   └── technician/      # 4 pages technicien
 ├── components/          # Composants React
 │   ├── ui/              # Atomiques (Button, Card, Input, ScrollReveal)
-│   ├── catalog/         # Composants catalogue (CategoryFilters, ProductResultsBar)
-│   ├── product/         # Composants produit (ProductGallery, ProductInfoTabs)
-│   ├── checkout/        # Composants checkout (CheckoutStepper, CustomerInfoStep)
-│   ├── admin/
-│   ├── client/
-│   └── technician/
-├── contexts/            # State management (Auth, Cart, Toast)
-├── services/            # API Supabase (*.service.ts)
-├── hooks/               # Hooks custom (useDebounce, useCatalogFilters)
+│   ├── catalog/         # Catalogue (CatalogHeroSearch, CategoryFilters, ProductResultsBar)
+│   ├── product/         # Produit (ProductGallery, ProductInfoTabs, ProductReservationCard)
+│   ├── checkout/        # Checkout (CheckoutStepper, CheckoutDeliveryStep, CheckoutSummaryStep)
+│   ├── cart/            # Panier (CartItemCard, CartSummary, EmptyCart)
+│   ├── hero/            # Hero section (HeroBackground, HeroCategories, HeroSearchBar)
+│   ├── header/          # Header (DesktopNav, DesktopTopBar, MobileMenu)
+│   ├── login/           # Login (LoginFormCard, DemoSection, FloatingParticles)
+│   ├── contact/         # Contact (ContactForm, ContactMap, ContactSidebar)
+│   ├── event/           # Événements (EventLightbox, EventSidebar)
+│   ├── auth/            # Auth (AuthModal, RegisterSuccess)
+│   ├── date-range-picker/ # Sélecteur de dates (CalendarGrid, DateSelectionSummary)
+│   ├── price-calculator/  # Calculateur prix (DeliveryForm, PriceSummary)
+│   ├── product-card/    # Carte produit (ProductCardActions, ProductCardImage)
+│   ├── admin/           # Admin (AdminLayout, planning/, products/, reservationDetail/)
+│   ├── client/          # Client (ClientLayout, addresses/, profile/)
+│   └── technician/      # Technicien (TechnicianLayout, dashboard/, tasks/, taskDetail/)
+├── contexts/            # State management (Auth, Cart, Favorites, Toast)
+├── services/            # 23 services API Supabase (*.service.ts)
+├── hooks/               # Hooks custom organisés par domaine
+│   ├── admin/           # 8 hooks (useAdminProducts, useAdminPlanning, usePlanningDragDrop...)
+│   ├── checkout/        # 4 hooks (useCheckoutForm, useCheckoutPricing, useCheckoutSubmit...)
+│   ├── client/          # 2 hooks (useClientAddresses, useClientProfile)
+│   ├── technician/      # 3 hooks (useTaskDetail, useTechnicianDashboard, useTechnicianTasks)
+│   └── *.ts             # Hooks généraux (useCatalogFilters, useDebounce, useMediaQuery...)
 ├── types/               # Interfaces TypeScript
-├── lib/                 # Config Supabase + helpers
-├── utils/               # Fonctions utilitaires
-└── constants/           # Constantes métier (routes.ts)
+├── lib/                 # Config Supabase + auth-helpers
+├── utils/               # Fonctions utilitaires (pricing, availability, validation)
+└── constants/           # Constantes métier (routes.ts, time.ts)
 ```
 
 ## Conventions de nommage
@@ -157,10 +179,18 @@ VITE_STRIPE_PUBLIC_KEY=
 | product_availability | Disponibilités/blocages |
 | delivery_zones | Zones de livraison |
 | vehicles | Véhicules |
+| addresses | Adresses clients |
+| favorites | Favoris produits |
+| faqs | FAQ |
+| testimonials | Témoignages |
+| portfolio_events | Portfolio événements |
+| event_types | Types d'événements |
+| time_slots | Créneaux horaires |
+| settings | Paramètres site |
 
 ### RLS
 
-Prévu mais non implémenté. À activer lors du passage en production.
+Implémenté via migrations Supabase (checkout, auth).
 
 ## Fichiers sensibles
 
@@ -168,20 +198,24 @@ Prévu mais non implémenté. À activer lors du passage en production.
 |---------|----------|
 | `src/lib/supabase.ts` | Config Supabase - ne pas casser |
 | `src/lib/database.types.ts` | Types Supabase générés |
+| `src/lib/auth-helpers.ts` | Helpers authentification |
 | `src/contexts/AuthContext.tsx` | Auth globale - critique |
 | `src/contexts/CartContext.tsx` | Panier - persistance localStorage |
+| `src/contexts/FavoritesContext.tsx` | Favoris - sync Supabase |
 | `src/App.tsx` | Routeur - toutes les routes (ROUTES constants) |
 | `src/constants/routes.ts` | Routes centralisées |
 | `.env` | Secrets - jamais commiter |
 | `src/types/index.ts` | Types partagés partout |
 | `src/services/delivery.service.ts` | Mapping types stricts |
+| `src/services/checkout.service.ts` | Logique checkout - critique |
+| `src/utils/pricingRules.ts` | Moteur de pricing |
 
 ## Les 4 interfaces
 
-1. **Site Vitrine** (`/`) - Catalogue, panier, réservation, SEO optimisé
-2. **Admin** (`/admin`) - Dashboard KPIs, gestion produits/réservations/planning/zones
-3. **Espace Client** (`/client`) - Historique réservations, favoris, profil, adresses
-4. **Interface Technicien** (`/technician`) - Tâches livraison/retrait du jour
+1. **Site Vitrine** (`/`) - Catalogue, panier, réservation, SEO, événements, contact, pages légales (16 pages)
+2. **Admin** (`/admin`) - Dashboard KPIs, gestion produits/réservations/planning/zones/FAQ/témoignages/portfolio/créneaux (14 pages)
+3. **Espace Client** (`/client`) - Dashboard, réservations, favoris, profil, adresses (6 pages)
+4. **Interface Technicien** (`/technician`) - Dashboard, tâches, détail tâche, profil (4 pages)
 
 ## Workflow Git (recommandé)
 
@@ -201,22 +235,27 @@ chore: mise à jour dépendances
 
 | Aspect | Statut |
 |--------|--------|
-| Frontend | Complet (~60 fichiers TS, 20+ pages) |
-| Services Supabase | Implémentés (10 services, types stricts) |
-| Build optimisé | ~1.2 MB, code splitting, tree shaking |
-| Composants réutilisables | catalog/, product/, checkout/ |
-| Hooks métier | useCatalogFilters, useDebounce, useMediaQuery |
+| Frontend | Complet (~307 fichiers TS/TSX, 40 pages) |
+| Services Supabase | 23 services, types stricts, barrel export |
+| Hooks métier | 17+ hooks organisés par domaine (admin, checkout, client, technician) |
+| Build optimisé | ~2.1 MB, code splitting, tree shaking, vendor splitting |
+| Composants réutilisables | 16 dossiers composants (catalog/, product/, checkout/, hero/, header/...) |
 | Routes centralisées | constants/routes.ts |
-| SEO | 90/100 |
-| Connexion DB réelle | En attente |
-| Tests | À ajouter |
+| Auth | Supabase Auth + RLS + ProtectedRoute |
+| Checkout | Multi-step avec pricing engine, zones de livraison, créneaux |
+| SEO | 90/100, BreadcrumbSchema, ProductSchema, sitemap |
+| Connexion DB | Connectée (Supabase) |
+| Tests | pricingRules.test.ts (à étendre) |
 
 ## Qualité du code
 
 - Types stricts (pas de `any` dans les services critiques)
 - Pas de `console.log` en production
 - React.memo sur les composants de liste (ProductCard)
-- Barrel exports pour imports propres
+- Barrel exports pour imports propres (services, hooks, components)
+- Code splitting par route (lazy loading)
+- Composants refactorisés en sous-modules (<250 lignes par fichier)
+- ErrorBoundary + SupabaseDiagnosticBanner pour le debug
 
 ## Tâches courantes
 
@@ -238,6 +277,21 @@ chore: mise à jour dépendances
 1. Remplacer import `data/` par appel service
 2. Gérer loading/error states
 3. Utiliser try/catch
+
+## Services Supabase (23)
+
+| Service | Domaine |
+|---------|---------|
+| products, categories | Catalogue |
+| customers, addresses, favorites | Clients |
+| reservations, reservationCreation, checkout | Réservations |
+| delivery, deliveryZones, deliveryTasks, distance | Livraison |
+| technicians | Techniciens |
+| productAvailability | Disponibilités |
+| stats | Dashboard KPIs |
+| settings, timeSlots, eventTypes | Configuration |
+| faqs, testimonials, portfolioEvents | Contenu |
+| accessDifficulty, accessKeys | Accès |
 
 ## Documentation
 

@@ -58,22 +58,22 @@ export function useTaskDetail(id: string | undefined): UseTaskDetailResult {
   const handleStartTask = useCallback(async () => {
     if (!task) return;
     try {
-      await DeliveryService.updateTaskStatus(task.id, 'in_progress');
-      setTask({ ...task, status: 'in_progress', startedAt: new Date().toISOString() });
+      await DeliveryService.updateTaskStatus(task.id, 'en_route');
+      setTask({ ...task, status: 'en_route', startedAt: new Date().toISOString() });
     } catch (err) {
-      console.error('Erreur démarrage intervention:', err);
-      alert('Erreur lors du démarrage de l\'intervention');
+      console.error('Erreur d\u00e9marrage livraison:', err);
+      alert('Erreur lors du d\u00e9marrage de la livraison');
     }
   }, [task]);
 
   const handleCompleteTask = useCallback(async () => {
     if (!task) return;
     try {
-      await DeliveryService.updateTaskStatus(task.id, 'completed');
-      setTask({ ...task, status: 'completed', completedAt: new Date().toISOString() });
+      await DeliveryService.updateTaskStatus(task.id, 'delivered');
+      setTask({ ...task, status: 'delivered', completedAt: new Date().toISOString() });
     } catch (err) {
-      console.error('Erreur complétion intervention:', err);
-      alert('Erreur lors de la complétion de l\'intervention');
+      console.error('Erreur marquage livr\u00e9:', err);
+      alert('Erreur lors du marquage comme livr\u00e9');
     }
   }, [task]);
 

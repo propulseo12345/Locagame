@@ -56,6 +56,7 @@ const AdminTimeSlots = lazy(() => import('./pages/admin/AdminTimeSlots'));
 const AdminTestimonials = lazy(() => import('./pages/admin/AdminTestimonials'));
 const AdminFaqs = lazy(() => import('./pages/admin/AdminFaqs'));
 const AdminPortfolioEvents = lazy(() => import('./pages/admin/AdminPortfolioEvents'));
+const AdminTechniciansPage = lazy(() => import('./pages/admin/AdminTechniciansPage'));
 
 // Client pages
 const ClientLayout = lazy(() => import('./components/client/ClientLayout'));
@@ -154,6 +155,7 @@ function AppContent() {
                   <Route path="testimonials" element={<AdminTestimonials />} />
                   <Route path="faqs" element={<AdminFaqs />} />
                   <Route path="portfolio" element={<AdminPortfolioEvents />} />
+                  <Route path="technicians" element={<AdminTechniciansPage />} />
                   <Route path="*" element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
                 </Routes>
               </AdminLayout>

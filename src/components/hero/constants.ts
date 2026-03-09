@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-
-// Animations orchestrees
+// Animations orchestrées
 export const animations = {
   container: {
     hidden: { opacity: 0 },
@@ -40,47 +38,37 @@ export const heroImages = [
   'https://images.pexels.com/photos/1111597/pexels-photo-1111597.jpeg?auto=compress&cs=tinysrgb&w=1920',
 ];
 
-// Icones categories avec images
+// Icônes catégories avec images
 export const categoryVisuals: Record<string, { gradient: string; emoji: string }> = {
   'Casino & Poker': { gradient: 'from-red-500 to-orange-600', emoji: '🎰' },
   'Jeux de Bar': { gradient: 'from-amber-500 to-yellow-600', emoji: '🎱' },
-  'Jeux Video': { gradient: 'from-purple-500 to-pink-600', emoji: '🎮' },
+  'Jeux Vidéo': { gradient: 'from-purple-500 to-pink-600', emoji: '🎮' },
   'Jeux en Bois': { gradient: 'from-orange-600 to-amber-700', emoji: '🪵' },
   'Kermesse': { gradient: 'from-green-500 to-emerald-600', emoji: '🎪' },
   'Jeux Sportifs': { gradient: 'from-blue-500 to-cyan-600', emoji: '⚽' },
   'Loto & Bingo': { gradient: 'from-pink-500 to-rose-600', emoji: '🎯' },
-  'Decoration': { gradient: 'from-violet-500 to-purple-600', emoji: '✨' },
-  'Son & Lumiere': { gradient: 'from-cyan-500 to-blue-600', emoji: '🔊' },
+  'Décoration': { gradient: 'from-violet-500 to-purple-600', emoji: '✨' },
+  'Son & Lumière': { gradient: 'from-cyan-500 to-blue-600', emoji: '🔊' },
 };
 
-// Slug map pour categories
+// Slug map pour catégories
 export const categorySlugMap: Record<string, string> = {
   'Casino & Poker': 'casino-poker',
   'Jeux de Bar': 'jeux-bar',
-  'Jeux Video': 'jeux-video',
+  'Jeux Vidéo': 'jeux-video',
   'Jeux en Bois': 'jeux-bois',
   'Kermesse': 'kermesse',
   'Jeux Sportifs': 'jeux-sportifs',
   'Loto & Bingo': 'loto-bingo',
-  'Decoration': 'decoration',
-  'Son & Lumiere': 'son-lumiere'
+  'Décoration': 'decoration',
+  'Son & Lumière': 'son-lumiere'
 };
 
 export function getCategorySlug(name: string): string {
   return categorySlugMap[name] || name.toLowerCase().replace(/\s+/g, '-');
 }
 
-// Hook debounce
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-  return debouncedValue;
-}
-
-// Calcul duree
+// Calcul durée
 export function calculateDays(from: string, to: string): number {
   const start = new Date(from);
   const end = new Date(to);

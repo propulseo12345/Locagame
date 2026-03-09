@@ -15,17 +15,15 @@ export default function AdminReservations() {
     stats,
     technicians,
     vehicles,
+    deliveryTasksMap,
     statusFilter,
     setStatusFilter,
     searchTerm,
     setSearchTerm,
     expandedRow,
     setExpandedRow,
-    handleValidateReservation,
     handleRejectReservation,
     handleAssignClick,
-    handleSyncPayment,
-    syncingId,
     showAssignModal,
     selectedReservation,
     selectedTechnician,
@@ -77,10 +75,8 @@ export default function AdminReservations() {
         reservations={filteredReservations}
         expandedRow={expandedRow}
         onToggleRow={setExpandedRow}
-        onValidate={handleValidateReservation}
         onReject={handleRejectReservation}
-        onSyncPayment={handleSyncPayment}
-        syncingId={syncingId}
+        deliveryTasksMap={deliveryTasksMap}
       />
 
       {/* Assign Modal */}

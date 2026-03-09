@@ -63,7 +63,9 @@ export function useProductDetail() {
           },
           meta_title: (productData as any).meta_title || '',
           meta_description: (productData as any).meta_description || '',
-          multi_day_coefficient: productData.multi_day_coefficient ?? 1.00
+          multi_day_coefficient: productData.multi_day_coefficient ?? 1.00,
+          delivery_people_count: productData.delivery_people_count ?? 1,
+          pickup_people_count: productData.pickup_people_count ?? 1
         });
       }
     } catch (error) {
@@ -150,7 +152,9 @@ export function useProductDetail() {
         specifications: formData.specifications,
         meta_title: formData.meta_title || null,
         meta_description: formData.meta_description || null,
-        multi_day_coefficient: formData.multi_day_coefficient
+        multi_day_coefficient: formData.multi_day_coefficient,
+        delivery_people_count: formData.delivery_people_count,
+        pickup_people_count: formData.pickup_people_count
       } as any);
 
       alert('Produit mis a jour avec succes !');
