@@ -51,7 +51,7 @@ export default function CheckoutPage() {
   const [unavailableProducts, setUnavailableProducts] = useState<string[]>([]);
   const [checkingAvailability, setCheckingAvailability] = useState(true);
 
-  // Vérifier la disponibilité de tous les produits au chargement
+  // Vérifier la disponibilité ET le statut actif de tous les produits au chargement
   useEffect(() => {
     if (cartItems.length === 0) return;
     let cancelled = false;
@@ -60,21 +60,35 @@ export default function CheckoutPage() {
       setCheckingAvailability(true);
       const unavailable: string[] = [];
 
-      for (const item of cartItems) {
-        if (!item.start_date || !item.end_date) continue;
-        try {
-          const available = await ProductsService.checkAvailability(
-            item.product.id,
-            item.start_date,
-            item.end_date,
-            item.quantity
-          );
-          if (!available) {
+      try {
+        // 1. Vérifier que tous les produits sont encore actifs
+        const productIds = [...new Set(cartItems.map((i) => i.product.id))];
+        const activeIds = await ProductsService.getActiveProductIds(productIds);
+
+        for (const item of cartItems) {
+          if (!activeIds.has(item.product.id)) {
             unavailable.push(item.product.name);
+            continue;
           }
-        } catch {
-          // En cas d'erreur RPC, on laisse passer (le serveur validera)
+
+          // 2. Vérifier la dispo par dates/quantité
+          if (!item.start_date || !item.end_date) continue;
+          try {
+            const available = await ProductsService.checkAvailability(
+              item.product.id,
+              item.start_date,
+              item.end_date,
+              item.quantity
+            );
+            if (!available) {
+              unavailable.push(item.product.name);
+            }
+          } catch {
+            // En cas d'erreur RPC, on laisse passer (le serveur validera)
+          }
         }
+      } catch {
+        // Si la vérification échoue, on laisse passer (le serveur validera)
       }
 
       if (!cancelled) {
@@ -243,8 +257,8 @@ export default function CheckoutPage() {
         </div>
 
         {/* Stepper */}
-        <div className="mb-8 overflow-x-auto">
-          <div className="flex items-center min-w-max">
+        <div className="mb-8">
+          <div className="flex items-center justify-between sm:justify-start">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isActive = currentStep === step.id;
@@ -257,12 +271,12 @@ export default function CheckoutPage() {
                     }`}>
                       {isCompleted ? <CheckCircle className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                     </div>
-                    <span className={`text-xs mt-2 whitespace-nowrap ${isActive ? 'text-[#33ffcc]' : isCompleted ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <span className={`hidden sm:block text-xs mt-2 whitespace-nowrap ${isActive ? 'text-[#33ffcc]' : isCompleted ? 'text-gray-400' : 'text-gray-600'}`}>
                       {step.label}
                     </span>
                   </div>
                   {index < steps.length - 1 && (
-                    <div className={`w-12 h-0.5 mx-2 ${isCompleted ? 'bg-[#33ffcc]/50' : 'bg-white/10'}`} />
+                    <div className={`w-6 sm:w-12 h-0.5 mx-2 ${isCompleted ? 'bg-[#33ffcc]/50' : 'bg-white/10'}`} />
                   )}
                 </div>
               );
@@ -333,25 +347,27 @@ export default function CheckoutPage() {
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between mt-6">
-          <button onClick={handlePrevious} disabled={getCurrentStepIndex() === 0} className="flex items-center gap-2 px-5 py-3 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-            Precedent
-          </button>
-          {currentStep === 'payment' ? (
-            <button onClick={handleSubmit} disabled={isProcessing || unavailableProducts.length > 0} className="flex items-center gap-2 px-8 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
-              {isProcessing ? (
-                <><div className="w-5 h-5 border-2 border-[#000033] border-t-transparent rounded-full animate-spin" />Redirection vers le paiement...</>
-              ) : (
-                <><CreditCard className="w-5 h-5" />Proceder au paiement</>
-              )}
+        <div className="sticky bottom-0 z-30 bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 -mx-4 px-4 py-4 mt-6 md:static md:bg-transparent md:border-0 md:mx-0 md:px-0 md:py-0 md:mt-6">
+          <div className="flex justify-between">
+            <button onClick={handlePrevious} disabled={getCurrentStepIndex() === 0} className="flex items-center gap-2 px-4 py-3 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+              <span className="hidden sm:inline">Precedent</span>
             </button>
-          ) : (
-            <button onClick={handleNext} disabled={unavailableProducts.length > 0} className="flex items-center gap-2 px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
-              Continuer
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          )}
+            {currentStep === 'payment' ? (
+              <button onClick={handleSubmit} disabled={isProcessing || unavailableProducts.length > 0} className="flex-1 sm:flex-none flex items-center justify-center gap-2 ml-3 px-8 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
+                {isProcessing ? (
+                  <><div className="w-5 h-5 border-2 border-[#000033] border-t-transparent rounded-full animate-spin" />Redirection...</>
+                ) : (
+                  <><CreditCard className="w-5 h-5" />Proceder au paiement</>
+                )}
+              </button>
+            ) : (
+              <button onClick={handleNext} disabled={unavailableProducts.length > 0} className="flex-1 sm:flex-none flex items-center justify-center gap-2 ml-3 px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
+                Continuer
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

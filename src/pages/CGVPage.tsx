@@ -101,7 +101,7 @@ export default function CGVPage() {
             <section>
               <h2 className="text-xl font-bold text-white mb-4">Enlèvement et transport</h2>
               <p className="mb-4">
-                L'enlèvement s'effectue sur rendez-vous, du lundi au samedi de 9h à 18h, dans les locaux situés :
+                L'enlèvement s'effectue sur rendez-vous, du lundi au vendredi de 9h à 18h, dans les locaux situés :
               </p>
               <p className="mb-4 text-white font-medium">
                 ZI Saint-Pierre – 553, rue Saint-Pierre – 13012 Marseille

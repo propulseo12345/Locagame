@@ -29,11 +29,7 @@ export default function ContactSidebar({ faqs }: ContactSidebarProps) {
             <span className="text-white font-medium">9h - 18h</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400">Samedi</span>
-            <span className="text-white font-medium">9h - 12h</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Dimanche</span>
+            <span className="text-gray-400">Samedi - Dimanche</span>
             <span className="text-red-400">Fermé</span>
           </div>
         </div>

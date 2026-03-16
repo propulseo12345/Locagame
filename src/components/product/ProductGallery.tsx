@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { ProductLightbox } from './ProductLightbox';
 
@@ -19,6 +19,7 @@ export function ProductGallery({
 }: ProductGalleryProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -28,11 +29,29 @@ export function ProductGallery({
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > 50) {
+      if (delta < 0) nextImage();
+      else prevImage();
+    }
+    touchStartX.current = null;
+  };
+
   return (
     <>
       <div className="space-y-4">
         {/* Image principale */}
-        <div className="relative group overflow-hidden rounded-3xl aspect-[4/3] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20">
+        <div
+          className="relative group overflow-hidden rounded-3xl aspect-[4/3] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <img
             src={images[currentImageIndex] || '/placeholder-product.svg'}
             alt={`${productName} - Location de jeu pour événement en région PACA. ${shortDescription || 'Jeu disponible à la location avec installation professionnelle.'}`}
@@ -63,13 +82,13 @@ export function ProductGallery({
             <>
               <button
                 onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-md text-white hover:bg-black/70 transition-all duration-300 opacity-0 group-hover:opacity-100"
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-md text-white hover:bg-black/70 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-md text-white hover:bg-black/70 transition-all duration-300 opacity-0 group-hover:opacity-100"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-md text-white hover:bg-black/70 transition-all duration-300 opacity-100 md:opacity-0 md:group-hover:opacity-100"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -78,15 +97,15 @@ export function ProductGallery({
 
           {/* Indicateurs images */}
           {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/30 backdrop-blur-md rounded-full px-3 py-2">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/30 backdrop-blur-md rounded-full px-3 py-3">
               {images.map((_, index) => (
                 <button
                   key={index}
                   onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                  className={`rounded-full transition-all duration-300 ${
                     index === currentImageIndex
-                      ? 'w-6 bg-[#33ffcc]'
-                      : 'w-1.5 bg-white/50 hover:bg-white/80'
+                      ? 'w-8 h-2.5 bg-[#33ffcc]'
+                      : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/80'
                   }`}
                 />
               ))}

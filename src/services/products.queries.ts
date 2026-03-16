@@ -139,6 +139,7 @@ export class ProductsQueries {
       .from('products')
       .select(PRODUCT_SELECT)
       .eq('id', id)
+      .eq('is_active', true)
       .single();
 
     if (error) {

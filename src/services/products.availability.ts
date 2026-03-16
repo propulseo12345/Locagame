@@ -3,6 +3,27 @@ import { logger } from '../lib/logger';
 
 export class ProductsAvailability {
   /**
+   * Vérifie quels product IDs sont encore actifs en base.
+   * Retourne le Set des IDs actifs.
+   */
+  static async getActiveProductIds(productIds: string[]): Promise<Set<string>> {
+    if (productIds.length === 0) return new Set();
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('id')
+      .in('id', productIds)
+      .eq('is_active', true);
+
+    if (error) {
+      logger.error('Error validating active products', error);
+      throw error;
+    }
+
+    return new Set((data || []).map((p) => p.id));
+  }
+
+  /**
    * Vérifie la disponibilité d'un produit pour une période donnée
    */
   static async checkAvailability(

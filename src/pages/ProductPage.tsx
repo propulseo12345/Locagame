@@ -1,5 +1,6 @@
 import DOMPurify from 'dompurify';
-import { Users, Clock, Package } from 'lucide-react';
+import { Users, Clock, Package, ShoppingCart } from 'lucide-react';
+import { formatPrice } from '../utils/pricing';
 import { SEO } from '../components/SEO';
 import { ProductSchema } from '../components/ProductSchema';
 import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
@@ -128,6 +129,24 @@ export default function ProductPage() {
                 <ProductQuickSpecs product={product} />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Mobile sticky CTA */}
+        <div className="fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-40 lg:hidden bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <span className="text-[#33ffcc] font-bold text-lg">{formatPrice(product.pricing.oneDay)}</span>
+              <span className="text-white/60 text-sm">/jour</span>
+            </div>
+            <button
+              onClick={handleAddToCart}
+              disabled={isAddingToCart || !selectedStartDate || !selectedEndDate}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {isAddingToCart ? 'Ajout...' : 'Réserver'}
+            </button>
           </div>
         </div>
       </div>

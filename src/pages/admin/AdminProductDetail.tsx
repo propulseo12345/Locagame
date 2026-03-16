@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, ExternalLink } from 'lucide-react';
 import { useProductDetail } from '../../hooks/admin/useProductDetail';
 import {
   ProductBasicInfoSection,
@@ -17,6 +17,7 @@ export default function AdminProductDetail() {
     categories,
     loading,
     saving,
+    isDirty,
     formData,
     setFormData,
     newImageUrl,
@@ -45,7 +46,7 @@ export default function AdminProductDetail() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500 mb-4">Produit introuvable</p>
-        <Link to="/admin/products" className="text-[#33ffcc] hover:underline">
+        <Link to="/admin/products" className="text-gray-900 hover:underline font-medium">
           Retour a la liste
         </Link>
       </div>
@@ -59,29 +60,58 @@ export default function AdminProductDetail() {
         <div className="flex items-center gap-4">
           <Link
             to="/admin/products"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Editer le produit</h1>
-            <p className="text-gray-600 mt-1">{product.name}</p>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold text-gray-900">{product.name}</h1>
+              <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-md ring-1 ${
+                formData.is_active
+                  ? 'bg-green-50 text-green-700 ring-green-200'
+                  : 'bg-gray-50 text-gray-600 ring-gray-200'
+              }`}>
+                {formData.is_active ? 'Actif' : 'Inactif'}
+              </span>
+              {isDirty && (
+                <span className="flex items-center gap-1.5 text-xs text-amber-600">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  Non sauvegarde
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 mt-0.5">
+              <Link to="/admin/products" className="hover:text-gray-700">Produits</Link>
+              <span className="mx-1.5">/</span>
+              <span>{product.name}</span>
+            </p>
           </div>
         </div>
-        <button
-          onClick={handleSubmit}
-          disabled={saving}
-          className="px-6 py-2 bg-[#33ffcc] hover:bg-[#66cccc] text-white rounded-lg font-medium disabled:opacity-50 flex items-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          {saving ? 'Enregistrement...' : 'Enregistrer'}
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/produit/${formData.slug || product.id}`}
+            target="_blank"
+            className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Voir sur le site
+          </Link>
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2 transition-colors"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <form onSubmit={handleSubmit}>
+        <div className="flex gap-6">
           {/* Colonne principale */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="flex-1 space-y-6 min-w-0">
             <ProductBasicInfoSection
               formData={formData}
               setFormData={setFormData}
@@ -118,12 +148,18 @@ export default function AdminProductDetail() {
             />
           </div>
 
-          {/* Colonne laterale */}
-          <ProductSidebarSection
-            formData={formData}
-            setFormData={setFormData}
-            product={product}
-          />
+          {/* Sidebar */}
+          <div className="w-80 flex-shrink-0">
+            <div className="sticky top-6">
+              <ProductSidebarSection
+                formData={formData}
+                setFormData={setFormData}
+                product={product}
+                saving={saving}
+                onSubmit={handleSubmit}
+              />
+            </div>
+          </div>
         </div>
       </form>
     </div>

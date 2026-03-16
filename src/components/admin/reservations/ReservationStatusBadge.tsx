@@ -1,6 +1,5 @@
 import {
   CreditCard,
-  Clock,
   CheckCircle,
   Package,
   Truck,
@@ -25,14 +24,15 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     pulse: true,
   },
   pending: {
-    icon: Clock,
-    label: 'En attente',
-    classes: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+    icon: CreditCard,
+    label: 'En attente paiement',
+    classes: 'bg-orange-50 text-orange-700 ring-1 ring-orange-200',
+    pulse: true,
   },
   confirmed: {
     icon: CheckCircle,
-    label: 'Confirmé',
-    classes: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+    label: 'Confirmée',
+    classes: 'bg-green-50 text-green-700 ring-1 ring-green-200',
   },
   preparing: {
     icon: Package,
@@ -46,8 +46,8 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
   },
   completed: {
     icon: CheckCircle2,
-    label: 'Terminé',
-    classes: 'bg-green-50 text-green-700 ring-1 ring-green-200',
+    label: 'Terminée',
+    classes: 'bg-gray-50 text-gray-600 ring-1 ring-gray-200',
   },
   cancelled: {
     icon: XCircle,

@@ -122,7 +122,7 @@ export default function ContactPage() {
           <div className="flex flex-col items-center p-5 bg-white/5 rounded-xl border border-white/10 text-center">
             <Clock className="w-6 h-6 text-[#33ffcc] mb-3" />
             <p className="text-white font-semibold">Lun-Ven 9h-18h</p>
-            <p className="text-xs text-gray-500 mt-1">Sam 9h-12h</p>
+            <p className="text-xs text-gray-500 mt-1">Sam-Dim Fermé</p>
           </div>
         </div>
 

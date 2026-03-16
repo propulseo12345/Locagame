@@ -7,9 +7,9 @@ interface RecentReservationsTableProps {
 
 function statusLabel(status: string): string {
   switch (status) {
-    case 'completed': return 'Terminé';
-    case 'confirmed': return 'Confirmé';
-    case 'pending': return 'En attente';
+    case 'completed': return 'Terminée';
+    case 'confirmed': return 'Confirmée';
+    case 'pending': return 'En attente paiement';
     case 'pending_payment': return 'Paiement en attente';
     case 'preparing': return 'En préparation';
     case 'delivered': return 'Livré';
@@ -24,13 +24,13 @@ function statusBadgeClass(status: string): string {
     case 'pending_payment':
       return 'ring-1 ring-amber-200 bg-amber-50 text-amber-700';
     case 'confirmed':
-      return 'ring-1 ring-blue-200 bg-blue-50 text-blue-700';
+      return 'ring-1 ring-green-200 bg-green-50 text-green-700';
     case 'preparing':
       return 'ring-1 ring-violet-200 bg-violet-50 text-violet-700';
     case 'delivered':
       return 'ring-1 ring-cyan-200 bg-cyan-50 text-cyan-700';
     case 'completed':
-      return 'ring-1 ring-green-200 bg-green-50 text-green-700';
+      return 'ring-1 ring-gray-200 bg-gray-50 text-gray-700';
     case 'cancelled':
       return 'ring-1 ring-red-200 bg-red-50 text-red-700';
     default:

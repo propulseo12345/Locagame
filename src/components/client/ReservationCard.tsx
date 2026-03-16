@@ -95,10 +95,24 @@ const STATUS_CONFIG: Record<string, {
     ring: 'ring-red-500/30',
     border: 'border-l-red-500',
   },
+  pending: {
+    label: 'Paiement en attente',
+    bg: 'bg-orange-500/15',
+    text: 'text-orange-400',
+    ring: 'ring-orange-500/30',
+    border: 'border-l-orange-500',
+    dot: 'bg-orange-400 animate-pulse',
+  },
 };
 
 function getStatusConfig(status: string) {
-  return STATUS_CONFIG[status] || STATUS_CONFIG.pending_payment;
+  return STATUS_CONFIG[status] || {
+    label: status,
+    bg: 'bg-gray-500/15',
+    text: 'text-gray-400',
+    ring: 'ring-gray-500/30',
+    border: 'border-l-gray-500',
+  };
 }
 
 // ── Helpers ──

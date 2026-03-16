@@ -39,7 +39,7 @@ export function CatalogProductsGrid({
   activeFiltersCount, handleFilterChange, clearAllFilters,
   totalPages, currentPage, setCurrentPage, productsRef,
 }: CatalogProductsGridProps) {
-  const gridClass = `grid gap-5 ${viewMode === 'grid' ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`;
+  const gridClass = `grid gap-3 sm:gap-5 ${viewMode === 'grid' ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`;
   const showCategoryView = !selectedCategory && !searchTerm && Object.keys(filters).length === 0 && !startDate;
 
   return (

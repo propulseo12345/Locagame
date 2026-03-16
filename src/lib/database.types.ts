@@ -1292,6 +1292,7 @@ export type Database = {
         Args: {
           p_client_total?: number
           p_customer_id: string
+          p_delivery_fee?: number
           p_delivery_is_mandatory?: boolean
           p_delivery_type: string
           p_end_date: string

@@ -47,6 +47,7 @@ export function CheckoutEventDetails({
               onChange={(e) => setEventDetails({ ...eventDetails, guestCount: e.target.value })}
               className={inputClass}
               placeholder="50"
+              inputMode="numeric"
             />
           </div>
         </div>

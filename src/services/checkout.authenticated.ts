@@ -112,12 +112,12 @@ export class CheckoutAuthenticated {
           p_customer_id: customerId,
           p_zone_id: null,
           p_metadata: rpcMetadata as unknown as Json,
-          // Envoyer le sous-total + majorations (SANS frais de livraison)
-          // car le serveur calcule ses propres frais de livraison (zone-based)
-          // et le frontend utilise un calcul distance-based différent.
+          // Sous-total + majorations (SANS livraison) pour la validation anti-manipulation
           p_client_total: (payload.subtotal || 0) + (payload.surcharges_total || 0),
           p_delivery_is_mandatory: payload.delivery_is_mandatory ?? false,
           p_pickup_is_mandatory: payload.pickup_is_mandatory ?? false,
+          // Frais de livraison calculés par le frontend (distance × 0.80€/km)
+          p_delivery_fee: payload.delivery_fee || 0,
         }
       );
 

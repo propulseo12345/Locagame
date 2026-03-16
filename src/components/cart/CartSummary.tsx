@@ -87,10 +87,13 @@ export default function CartSummary({ productsTotal, deliveryFee, totalPrice }: 
             </span>
             <span className="text-white">
               {deliveryFee > 0 ? formatPrice(deliveryFee) : (
-                <span className="text-[#33ffcc]">Gratuit (Click & Collect)</span>
+                <span className="text-white/40 text-xs">Calculé à l'étape suivante</span>
               )}
             </span>
           </div>
+          <p className="text-[11px] text-white/40 pl-6">
+            0,80 €/km depuis notre entrepôt
+          </p>
 
           {discount > 0 && (
             <div className="flex justify-between text-sm">

@@ -14,6 +14,7 @@ export class ProductsService {
   static getProductCountsByCategory = ProductsQueries.getProductCountsByCategory;
 
   // Availability
+  static getActiveProductIds = ProductsAvailability.getActiveProductIds;
   static checkAvailability = ProductsAvailability.checkAvailability;
   static getAvailableStock = ProductsAvailability.getAvailableStock;
   static getAvailableStockForDates = ProductsAvailability.getAvailableStockForDates;

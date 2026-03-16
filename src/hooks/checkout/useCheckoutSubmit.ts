@@ -201,6 +201,10 @@ export function useCheckoutSubmit({
 
       if (isAuthErr) {
         setNeedsAuth(true);
+      } else if (msgLower.includes('introuvable ou inactif') || msgLower.includes('not found')) {
+        setSubmitError(
+          'Un ou plusieurs produits de votre panier ne sont plus disponibles. Veuillez retourner au panier et retirer les articles concernes.'
+        );
       } else if (message) {
         setSubmitError(message);
       } else {

@@ -8,16 +8,16 @@ export function CatalogPagination({ totalPages, currentPage, setCurrentPage }: C
   if (totalPages <= 1) return null;
 
   return (
-    <div className="mt-10 flex items-center justify-center gap-1">
+    <div className="mt-10 flex items-center justify-center gap-2 sm:gap-1">
       <button
         onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
         disabled={currentPage === 1}
-        className="px-3 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="px-4 py-3 sm:px-3 sm:py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         ← Précédent
       </button>
 
-      <div className="flex items-center gap-1 mx-2">
+      <div className="flex items-center gap-2 sm:gap-1 mx-2">
         {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
           let page;
           if (totalPages <= 5) {
@@ -34,7 +34,7 @@ export function CatalogPagination({ totalPages, currentPage, setCurrentPage }: C
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`w-8 h-8 text-sm rounded-lg transition-all ${
+              className={`w-10 h-10 sm:w-8 sm:h-8 text-sm rounded-lg transition-all ${
                 page === currentPage
                   ? 'bg-[#33ffcc] text-[#000033] font-bold'
                   : 'text-gray-400 hover:text-white hover:bg-white/10'
@@ -49,7 +49,7 @@ export function CatalogPagination({ totalPages, currentPage, setCurrentPage }: C
       <button
         onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
         disabled={currentPage === totalPages}
-        className="px-3 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="px-4 py-3 sm:px-3 sm:py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         Suivant →
       </button>

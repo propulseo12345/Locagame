@@ -15,12 +15,12 @@ export function ProductCardActions({
   const isGrid = variant === 'grid';
 
   return (
-    <div className={`flex items-center ${isGrid ? 'justify-between' : ''} gap-${isGrid ? '2' : '3'} ${isGrid ? '' : 'mt-auto'}`}>
+    <div className={`flex items-center ${isGrid ? 'justify-between gap-2' : 'gap-3 mt-auto'}`}>
       <button
         onClick={onAddToCart}
         disabled={isAddingToCart || addedToCart || !canAddToCart}
         className={`${isGrid ? 'flex-1' : ''} flex items-center justify-center gap-2 ${
-          isGrid ? 'px-4 py-2.5' : 'px-6 py-3'
+          isGrid ? 'px-3 py-3 min-h-[44px]' : 'px-6 py-3'
         } rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 font-bold ${
           isGrid ? 'text-sm' : ''
         } ${
@@ -30,19 +30,17 @@ export function ProductCardActions({
         }`}
         aria-label={addedToCart ? 'Produit ajoute au panier' : 'Ajouter au panier'}
       >
-        <ShoppingCart className={`w-${isGrid ? '4' : '5'} h-${isGrid ? '4' : '5'}`} />
+        <ShoppingCart className={isGrid ? 'w-4 h-4' : 'w-5 h-5'} />
         {isAddingToCart ? 'Ajout...' : addedToCart ? (isGrid ? 'Ajoute!' : 'Ajoute !') : (isGrid ? 'Ajouter' : 'Ajouter au panier')}
       </button>
       <span
-        className={`flex items-center gap-${isGrid ? '1.5' : '2'} ${
-          isGrid ? 'px-3 py-2.5' : 'px-6 py-3'
-        } border-2 border-white/20 text-white rounded-xl hover:border-[#33ffcc] hover:bg-white/10 transition-all duration-300 font-semibold ${
+        className={`flex items-center ${isGrid ? 'gap-1.5 px-3 py-3 min-h-[44px]' : 'gap-2 px-6 py-3'} border-2 border-white/20 text-white rounded-xl hover:border-[#33ffcc] hover:bg-white/10 transition-all duration-300 font-semibold ${
           isGrid ? 'text-sm' : ''
         } group/link ${isGrid ? 'focus:outline-none focus:ring-2 focus:ring-[#33ffcc]' : ''} cursor-pointer`}
         aria-label={`Voir les details de ${productName}`}
       >
         {isGrid ? 'Voir' : 'Details'}
-        <ArrowRight className={`w-${isGrid ? '4' : '5'} h-${isGrid ? '4' : '5'} group-hover/link:translate-x-1 transition-transform ${isGrid ? 'duration-300' : ''}`} />
+        <ArrowRight className={`${isGrid ? 'w-4 h-4' : 'w-5 h-5'} group-hover/link:translate-x-1 transition-transform ${isGrid ? 'duration-300' : ''}`} />
       </span>
     </div>
   );

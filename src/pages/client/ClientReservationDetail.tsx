@@ -65,19 +65,21 @@ export default function ClientReservationDetail() {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-blue-100 text-blue-800',
+      pending_payment: 'bg-orange-100 text-orange-800',
+      pending: 'bg-orange-100 text-orange-800',
+      confirmed: 'bg-green-100 text-green-800',
       preparing: 'bg-purple-100 text-purple-800',
       delivered: 'bg-indigo-100 text-indigo-800',
-      completed: 'bg-green-100 text-green-800',
+      completed: 'bg-gray-100 text-gray-800',
       cancelled: 'bg-red-100 text-red-800'
     };
     const labels = {
-      pending: 'En attente',
-      confirmed: 'Confirmé',
+      pending_payment: 'Paiement en attente',
+      pending: 'En attente paiement',
+      confirmed: 'Confirmée',
       preparing: 'En préparation',
       delivered: 'Livré',
-      completed: 'Terminé',
+      completed: 'Terminée',
       cancelled: 'Annulé'
     };
     return (

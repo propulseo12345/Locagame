@@ -49,6 +49,7 @@ export function CheckoutRecipientStep({
                 value={recipient.firstName}
                 onChange={(e) => setRecipient({ ...recipient, firstName: e.target.value })}
                 className={inputClass}
+                autoComplete="given-name"
               />
               {errors.recipientFirstName && <p className={errorClass}>{errors.recipientFirstName}</p>}
             </div>
@@ -59,6 +60,7 @@ export function CheckoutRecipientStep({
                 value={recipient.lastName}
                 onChange={(e) => setRecipient({ ...recipient, lastName: e.target.value })}
                 className={inputClass}
+                autoComplete="family-name"
               />
               {errors.recipientLastName && <p className={errorClass}>{errors.recipientLastName}</p>}
             </div>
@@ -70,6 +72,8 @@ export function CheckoutRecipientStep({
                 onChange={(e) => setRecipient({ ...recipient, phone: e.target.value })}
                 className={inputClass}
                 placeholder="06 12 34 56 78"
+                autoComplete="tel"
+                inputMode="tel"
               />
               {errors.recipientPhone && <p className={errorClass}>{errors.recipientPhone}</p>}
             </div>
@@ -80,6 +84,7 @@ export function CheckoutRecipientStep({
                 value={recipient.email}
                 onChange={(e) => setRecipient({ ...recipient, email: e.target.value })}
                 className={inputClass}
+                autoComplete="email"
               />
             </div>
           </div>

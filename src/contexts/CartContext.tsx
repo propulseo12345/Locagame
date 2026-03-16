@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { CartItem } from '../types';
 import { calculateDurationDays } from '../utils/pricing';
+import { ProductsService } from '../services';
 
 type DeliveryType = 'delivery' | 'pickup';
 
@@ -72,6 +73,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const setRentalDateRange = useCallback((range: RentalDateRange | null) => {
     setRentalDateRangeState(range);
   }, []);
+
+  // Valider les produits du panier au montage : retirer les inactifs/supprimés
+  const hasValidated = useRef(false);
+  useEffect(() => {
+    if (hasValidated.current || items.length === 0) return;
+    hasValidated.current = true;
+
+    const validateCart = async () => {
+      try {
+        const productIds = [...new Set(items.map((i) => i.product.id))];
+        const activeIds = await ProductsService.getActiveProductIds(productIds);
+        const staleIds = productIds.filter((id) => !activeIds.has(id));
+
+        if (staleIds.length > 0) {
+          setItems((prev) => prev.filter((i) => activeIds.has(i.product.id)));
+        }
+      } catch {
+        // Silencieux — le serveur re-validera au checkout
+      }
+    };
+
+    validateCart();
+  }, [items]);
 
   const rentalDurationDays = rentalDateRange
     ? calculateDurationDays(rentalDateRange.from, rentalDateRange.to)

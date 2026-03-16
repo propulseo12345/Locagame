@@ -38,6 +38,7 @@ export function CheckoutDeliveryAddress({
             onChange={(e) => setDelivery({ ...delivery, address: e.target.value })}
             className={inputClass}
             placeholder="123 rue de la Paix"
+            autoComplete="street-address"
           />
           {errors.address && <p className={errorClass}>{errors.address}</p>}
         </div>
@@ -60,6 +61,8 @@ export function CheckoutDeliveryAddress({
               onChange={(e) => setDelivery({ ...delivery, postalCode: e.target.value })}
               className={inputClass}
               placeholder="13001"
+              autoComplete="postal-code"
+              inputMode="numeric"
             />
             {errors.postalCode && <p className={errorClass}>{errors.postalCode}</p>}
           </div>
@@ -71,6 +74,7 @@ export function CheckoutDeliveryAddress({
               onChange={(e) => setDelivery({ ...delivery, city: e.target.value })}
               className={inputClass}
               placeholder="Marseille"
+              autoComplete="address-level2"
             />
             {errors.city && <p className={errorClass}>{errors.city}</p>}
           </div>

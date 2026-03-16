@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProductsService, CategoriesService } from '../../services';
 import { Product } from '../../types';
@@ -22,6 +22,12 @@ export function useProductDetail() {
   const [availabilities, setAvailabilities] = useState<any[]>([]);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [newAvailability, setNewAvailability] = useState<NewAvailability>(INITIAL_AVAILABILITY);
+  const initialFormDataRef = useRef<string>('');
+
+  const isDirty = useMemo(() => {
+    if (!initialFormDataRef.current) return false;
+    return JSON.stringify(formData) !== initialFormDataRef.current;
+  }, [formData]);
 
   useEffect(() => {
     if (id) {
@@ -40,7 +46,7 @@ export function useProductDetail() {
         const pricing = (productData as any).pricing || {};
         const specs = (productData as any).specifications || {};
 
-        setFormData({
+        const loaded: ProductFormData = {
           name: productData.name || '',
           slug: (productData as any).slug || '',
           description: productData.description || '',
@@ -67,7 +73,9 @@ export function useProductDetail() {
           multi_day_coefficient: productData.multi_day_coefficient ?? 1.00,
           delivery_people_count: productData.delivery_people_count ?? 1,
           pickup_people_count: productData.pickup_people_count ?? 1
-        });
+        };
+        setFormData(loaded);
+        initialFormDataRef.current = JSON.stringify(loaded);
       }
     } catch (error) {
       logger.error('Error loading product', error);
@@ -158,6 +166,7 @@ export function useProductDetail() {
         pickup_people_count: formData.pickup_people_count
       } as any);
 
+      initialFormDataRef.current = JSON.stringify(formData);
       alert('Produit mis a jour avec succes !');
       navigate('/admin/products');
     } catch (error) {
@@ -191,6 +200,7 @@ export function useProductDetail() {
     categories,
     loading,
     saving,
+    isDirty,
     formData,
     setFormData,
     newImageUrl,

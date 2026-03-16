@@ -92,7 +92,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
         isLiked={isLiked} onImageLoad={() => setImageLoaded(true)}
         onImageError={handleImageError} onLike={handleLike} variant="grid"
       />
-      <div className="p-5 flex-1 flex flex-col bg-gradient-to-b from-white/5 to-transparent">
+      <div className="p-3 sm:p-5 flex-1 flex flex-col bg-gradient-to-b from-white/5 to-transparent">
         <h3 className="text-lg font-black text-white mb-2 line-clamp-2 leading-tight group-hover:text-[#33ffcc] transition-colors duration-300">
           {product.name}
         </h3>

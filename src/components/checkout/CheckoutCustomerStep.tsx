@@ -36,6 +36,7 @@ export function CheckoutCustomerStep({
             onChange={(e) => setCustomer({ ...customer, firstName: e.target.value })}
             className={inputClass}
             placeholder="Jean"
+            autoComplete="given-name"
           />
           {errors.firstName && <p className={errorClass}>{errors.firstName}</p>}
         </div>
@@ -47,6 +48,7 @@ export function CheckoutCustomerStep({
             onChange={(e) => setCustomer({ ...customer, lastName: e.target.value })}
             className={inputClass}
             placeholder="Dupont"
+            autoComplete="family-name"
           />
           {errors.lastName && <p className={errorClass}>{errors.lastName}</p>}
         </div>
@@ -60,6 +62,7 @@ export function CheckoutCustomerStep({
               onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
               className={`${inputClass} pl-10`}
               placeholder="jean@email.com"
+              autoComplete="email"
             />
           </div>
           {errors.email && <p className={errorClass}>{errors.email}</p>}
@@ -74,6 +77,8 @@ export function CheckoutCustomerStep({
               onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
               className={`${inputClass} pl-10`}
               placeholder="06 12 34 56 78"
+              autoComplete="tel"
+              inputMode="tel"
             />
           </div>
           {errors.phone && <p className={errorClass}>{errors.phone}</p>}
@@ -104,6 +109,7 @@ export function CheckoutCustomerStep({
                   onChange={(e) => setCustomer({ ...customer, companyName: e.target.value })}
                   className={`${inputClass} pl-10`}
                   placeholder="Ma Societe SAS"
+                  autoComplete="organization"
                 />
               </div>
               {errors.companyName && <p className={errorClass}>{errors.companyName}</p>}
@@ -116,6 +122,7 @@ export function CheckoutCustomerStep({
                 onChange={(e) => setCustomer({ ...customer, siret: e.target.value })}
                 className={inputClass}
                 placeholder="123 456 789 00012"
+                inputMode="numeric"
               />
             </div>
           </div>
@@ -158,6 +165,7 @@ export function CheckoutCustomerStep({
                   onChange={(e) => setBillingAddress({ ...billingAddress, addressLine1: e.target.value })}
                   className={inputClass}
                   placeholder="123 rue de la Facturation"
+                  autoComplete="street-address"
                 />
                 {errors.billingAddressLine1 && <p className={errorClass}>{errors.billingAddressLine1}</p>}
               </div>
@@ -180,6 +188,7 @@ export function CheckoutCustomerStep({
                     onChange={(e) => setBillingAddress({ ...billingAddress, postalCode: e.target.value })}
                     className={inputClass}
                     placeholder="13001"
+                    autoComplete="postal-code"
                   />
                   {errors.billingPostalCode && <p className={errorClass}>{errors.billingPostalCode}</p>}
                 </div>
@@ -191,6 +200,7 @@ export function CheckoutCustomerStep({
                     onChange={(e) => setBillingAddress({ ...billingAddress, city: e.target.value })}
                     className={inputClass}
                     placeholder="Marseille"
+                    autoComplete="address-level2"
                   />
                   {errors.billingCity && <p className={errorClass}>{errors.billingCity}</p>}
                 </div>

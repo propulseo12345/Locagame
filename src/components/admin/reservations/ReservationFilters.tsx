@@ -20,11 +20,10 @@ interface ReservationFiltersProps {
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Tous les statuts' },
   { value: 'pending_payment', label: 'Paiement en attente', dot: 'bg-orange-500' },
-  { value: 'pending', label: 'En attente', dot: 'bg-amber-500' },
-  { value: 'confirmed', label: 'Confirmé', dot: 'bg-blue-500' },
+  { value: 'confirmed', label: 'Confirmée', dot: 'bg-green-500' },
   { value: 'preparing', label: 'En préparation', dot: 'bg-violet-500' },
   { value: 'delivered', label: 'Livré', dot: 'bg-cyan-500' },
-  { value: 'completed', label: 'Terminé', dot: 'bg-green-500' },
+  { value: 'completed', label: 'Terminée', dot: 'bg-gray-500' },
   { value: 'cancelled', label: 'Annulé', dot: 'bg-red-500' },
 ];
 

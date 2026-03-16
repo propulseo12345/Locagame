@@ -125,6 +125,6 @@ export interface CheckoutValidationReturn {
 
 // --- Shared CSS classes ---
 
-export const inputClass = "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#33ffcc] focus:outline-none transition-colors";
+export const inputClass = "w-full px-4 py-3.5 text-base bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#33ffcc] focus:outline-none transition-colors";
 export const labelClass = "block text-sm text-gray-400 mb-1.5";
 export const errorClass = "text-red-400 text-xs mt-1";

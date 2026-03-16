@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Phone, Instagram, Facebook } from 'lucide-react';
+import { ShoppingCart, Menu, X } from 'lucide-react';
 import { LOGO_SCROLLED, LOGO_DEFAULT } from './constants';
 
 interface MobileHeaderProps {
@@ -12,76 +12,42 @@ interface MobileHeaderProps {
 export function MobileHeader({ isScrolled, cartItemsCount, mobileMenuOpen, setMobileMenuOpen }: MobileHeaderProps) {
   return (
     <div className="md:hidden border-b border-white/10">
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between">
-          {/* Logo mobile */}
-          <Link to="/" className="flex-shrink-0" aria-label="Retour a l'accueil">
-            <img
-              src={isScrolled ? LOGO_SCROLLED : LOGO_DEFAULT}
-              alt="LOCAGAME - Logo de location de jeux et animations pour evenements en region PACA"
-              className={`w-auto transition-all duration-300 ${isScrolled ? 'h-10' : 'h-12'}`}
-              width={isScrolled ? "80" : "48"}
-              height={isScrolled ? "40" : "48"}
-              fetchpriority="high"
-            />
-          </Link>
+      <div className="px-4 h-14 flex items-center justify-between">
+        {/* Logo mobile */}
+        <Link to="/" className="flex-shrink-0" aria-label="Retour a l'accueil">
+          <img
+            src={isScrolled ? LOGO_SCROLLED : LOGO_DEFAULT}
+            alt="LOCAGAME - Logo de location de jeux et animations pour evenements en region PACA"
+            className={`w-auto transition-all duration-300 ${isScrolled ? 'h-10' : 'h-12'}`}
+            width={isScrolled ? "80" : "48"}
+            height={isScrolled ? "40" : "48"}
+            fetchpriority="high"
+          />
+        </Link>
 
-          {/* Actions mobile */}
-          <div className="flex items-center gap-2">
-            <a href="tel:0430220383" className="p-2 text-[#33ffcc]" aria-label="Appeler">
-              <Phone className="w-5 h-5" />
-            </a>
-            <a
-              href="https://www.facebook.com/locagamefr/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-[#33ffcc]"
-              aria-label="Suivez-nous sur Facebook"
-            >
-              <Facebook className="w-5 h-5" />
-            </a>
-            <a
-              href="https://www.instagram.com/locagame_13?igsh=MTU3MjM4NWY1a3l5Zw=="
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-[#33ffcc]"
-              aria-label="Suivez-nous sur Instagram"
-            >
-              <Instagram className="w-5 h-5" />
-            </a>
-            <a
-              href="https://www.tiktok.com/@pokeragency"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 text-[#33ffcc]"
-              aria-label="Suivez-nous sur TikTok"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/>
-              </svg>
-            </a>
-            <Link
-              to="/panier"
-              className="relative p-2 text-white"
-              aria-label={`Panier (${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''})`}
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#33ffcc] text-[#000033] text-xs font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
-                  {cartItemsCount}
-                </span>
-              )}
-            </Link>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-white"
-              aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="mobile-menu"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+        {/* Actions mobile - Cart + Burger only */}
+        <div className="flex items-center gap-1">
+          <Link
+            to="/panier"
+            className="relative p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-white"
+            aria-label={`Panier (${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''})`}
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {cartItemsCount > 0 && (
+              <span className="absolute top-1 right-1 bg-[#33ffcc] text-[#000033] text-xs font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+                {cartItemsCount}
+              </span>
+            )}
+          </Link>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-white"
+            aria-label={mobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
       </div>
     </div>

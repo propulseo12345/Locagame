@@ -50,6 +50,7 @@
 
     /* Header height - responsive */
     --header-height: 72px; /* Mobile: 1 niveau */
+    --bottom-nav-height: 64px;
   }
 
   @media (min-width: 768px) {
@@ -123,6 +124,12 @@
            text-white placeholder-gray-400
            focus:border-[#33ffcc] focus:ring-2 focus:ring-[#33ffcc]/20 focus:outline-none
            transition-all duration-300;
+  }
+
+  @media (max-width: 640px) {
+    .input-field {
+      @apply py-3.5 text-base;
+    }
   }
 
   .section-title {
@@ -263,5 +270,13 @@
     .btn-outline {
       @apply text-sm px-4 py-2;
     }
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.1s !important;
   }
 }

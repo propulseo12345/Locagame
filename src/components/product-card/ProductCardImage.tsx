@@ -44,7 +44,7 @@ export function ProductCardImage({
           onError={onImageError}
           loading="lazy"
           {...(isGrid ? { width: "400", height: "300" } : {})}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          className="w-full h-full object-cover motion-safe:group-hover:scale-110 transition-transform duration-700"
         />
       )}
 

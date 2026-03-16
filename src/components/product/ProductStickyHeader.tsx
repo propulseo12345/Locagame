@@ -39,13 +39,13 @@ export function ProductStickyHeader({
           <div className="flex items-center gap-2">
             <button
               onClick={onShare}
-              className="p-2 rounded-lg bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all"
+              className="p-3 rounded-lg bg-white/10 text-white/70 hover:bg-white/20 hover:text-white transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <Share2 className="w-4 h-4" />
             </button>
             <button
               onClick={onLike}
-              className={`p-2 rounded-lg transition-all ${
+              className={`p-3 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center ${
                 isLiked
                   ? 'bg-[#fe1979] text-white'
                   : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'

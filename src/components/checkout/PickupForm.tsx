@@ -14,7 +14,7 @@ interface PickupFormProps {
 // Horaires d'ouverture de l'entrepot
 const WAREHOUSE_HOURS = {
   weekday: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'],
-  saturday: ['09:00', '10:00', '11:00', '12:00'],
+  saturday: [],
   sunday: [],
 };
 
@@ -24,7 +24,7 @@ const WAREHOUSE_ADDRESS = {
   street: "553 rue St Pierre",
   city: "13012 Marseille",
   phone: "04 30 22 03 83",
-  hours: "Lun-Ven: 9h-12h / 14h-18h | Sam: 9h-12h",
+  hours: "Lun-Ven: 9h-12h / 14h-18h | Sam-Dim: Fermé",
 };
 
 function getAvailableSlots(dateStr: string): string[] {

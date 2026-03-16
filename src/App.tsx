@@ -15,6 +15,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { CookieBanner } from './components/CookieBanner';
+import { MobileBottomNav } from './components/header/MobileBottomNav';
 import { ROUTES } from './constants/routes';
 
 // Auth pages
@@ -113,7 +114,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {!isAdminOrClientOrTechnician && !isAuthPage && <Header />}
-      <div>
+      <div className="pb-20 md:pb-0">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Pages d'authentification */}
@@ -202,6 +203,7 @@ function AppContent() {
           </Routes>
         </Suspense>
         {!isAdminOrClientOrTechnician && !isAuthPage && <Footer />}
+        {!isAdminOrClientOrTechnician && !isAuthPage && <MobileBottomNav />}
       </div>
     </div>
   );
