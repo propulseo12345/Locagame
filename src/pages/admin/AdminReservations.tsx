@@ -10,6 +10,7 @@ import {
 export default function AdminReservations() {
   const {
     loading,
+    allReservations,
     filteredReservations,
     unassignedReservations,
     stats,
@@ -20,6 +21,12 @@ export default function AdminReservations() {
     setStatusFilter,
     searchTerm,
     setSearchTerm,
+    deliveryModeFilter,
+    setDeliveryModeFilter,
+    technicianFilter,
+    setTechnicianFilter,
+    clearFilters,
+    hasActiveFilters,
     expandedRow,
     setExpandedRow,
     handleRejectReservation,
@@ -35,31 +42,41 @@ export default function AdminReservations() {
     handleTechnicianChange,
   } = useAdminReservations();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Chargement...</div>
-      </div>
-    );
-  }
+  const handleStatsFilterClick = (status: string) => {
+    setStatusFilter(status === statusFilter ? 'all' : status);
+  };
+
+  const handleViewUnassigned = () => {
+    clearFilters();
+    setStatusFilter('unassigned');
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Reservations</h1>
-          <p className="text-gray-600 mt-1">Gerez toutes les reservations</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Réservations
+            {!loading && (
+              <span className="ml-2 text-lg font-normal text-gray-400">({allReservations.length})</span>
+            )}
+          </h1>
+          <p className="text-gray-600 mt-1">Gérez toutes les réservations</p>
         </div>
       </div>
 
       {/* Stats */}
-      <ReservationStatsBar stats={stats} />
+      <ReservationStatsBar
+        stats={stats}
+        activeFilter={statusFilter}
+        onFilterClick={handleStatsFilterClick}
+      />
 
-      {/* Unassigned reservations */}
+      {/* Unassigned alert banner */}
       <UnassignedReservationsTable
-        reservations={unassignedReservations}
-        onAssignClick={handleAssignClick}
+        count={unassignedReservations.length}
+        onViewUnassigned={handleViewUnassigned}
       />
 
       {/* Filters */}
@@ -68,6 +85,15 @@ export default function AdminReservations() {
         onSearchChange={setSearchTerm}
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
+        deliveryModeFilter={deliveryModeFilter}
+        onDeliveryModeChange={setDeliveryModeFilter}
+        technicianFilter={technicianFilter}
+        onTechnicianChange={setTechnicianFilter}
+        technicians={technicians}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+        totalCount={allReservations.length}
+        filteredCount={filteredReservations.length}
       />
 
       {/* Reservations Table */}
@@ -76,7 +102,11 @@ export default function AdminReservations() {
         expandedRow={expandedRow}
         onToggleRow={setExpandedRow}
         onReject={handleRejectReservation}
+        onAssignClick={handleAssignClick}
         deliveryTasksMap={deliveryTasksMap}
+        loading={loading}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
       />
 
       {/* Assign Modal */}

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface AccessKey {
   id: string;
@@ -28,21 +29,23 @@ export class AccessKeysService {
     key: string,
     platform: 'pro' | 'particulier' | 'technicien'
   ): Promise<AccessKeyVerification | null> {
+    // @ts-expect-error — RPC not yet in database.types.ts
     const { data, error } = await supabase.rpc('verify_access_key', {
       key_to_verify: key,
       platform_to_check: platform,
     });
 
     if (error) {
-      console.error('Error verifying access key:', error);
+      logger.error('Error verifying access key', error);
       throw error;
     }
 
-    if (!data || data.length === 0) {
+    const results = data as AccessKeyVerification[] | null;
+    if (!results || results.length === 0) {
       return null;
     }
 
-    return data[0] as AccessKeyVerification;
+    return results[0];
   }
 
   /**
@@ -53,6 +56,7 @@ export class AccessKeysService {
     platform: 'pro' | 'particulier' | 'technicien',
     expiresAt?: Date
   ): Promise<string | null> {
+    // @ts-expect-error — RPC not yet in database.types.ts
     const { data, error } = await supabase.rpc('create_access_key', {
       p_customer_id: customerId,
       p_platform: platform,
@@ -60,7 +64,7 @@ export class AccessKeysService {
     });
 
     if (error) {
-      console.error('Error creating access key:', error);
+      logger.error('Error creating access key', error);
       throw error;
     }
 
@@ -72,17 +76,18 @@ export class AccessKeysService {
    */
   static async getCustomerKeys(customerId: string): Promise<AccessKey[]> {
     const { data, error } = await supabase
+      // @ts-expect-error — table access_keys not yet in database.types.ts
       .from('access_keys')
       .select('*')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching customer keys:', error);
+      logger.error('Error fetching customer keys', error);
       throw error;
     }
 
-    return (data || []) as AccessKey[];
+    return (data || []) as unknown as AccessKey[];
   }
 
   /**
@@ -90,16 +95,17 @@ export class AccessKeysService {
    */
   static async getAllKeys(): Promise<AccessKey[]> {
     const { data, error } = await supabase
+      // @ts-expect-error — table access_keys not yet in database.types.ts
       .from('access_keys')
       .select('*, customers:customer_id(email, first_name, last_name)')
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching all keys:', error);
+      logger.error('Error fetching all keys', error);
       throw error;
     }
 
-    return (data || []) as AccessKey[];
+    return (data || []) as unknown as AccessKey[];
   }
 
   /**
@@ -107,12 +113,13 @@ export class AccessKeysService {
    */
   static async deactivateKey(keyId: string): Promise<boolean> {
     const { error } = await supabase
+      // @ts-expect-error — table access_keys not yet in database.types.ts
       .from('access_keys')
       .update({ is_active: false })
       .eq('id', keyId);
 
     if (error) {
-      console.error('Error deactivating key:', error);
+      logger.error('Error deactivating key', error);
       throw error;
     }
 
@@ -124,16 +131,16 @@ export class AccessKeysService {
    */
   static async deleteKey(keyId: string): Promise<boolean> {
     const { error } = await supabase
+      // @ts-expect-error — table access_keys not yet in database.types.ts
       .from('access_keys')
       .delete()
       .eq('id', keyId);
 
     if (error) {
-      console.error('Error deleting key:', error);
+      logger.error('Error deleting key', error);
       throw error;
     }
 
     return true;
   }
 }
-

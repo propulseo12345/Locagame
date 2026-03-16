@@ -6,7 +6,7 @@ import { Order } from '../../types';
 
 export default function ClientReservationDetail() {
   const { id } = useParams<{ id: string }>();
-  const { userProfile } = useAuth();
+  const { user } = useAuth();
   const [reservation, setReservation] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,7 @@ export default function ClientReservationDetail() {
         setLoading(true);
         const data = await ReservationsService.getReservationById(id);
         // Vérifier que la réservation appartient à l'utilisateur connecté
-        if (data && userProfile && data.customer_id === userProfile.id) {
+        if (data && user && data.customer_id === user.id) {
           setReservation(data);
         } else if (data) {
           // Pour le moment, on affiche quand même (à améliorer avec RLS)
@@ -36,7 +36,7 @@ export default function ClientReservationDetail() {
     };
 
     loadReservation();
-  }, [id, userProfile]);
+  }, [id, user]);
 
   if (loading) {
     return (
@@ -138,7 +138,7 @@ export default function ClientReservationDetail() {
               <div>
                 <div className="text-sm font-medium text-gray-700 mb-1">Dates</div>
                 <div className="text-sm text-gray-900">
-                  Du <strong>{new Date(reservation.start_date).toLocaleDateString('fr-FR', {
+                  Du <strong>{new Date(reservation.start_date + 'T00:00:00').toLocaleDateString('fr-FR', {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'long',
@@ -146,7 +146,7 @@ export default function ClientReservationDetail() {
                   })}</strong>
                 </div>
                 <div className="text-sm text-gray-900">
-                  Au <strong>{new Date(reservation.end_date).toLocaleDateString('fr-FR', {
+                  Au <strong>{new Date(reservation.end_date + 'T00:00:00').toLocaleDateString('fr-FR', {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'long',

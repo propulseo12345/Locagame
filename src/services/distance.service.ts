@@ -1,3 +1,5 @@
+import { logger } from '../lib/logger';
+
 // Service de calcul de distance pour les frais de livraison
 
 // Adresse de l'entrepôt LOCAGAME
@@ -62,7 +64,7 @@ async function geocodeAddress(address: string, city: string, postalCode: string)
     );
 
     if (!response.ok) {
-      console.error('Erreur géocodage:', response.statusText);
+      logger.error('Erreur géocodage', response.statusText);
       return null;
     }
 
@@ -77,7 +79,7 @@ async function geocodeAddress(address: string, city: string, postalCode: string)
 
     return null;
   } catch (error) {
-    console.error('Erreur géocodage:', error);
+    logger.error('Erreur géocodage', error);
     return null;
   }
 }
@@ -134,7 +136,7 @@ export async function calculateDeliveryFee(
       success: true,
     };
   } catch (error) {
-    console.error('Erreur calcul distance:', error);
+    logger.error('Erreur calcul distance', error);
     return {
       distanceKm: 0,
       deliveryFee: 0,

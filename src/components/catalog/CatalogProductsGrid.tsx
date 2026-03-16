@@ -29,7 +29,7 @@ interface CatalogProductsGridProps {
   totalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  productsRef: React.RefObject<HTMLDivElement | null>;
+  productsRef: React.RefObject<HTMLDivElement | null> | React.LegacyRef<HTMLDivElement>;
 }
 
 export function CatalogProductsGrid({
@@ -43,7 +43,7 @@ export function CatalogProductsGrid({
   const showCategoryView = !selectedCategory && !searchTerm && Object.keys(filters).length === 0 && !startDate;
 
   return (
-    <div ref={productsRef} className="relative z-10 py-8 bg-gradient-to-b from-transparent to-[#000033]/50">
+    <div ref={productsRef as React.LegacyRef<HTMLDivElement>} className="relative z-10 py-8 bg-gradient-to-b from-transparent to-[#000033]/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <CatalogResultsBar
           filteredCount={filteredProducts.length}

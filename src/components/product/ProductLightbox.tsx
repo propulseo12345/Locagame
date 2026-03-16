@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface ProductLightboxProps {
@@ -15,6 +16,16 @@ export function ProductLightbox({
   onClose,
   onIndexChange
 }: ProductLightboxProps) {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') onIndexChange((currentIndex + 1) % images.length);
+      if (e.key === 'ArrowLeft') onIndexChange((currentIndex - 1 + images.length) % images.length);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [currentIndex, images.length, onClose, onIndexChange]);
+
   const prevImage = () => {
     onIndexChange((currentIndex - 1 + images.length) % images.length);
   };

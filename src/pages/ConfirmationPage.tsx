@@ -5,6 +5,7 @@ import {
   ConfirmationSummary,
   ConfirmationNextSteps,
   ConfirmationActions,
+  ConfirmationAccountPrompt,
 } from '../components/confirmation';
 
 export default function ConfirmationPage() {
@@ -54,6 +55,8 @@ export default function ConfirmationPage() {
             <ConfirmationNextSteps paymentState={paymentState} />
           </div>
         )}
+
+        <ConfirmationAccountPrompt guestEmail={reservation?.customer?.email} />
 
         <ConfirmationActions />
       </div>

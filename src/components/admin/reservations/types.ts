@@ -36,6 +36,8 @@ export interface DeliveryTaskInfo {
   technicianName?: string;
 }
 
+export type DeliveryModeFilter = 'all' | 'delivery' | 'pickup';
+
 export interface ReservationStats {
   total: number;
   pending_payment: number;

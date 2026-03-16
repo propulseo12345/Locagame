@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import type { CartItem, DaySlot } from '../../types';
+import { calculateDurationDays } from '../../utils/pricing';
 import { serializeBreakdown, type PricingBreakdown } from '../../utils/pricingRules';
 import { CheckoutService, type CheckoutPayload } from '../../services';
+import { logger } from '../../lib/logger';
 import type {
   CustomerState,
   BillingAddressState,
@@ -38,15 +39,6 @@ interface UseCheckoutSubmitArgs {
   validatePayment: () => boolean;
 }
 
-function calculateDurationDays(startDateStr: string, endDateStr: string | null): number {
-  if (!endDateStr) return 1;
-  const start = new Date(startDateStr);
-  const end = new Date(endDateStr);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return Math.max(diffDays, 1);
-}
-
 export function useCheckoutSubmit({
   cartItems,
   user,
@@ -68,12 +60,12 @@ export function useCheckoutSubmit({
   surchargesTotal,
   finalTotal,
   calculatedDeliveryFee,
-  clearCart,
+  clearCart: _clearCart,
   validatePayment,
 }: UseCheckoutSubmitArgs) {
-  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [needsAuth, setNeedsAuth] = useState(false);
   const isSubmittingRef = useRef(false);
 
   const startDate = cartItems[0]?.start_date || '';
@@ -91,14 +83,14 @@ export function useCheckoutSubmit({
       const reservationItems = cartItems.map(item => ({
         product_id: item.product.id,
         quantity: item.quantity,
-        duration_days: calculateDurationDays(item.start_date, item.end_date),
+        duration_days: item.end_date ? calculateDurationDays(item.start_date, item.end_date) : 1,
         unit_price: item.product.pricing?.oneDay || item.product_price || 0,
         subtotal: item.total_price,
         delivery_people_count: item.product.delivery_people_count ?? 1,
         pickup_people_count: item.product.pickup_people_count ?? 1,
       }));
 
-      const subtotal = cartItems.reduce((sum, item) => sum + item.total_price, 0);
+      const subtotal = productsSubtotal;
       const finalDeliveryFee = isPickup ? 0 : calculatedDeliveryFee;
 
       const combinedPricingBreakdown = {
@@ -157,6 +149,7 @@ export function useCheckoutSubmit({
         } : { firstName: '', lastName: '', phone: '', sameAsCustomer: true },
         notes: eventDetails.specialRequests || undefined,
         subtotal,
+        surcharges_total: surchargesTotal,
         delivery_fee: finalDeliveryFee,
         discount: 0,
         total: finalTotal,
@@ -186,19 +179,30 @@ export function useCheckoutSubmit({
       sessionStorage.setItem('lastReservationId', result.reservation_id!);
 
       // Créer la session Stripe Checkout et rediriger
-      const confirmationUrl = `${window.location.origin}/confirmation/${result.reservation_id}`;
+      const baseUrl = `${window.location.origin}/confirmation/${result.reservation_id}`;
       const { session_url } = await CheckoutService.createStripeCheckoutSession(
         result.reservation_id!,
-        confirmationUrl,
-        confirmationUrl
+        `${baseUrl}?payment=success`,
+        `${baseUrl}?payment=cancelled`
       );
 
       // Rediriger vers Stripe (ne pas clearCart ici, ce sera fait sur la page de confirmation)
       window.location.href = session_url;
     } catch (error) {
-      console.error('Erreur creation reservation:', error);
-      if (error instanceof Error) {
-        setSubmitError(error.message);
+      logger.error('Erreur creation reservation', error);
+      const message = error instanceof Error ? error.message : '';
+      const msgLower = message.toLowerCase();
+      const isAuthErr = msgLower.includes('token')
+        || msgLower.includes('jwt')
+        || msgLower.includes('unauthorized')
+        || msgLower.includes('401')
+        || msgLower.includes('not authenticated')
+        || msgLower.includes('invalid claim');
+
+      if (isAuthErr) {
+        setNeedsAuth(true);
+      } else if (message) {
+        setSubmitError(message);
       } else {
         setSubmitError('Une erreur est survenue lors de la creation de votre reservation. Veuillez reessayer.');
       }
@@ -209,5 +213,7 @@ export function useCheckoutSubmit({
     }
   };
 
-  return { handleSubmit, isProcessing, submitError };
+  const clearNeedsAuth = () => setNeedsAuth(false);
+
+  return { handleSubmit, isProcessing, submitError, needsAuth, clearNeedsAuth };
 }

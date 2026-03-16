@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import { DeliveryTask } from '../types';
 import { mapRowToDeliveryTask } from './delivery.mappers';
+import type { Json } from '../lib/database.types';
+import { logger } from '../lib/logger';
 
 export class DeliveryTasksService {
   /**
@@ -14,7 +16,7 @@ export class DeliveryTasksService {
       .order('scheduled_date', { ascending: true });
 
     if (error) {
-      console.error('Error fetching technician tasks:', error);
+      logger.error('Error fetching technician tasks', error);
       throw error;
     }
 
@@ -32,7 +34,7 @@ export class DeliveryTasksService {
       .single();
 
     if (error) {
-      console.error('Error fetching task:', error);
+      logger.error('Error fetching task', error);
       throw error;
     }
 
@@ -66,7 +68,7 @@ export class DeliveryTasksService {
       .single();
 
     if (error) {
-      console.error('Error updating task status:', error);
+      logger.error('Error updating task status', error);
       throw error;
     }
 
@@ -74,12 +76,47 @@ export class DeliveryTasksService {
   }
 
   /**
-   * Cree une nouvelle tache de livraison
+   * Cree ou met a jour une tache de livraison pour une reservation.
+   * Si une task existe deja pour cette reservation, elle est mise a jour (upsert).
    */
   static async createDeliveryTask(
     task: Omit<DeliveryTask, 'id'>
   ): Promise<DeliveryTask> {
-    // Mapper les champs camelCase vers snake_case pour la DB
+    // Verifier s'il existe deja une task pour cette reservation
+    if (task.reservationId) {
+      const { data: existing } = await supabase
+        .from('delivery_tasks')
+        .select('id')
+        .eq('reservation_id', task.reservationId)
+        .maybeSingle();
+
+      if (existing) {
+        // Mettre a jour la task existante au lieu d'en creer une nouvelle
+        const { data, error } = await supabase
+          .from('delivery_tasks')
+          .update({
+            technician_id: task.technicianId || null,
+            vehicle_id: task.vehicleId || null,
+            status: task.status,
+            scheduled_date: task.scheduledDate,
+            scheduled_time: task.scheduledTime,
+            customer_data: task.customer as unknown as Json,
+            address_data: task.address as unknown as Json,
+            products_data: task.products as unknown as Json,
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (error) {
+          logger.error('Error updating existing delivery task', error);
+          throw error;
+        }
+        return mapRowToDeliveryTask(data);
+      }
+    }
+
+    // Pas de task existante → creer
     const { data, error } = await supabase
       .from('delivery_tasks')
       .insert({
@@ -88,22 +125,22 @@ export class DeliveryTasksService {
         type: task.type,
         scheduled_date: task.scheduledDate,
         scheduled_time: task.scheduledTime,
-        vehicle_id: task.vehicleId,
-        technician_id: task.technicianId,
+        vehicle_id: task.vehicleId || null,
+        technician_id: task.technicianId || null,
         status: task.status,
-        customer_data: task.customer,
-        address_data: task.address,
-        products_data: task.products,
-        access_constraints: task.accessConstraints,
-        notes: task.notes,
-        started_at: task.startedAt,
-        completed_at: task.completedAt,
+        customer_data: task.customer as unknown as Json,
+        address_data: task.address as unknown as Json,
+        products_data: task.products as unknown as Json,
+        access_constraints: (task.accessConstraints as unknown as Json) || null,
+        notes: task.notes || null,
+        started_at: task.startedAt || null,
+        completed_at: task.completedAt || null,
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Error creating delivery task:', error);
+      logger.error('Error creating delivery task', error);
       throw error;
     }
 
@@ -121,7 +158,7 @@ export class DeliveryTasksService {
       .order('scheduled_time', { ascending: true });
 
     if (error) {
-      console.error('Error fetching tasks by date:', error);
+      logger.error('Error fetching tasks by date', error);
       throw error;
     }
 
@@ -152,7 +189,7 @@ export class DeliveryTasksService {
       .single();
 
     if (error) {
-      console.error('Error assigning task:', error);
+      logger.error('Error assigning task', error);
       throw error;
     }
 
@@ -194,7 +231,7 @@ export class DeliveryTasksService {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching all tasks:', error);
+      logger.error('Error fetching all tasks', error);
       throw error;
     }
 
@@ -216,7 +253,7 @@ export class DeliveryTasksService {
       .single();
 
     if (error) {
-      console.error('Error unassigning task:', error);
+      logger.error('Error unassigning task', error);
       throw error;
     }
 
@@ -233,7 +270,7 @@ export class DeliveryTasksService {
       .eq('id', taskId);
 
     if (error) {
-      console.error('Error deleting task:', error);
+      logger.error('Error deleting task', error);
       throw error;
     }
   }

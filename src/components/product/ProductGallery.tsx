@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Star, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { ProductLightbox } from './ProductLightbox';
 
 interface ProductGalleryProps {
@@ -43,7 +43,7 @@ export function ProductGallery({
           />
 
           {/* Overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
           {/* Badges */}
           <div className="absolute top-4 left-4 flex flex-col gap-2">
@@ -93,11 +93,6 @@ export function ProductGallery({
             </div>
           )}
 
-          {/* Zoom hint */}
-          <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-3 py-1.5 bg-black/30 backdrop-blur-md rounded-full text-white/70 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-            <Play className="w-3 h-3" />
-            Cliquez pour agrandir
-          </div>
         </div>
 
         {/* Thumbnails */}

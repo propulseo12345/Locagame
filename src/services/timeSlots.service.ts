@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface TimeSlot {
   id: string;
@@ -28,7 +29,7 @@ export class TimeSlotsService {
     const { data, error } = await query.order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching time slots:', error);
+      logger.error('Error fetching time slots', error);
       throw error;
     }
 
@@ -45,7 +46,7 @@ export class TimeSlotsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching all time slots:', error);
+      logger.error('Error fetching all time slots', error);
       throw error;
     }
 
@@ -64,7 +65,7 @@ export class TimeSlotsService {
 
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error fetching time slot:', error);
+      logger.error('Error fetching time slot', error);
       throw error;
     }
 
@@ -82,7 +83,7 @@ export class TimeSlotsService {
       .single();
 
     if (error) {
-      console.error('Error creating time slot:', error);
+      logger.error('Error creating time slot', error);
       throw error;
     }
 
@@ -101,7 +102,7 @@ export class TimeSlotsService {
       .single();
 
     if (error) {
-      console.error('Error updating time slot:', error);
+      logger.error('Error updating time slot', error);
       throw error;
     }
 
@@ -118,7 +119,7 @@ export class TimeSlotsService {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting time slot:', error);
+      logger.error('Error deleting time slot', error);
       throw error;
     }
   }

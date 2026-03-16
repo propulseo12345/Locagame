@@ -11,52 +11,15 @@ export default function ProductSpecsForm({ specifications, onChange }: ProductSp
   return (
     <div className="bg-gray-50 rounded-lg p-4 space-y-4">
       <h3 className="text-lg font-semibold text-gray-900">Spécifications techniques</h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Longueur (cm)</label>
-          <input
-            type="number"
-            min="0"
-            value={specifications.dimensions.length}
-            onChange={(e) =>
-              onChange({
-                ...specifications,
-                dimensions: { ...specifications.dimensions, length: parseInt(e.target.value) || 0 },
-              })
-            }
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Largeur (cm)</label>
-          <input
-            type="number"
-            min="0"
-            value={specifications.dimensions.width}
-            onChange={(e) =>
-              onChange({
-                ...specifications,
-                dimensions: { ...specifications.dimensions, width: parseInt(e.target.value) || 0 },
-              })
-            }
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Hauteur (cm)</label>
-          <input
-            type="number"
-            min="0"
-            value={specifications.dimensions.height}
-            onChange={(e) =>
-              onChange({
-                ...specifications,
-                dimensions: { ...specifications.dimensions, height: parseInt(e.target.value) || 0 },
-              })
-            }
-            className={inputClass}
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Dimensions</label>
+        <input
+          type="text"
+          value={specifications.dimensions}
+          onChange={(e) => onChange({ ...specifications, dimensions: e.target.value })}
+          placeholder="Ex: 200 x 100 x 150 cm"
+          className={inputClass}
+        />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>

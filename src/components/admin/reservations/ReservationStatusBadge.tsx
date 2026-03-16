@@ -1,53 +1,96 @@
-import { CreditCard, CheckCircle } from 'lucide-react';
+import {
+  CreditCard,
+  Clock,
+  CheckCircle,
+  Package,
+  Truck,
+  CheckCircle2,
+  XCircle,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const STATUS_STYLES: Record<string, string> = {
-  pending_payment: 'bg-orange-100 text-orange-800',
-  pending: 'bg-yellow-100 text-yellow-800',
-  confirmed: 'bg-blue-100 text-blue-800',
-  preparing: 'bg-purple-100 text-purple-800',
-  delivered: 'bg-indigo-100 text-indigo-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
-  rejected: 'bg-red-100 text-red-800',
-};
+interface StatusConfig {
+  icon: LucideIcon;
+  label: string;
+  classes: string;
+  pulse?: boolean;
+  lineThrough?: boolean;
+}
 
-const STATUS_LABELS: Record<string, string> = {
-  pending_payment: '\uD83D\uDCB3 Paiement en attente',
-  pending: '\u23F3 En attente validation',
-  confirmed: '\u2705 Confirm\u00E9',
-  preparing: '\uD83D\uDCE6 En pr\u00E9paration',
-  delivered: '\uD83D\uDE9A Livr\u00E9',
-  completed: '\u2714\uFE0F Termin\u00E9',
-  cancelled: '\u274C Annul\u00E9',
-  rejected: '\uD83D\uDEAB Refus\u00E9',
-};
-
-const PAYMENT_STYLES: Record<string, { bg: string; label: string }> = {
-  paid: { bg: 'bg-green-100 text-green-800', label: 'Paye' },
-  failed: { bg: 'bg-red-100 text-red-800', label: 'Echoue' },
-  expired: { bg: 'bg-gray-100 text-gray-600', label: 'Expire' },
-  refunded: { bg: 'bg-purple-100 text-purple-800', label: 'Rembourse' },
+const STATUS_CONFIG: Record<string, StatusConfig> = {
+  pending_payment: {
+    icon: CreditCard,
+    label: 'Paiement en attente',
+    classes: 'bg-orange-50 text-orange-700 ring-1 ring-orange-200',
+    pulse: true,
+  },
+  pending: {
+    icon: Clock,
+    label: 'En attente',
+    classes: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+  },
+  confirmed: {
+    icon: CheckCircle,
+    label: 'Confirmé',
+    classes: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+  },
+  preparing: {
+    icon: Package,
+    label: 'En préparation',
+    classes: 'bg-violet-50 text-violet-700 ring-1 ring-violet-200',
+  },
+  delivered: {
+    icon: Truck,
+    label: 'Livré',
+    classes: 'bg-cyan-50 text-cyan-700 ring-1 ring-cyan-200',
+  },
+  completed: {
+    icon: CheckCircle2,
+    label: 'Terminé',
+    classes: 'bg-green-50 text-green-700 ring-1 ring-green-200',
+  },
+  cancelled: {
+    icon: XCircle,
+    label: 'Annulé',
+    classes: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    lineThrough: true,
+  },
+  rejected: {
+    icon: XCircle,
+    label: 'Refusé',
+    classes: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    lineThrough: true,
+  },
 };
 
 interface ReservationStatusBadgeProps {
   status: string;
-  paymentStatus?: string;
 }
 
-export default function ReservationStatusBadge({ status, paymentStatus }: ReservationStatusBadgeProps) {
-  const paymentInfo = paymentStatus ? PAYMENT_STYLES[paymentStatus] : null;
+export default function ReservationStatusBadge({ status }: ReservationStatusBadgeProps) {
+  const config = STATUS_CONFIG[status];
+  if (!config) {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md bg-gray-50 text-gray-600 ring-1 ring-gray-200">
+        {status}
+      </span>
+    );
+  }
+
+  const Icon = config.icon;
 
   return (
-    <div className="flex flex-col gap-1">
-      <span className={`px-3 py-1 text-xs font-medium rounded-full ${STATUS_STYLES[status] || 'bg-gray-100'}`}>
-        {STATUS_LABELS[status] || status}
-      </span>
-      {paymentInfo && (
-        <span className={`px-2 py-0.5 text-xs font-medium rounded-full inline-flex items-center gap-1 w-fit ${paymentInfo.bg}`}>
-          {paymentStatus === 'paid' ? <CheckCircle className="w-3 h-3" /> : <CreditCard className="w-3 h-3" />}
-          {paymentInfo.label}
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md ${config.classes} ${config.lineThrough ? 'line-through' : ''}`}
+    >
+      {config.pulse && (
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
         </span>
       )}
-    </div>
+      <Icon className="w-3.5 h-3.5" />
+      {config.label}
+    </span>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { generateAvailabilityCalendar, isPastDate, isToday } from '../utils/availability';
+import { isWeekend, isFrenchHoliday } from '../utils/dateHolidays';
 
 interface AvailabilityCalendarProps {
   productId: string;
@@ -15,7 +16,7 @@ export default function AvailabilityCalendar({
   selectedStartDate,
   selectedEndDate,
   onDateSelect,
-  onClearSelection
+  onClearSelection: _onClearSelection
 }: AvailabilityCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -45,12 +46,12 @@ export default function AvailabilityCalendar({
     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
 
-  const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
   const handleDateClick = (date: string) => {
     if (isPastDate(date)) return;
 
-    const clickedDate = new Date(date);
+    const clickedDate = new Date(date + 'T00:00:00');
     const dayData = calendar.find(d => d.date === date);
     if (dayData && !dayData.available) return;
 
@@ -60,7 +61,7 @@ export default function AvailabilityCalendar({
     }
     // Date de début = date de fin (1er clic fait) - on attend le 2ème clic pour la fin
     else if (selectedStartDate === selectedEndDate) {
-      if (clickedDate >= new Date(selectedStartDate)) {
+      if (clickedDate >= new Date(selectedStartDate + 'T00:00:00')) {
         // Clic après la date de début → définir comme date de fin
         onDateSelect(selectedStartDate, date);
       } else {
@@ -94,9 +95,9 @@ export default function AvailabilityCalendar({
 
   const isDateInRange = (date: string) => {
     if (!selectedStartDate || !selectedEndDate) return false;
-    const checkDate = new Date(date);
-    const start = new Date(selectedStartDate);
-    const end = new Date(selectedEndDate);
+    const checkDate = new Date(date + 'T00:00:00');
+    const start = new Date(selectedStartDate + 'T00:00:00');
+    const end = new Date(selectedEndDate + 'T00:00:00');
     return checkDate > start && checkDate < end;
   };
 
@@ -115,6 +116,9 @@ export default function AvailabilityCalendar({
     const isHovered = hoveredDate === date;
     const isStart = isStartDate(date);
     const isEnd = isEndDate(date);
+    const isWe = !isPast && isWeekend(date);
+    const isHoliday = !isPast && isFrenchHoliday(date);
+    const isSpecialDay = isWe || isHoliday;
 
     let baseClasses = 'w-full aspect-square flex items-center justify-center text-sm font-medium cursor-pointer transition-all duration-200 relative';
 
@@ -130,17 +134,28 @@ export default function AvailabilityCalendar({
     }
 
     if (isPast) {
+      // Passé : grisé, non cliquable
       baseClasses += ' text-white/20 cursor-not-allowed';
     } else if (!available) {
+      // Indisponible : barré, non cliquable
       baseClasses += ' text-white/30 bg-white/5 cursor-not-allowed line-through';
     } else if (isSelected) {
+      // Sélectionné : teal
       baseClasses += ' bg-[#33ffcc] text-[#000033] font-bold shadow-lg shadow-[#33ffcc]/30';
     } else if (isInRange) {
+      // Dans la plage sélectionnée
       baseClasses += ' bg-[#33ffcc]/20 text-[#33ffcc]';
     } else if (isHovered) {
       baseClasses += ' bg-[#33ffcc]/30 text-white scale-110';
+    } else if (isTodayDate && isSpecialDay) {
+      // Aujourd'hui + week-end/férié
+      baseClasses += ' bg-amber-500/20 text-amber-300 font-bold ring-2 ring-amber-500/50';
     } else if (isTodayDate) {
+      // Aujourd'hui
       baseClasses += ' bg-[#fe1979]/20 text-[#fe1979] font-bold ring-2 ring-[#fe1979]/50';
+    } else if (isSpecialDay) {
+      // Week-end ou jour férié disponible : amber
+      baseClasses += ' bg-amber-500/10 text-amber-300 hover:bg-amber-500/25 hover:scale-110';
     } else {
       baseClasses += ' text-white/80 hover:bg-white/10';
     }
@@ -193,6 +208,14 @@ export default function AvailabilityCalendar({
         </div>
       ) : (
         <div className="grid grid-cols-7 gap-1">
+          {/* Cellules vides pour aligner le 1er du mois avec le bon jour (lundi = 0) */}
+          {(() => {
+            const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
+            const emptyDays = firstDay === 0 ? 6 : firstDay - 1;
+            return Array.from({ length: emptyDays }, (_, i) => (
+              <div key={`empty-${i}`} className="w-full aspect-square" />
+            ));
+          })()}
           {calendar.map((day) => (
             <div
               key={day.date}
@@ -201,7 +224,7 @@ export default function AvailabilityCalendar({
               onMouseEnter={() => setHoveredDate(day.date)}
               onMouseLeave={() => setHoveredDate(null)}
             >
-              {new Date(day.date).getDate()}
+              {new Date(day.date + 'T00:00:00').getDate()}
               {day.available && day.availableQuantity < 3 && !isPastDate(day.date) && (
                 <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#fe1979] rounded-full animate-pulse"></div>
               )}
@@ -211,20 +234,24 @@ export default function AvailabilityCalendar({
       )}
 
       {/* Légende compacte */}
-      <div className="flex flex-wrap items-center justify-center gap-4 pt-4 border-t border-white/10">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pt-4 border-t border-white/10">
+        <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 bg-[#33ffcc] rounded-full"></div>
           <span className="text-xs text-white/60">Sélectionné</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-[#fe1979]/50 rounded-full ring-2 ring-[#fe1979]/50"></div>
-          <span className="text-xs text-white/60">Aujourd'hui</span>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-amber-500/30 rounded-full ring-1 ring-amber-400/60"></div>
+          <span className="text-xs text-white/60">Week-end / Férié (+majoration)</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-white/10 rounded-full"></div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-white/5 rounded-full border border-white/20 line-through"></div>
           <span className="text-xs text-white/60">Indisponible</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 bg-white/10 rounded-full opacity-40"></div>
+          <span className="text-xs text-white/60">Passé</span>
+        </div>
+        <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 bg-[#fe1979] rounded-full"></div>
           <span className="text-xs text-white/60">Stock limité</span>
         </div>

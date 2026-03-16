@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react';
+import { toLocalISODate } from '../../utils/dateHolidays';
 
 interface CatalogSearchBarProps {
   searchTerm: string;
@@ -19,7 +20,7 @@ export function CatalogSearchBar({
   onEndDateChange,
   onClearDates
 }: CatalogSearchBarProps) {
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalISODate(new Date());
 
   return (
     <div className="max-w-4xl mx-auto">

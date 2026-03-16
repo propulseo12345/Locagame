@@ -7,6 +7,7 @@ import {
 import { isWeekendOrHoliday } from '../../utils/dateHolidays';
 import { DistanceService } from '../../services/distance.service';
 import type { DeliveryState } from './types';
+import { logger } from '../../lib/logger';
 
 interface UseCheckoutPricingArgs {
   cartItems: CartItem[];
@@ -97,7 +98,7 @@ export function useCheckoutPricing({
         setCalculatedDeliveryFee(result.deliveryFee);
       }
     } catch (error) {
-      console.error('Erreur calcul frais:', error);
+      logger.error('Erreur calcul frais', error);
     } finally {
       setIsCalculatingFee(false);
     }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Product, Category } from '../types';
 import { CategoriesService } from '../services';
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 interface UseCatalogDataReturn {
   products: Product[];
@@ -36,7 +37,7 @@ export function useCatalogData(): UseCatalogDataReturn {
           supabaseUrl === 'https://placeholder.supabase.co' ||
           supabaseKey === 'placeholder-anon-key'
         ) {
-          console.error('Supabase non configure! Verifiez votre fichier .env');
+          logger.error('Supabase non configure! Verifiez votre fichier .env');
           if (!cancelled) {
             setError('Supabase non configure. Veuillez creer un fichier .env avec vos identifiants Supabase.');
             setProducts([]);
@@ -50,12 +51,12 @@ export function useCatalogData(): UseCatalogDataReturn {
         // Fetch all active products for catalog
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*, category:categories(*)')
+          .select('*, category:categories!products_category_id_fkey(*)')
           .eq('is_active', true)
           .order('name', { ascending: true });
 
         if (productsError) {
-          console.error('Erreur lors du chargement des produits:', productsError);
+          logger.error('Erreur lors du chargement des produits', productsError);
 
           // Retry once on error (possible stale auth token)
           if (attempt < 1 && !cancelled) {
@@ -94,7 +95,7 @@ export function useCatalogData(): UseCatalogDataReturn {
           if (!cancelled) return loadData(attempt + 1);
         }
         if (!cancelled) {
-          console.error('[CatalogPage] Erreur chargement:', err);
+          logger.error('[CatalogPage] Erreur chargement', err);
           setError(err?.message || 'Impossible de charger le catalogue');
         }
       } finally {

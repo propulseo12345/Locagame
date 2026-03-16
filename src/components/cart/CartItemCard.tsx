@@ -28,7 +28,7 @@ interface CartItemCardProps {
 }
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('fr-FR', {
+  return new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', {
     weekday: 'short',
     day: 'numeric',
     month: 'short'
@@ -36,8 +36,8 @@ function formatDate(date: string) {
 }
 
 function calculateDuration(startDate: string, endDate: string) {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = new Date(startDate + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
   const diffTime = end.getTime() - start.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 }

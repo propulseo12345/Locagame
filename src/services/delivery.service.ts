@@ -1,6 +1,5 @@
 import { DeliveryZonesService } from './delivery.zones';
 import { DeliveryTasksService } from './delivery.tasks';
-import { DeliveryTask, DeliveryZone } from '../types';
 
 export class DeliveryService {
   // Zones

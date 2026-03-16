@@ -95,13 +95,16 @@ export function DesktopNav({
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-2 text-white hover:text-[#33ffcc] transition-all duration-300"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition-all duration-300 text-white text-sm font-medium"
                   aria-label="Menu utilisateur"
                   aria-expanded={userMenuOpen}
                 >
-                  <div className="w-8 h-8 bg-[#33ffcc]/20 rounded-full flex items-center justify-center text-lg">
-                    {user.avatar || '👤'}
+                  <div className="w-7 h-7 bg-[#33ffcc]/20 rounded-full flex items-center justify-center text-xs font-bold text-[#33ffcc]">
+                    {user.firstName && user.lastName
+                      ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+                      : <User className="w-4 h-4" />}
                   </div>
+                  <span>Mon compte</span>
                 </button>
 
                 {userMenuOpen && (
@@ -137,8 +140,13 @@ export function DesktopNav({
                 )}
               </div>
             ) : (
-              <Link to="/login" className="p-2 text-white hover:text-[#33ffcc] transition-all duration-300" aria-label="Se connecter">
-                <LogIn className="w-5 h-5" />
+              <Link
+                to="/login"
+                className="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition-all duration-300 text-white text-sm font-medium"
+                aria-label="Se connecter"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Se connecter / Créer un compte</span>
               </Link>
             )}
 

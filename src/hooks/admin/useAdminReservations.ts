@@ -1,18 +1,26 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { ReservationsService, DeliveryService, TechniciansService } from '../../services';
 import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
 import { Order } from '../../types';
+import { logger } from '../../lib/logger';
 import type {
   ReservationTechnician,
   ReservationVehicle,
   UnassignedReservation,
   ReservationStats,
   DeliveryTaskInfo,
+  DeliveryModeFilter,
 } from '../../components/admin/reservations/types';
 
 export function useAdminReservations() {
+  const toast = useToast();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [deliveryModeFilter, setDeliveryModeFilter] = useState<DeliveryModeFilter>('all');
+  const [technicianFilter, setTechnicianFilter] = useState<string>('all');
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
   const [allReservations, setAllReservations] = useState<Order[]>([]);
   const [unassignedReservations, setUnassignedReservations] = useState<UnassignedReservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +71,7 @@ export function useAdminReservations() {
       }
       setDeliveryTasksMap(tasksMap);
     } catch (error) {
-      console.error('Error loading data:', error);
+      logger.error('Error loading data', error);
     } finally {
       setLoading(false);
     }
@@ -73,9 +81,23 @@ export function useAdminReservations() {
     loadData();
   }, [loadData]);
 
+  const clearFilters = useCallback(() => {
+    setStatusFilter('all');
+    setSearchTerm('');
+    setDeliveryModeFilter('all');
+    setTechnicianFilter('all');
+  }, []);
+
+  const hasActiveFilters = useMemo(() => {
+    return statusFilter !== 'all' || searchTerm !== '' || deliveryModeFilter !== 'all' || technicianFilter !== 'all';
+  }, [statusFilter, searchTerm, deliveryModeFilter, technicianFilter]);
+
   const filteredReservations = useMemo(() => {
     return allReservations.filter(reservation => {
-      const matchesStatus = statusFilter === 'all' || reservation.status === statusFilter;
+      const matchesStatus = statusFilter === 'all'
+        || (statusFilter === 'unassigned'
+          ? (reservation as any).delivery_type === 'delivery' && !deliveryTasksMap[reservation.id]
+          : reservation.status === statusFilter);
       const customer = reservation.customer as any;
       const customerName = customer?.first_name && customer?.last_name
         ? `${customer.first_name} ${customer.last_name}`
@@ -84,9 +106,11 @@ export function useAdminReservations() {
         (reservation.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (customer?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesStatus && matchesSearch;
+      const matchesDeliveryMode = deliveryModeFilter === 'all' || (reservation as any).delivery_type === deliveryModeFilter;
+      const matchesTechnician = technicianFilter === 'all' || deliveryTasksMap[reservation.id]?.technicianId === technicianFilter;
+      return matchesStatus && matchesSearch && matchesDeliveryMode && matchesTechnician;
     });
-  }, [allReservations, statusFilter, searchTerm]);
+  }, [allReservations, statusFilter, searchTerm, deliveryModeFilter, technicianFilter, deliveryTasksMap]);
 
   const stats: ReservationStats = useMemo(() => ({
     total: allReservations.length,
@@ -99,17 +123,49 @@ export function useAdminReservations() {
     unassigned: unassignedReservations.length,
   }), [allReservations, unassignedReservations]);
 
+  // Refresh cible sans setLoading(true) - pour apres une operation d'assignation/rejet
+  const refreshAfterAction = useCallback(async () => {
+    try {
+      const [allRes, unassignedRes, allTasks] = await Promise.all([
+        ReservationsService.getAllReservations(),
+        ReservationsService.getUnassignedReservations(),
+        DeliveryService.getAllTasks(),
+      ]);
+      setAllReservations(allRes);
+      setUnassignedReservations(unassignedRes);
+
+      // Rebuild delivery tasks map
+      const techMap = new Map(technicians.map(t => [t.id, `${t.first_name} ${t.last_name}`]));
+      const tasksMap: Record<string, DeliveryTaskInfo> = {};
+      for (const task of allTasks) {
+        if (task.reservationId && task.technicianId) {
+          tasksMap[task.reservationId] = {
+            id: task.id,
+            reservationId: task.reservationId,
+            technicianId: task.technicianId,
+            status: task.status,
+            technicianName: techMap.get(task.technicianId),
+          };
+        }
+      }
+      setDeliveryTasksMap(tasksMap);
+    } catch (error) {
+      logger.error('Error refreshing', error);
+    }
+  }, [technicians]);
+
   const handleRejectReservation = useCallback(async (reservationId: string) => {
     const reason = prompt('Motif du refus (optionnel):');
     if (reason === null) return;
     try {
       await ReservationsService.updateReservationStatus(reservationId, 'cancelled');
-      await loadData();
+      await refreshAfterAction();
+      toast.success('Réservation refusée');
     } catch (error) {
-      console.error('Error rejecting reservation:', error);
-      alert('Erreur lors du refus');
+      logger.error('Error rejecting reservation', error);
+      toast.error('Erreur lors du refus');
     }
-  }, [loadData]);
+  }, [refreshAfterAction, toast]);
 
   const handleAssignClick = useCallback((reservation: UnassignedReservation) => {
     setSelectedReservation(reservation);
@@ -120,35 +176,67 @@ export function useAdminReservations() {
 
   const handleAssign = useCallback(async () => {
     if (!selectedReservation || !selectedTechnician || !selectedVehicle) {
-      alert('Veuillez selectionner un technicien et un vehicule');
-      return;
-    }
-
-    if (!selectedReservation.delivery_task_id) {
-      alert('Erreur: tache de livraison introuvable');
+      toast.warning('Veuillez sélectionner un technicien et un véhicule');
       return;
     }
 
     try {
       setAssigning(true);
-      await DeliveryService.assignTask(
-        selectedReservation.delivery_task_id,
-        selectedTechnician,
-        selectedVehicle
-      );
 
-      await loadData();
+      if (selectedReservation.delivery_task_id) {
+        // Tâche existante → assigner directement
+        await DeliveryService.assignTask(
+          selectedReservation.delivery_task_id,
+          selectedTechnician,
+          selectedVehicle
+        );
+      } else {
+        // Pas de tâche → en créer une avec le technicien assigné
+        const customer = selectedReservation.customer as any;
+        const address = selectedReservation.delivery_address as any;
+        await DeliveryService.createDeliveryTask({
+          reservationId: selectedReservation.id,
+          orderNumber: `ORD-${selectedReservation.id.substring(0, 8)}`,
+          type: 'delivery',
+          scheduledDate: selectedReservation.start_date,
+          scheduledTime: (selectedReservation as any).delivery_time || '10:00',
+          vehicleId: selectedVehicle,
+          technicianId: selectedTechnician,
+          status: 'assigned',
+          customer: {
+            firstName: customer?.first_name || '',
+            lastName: customer?.last_name || '',
+            phone: customer?.phone || '',
+            email: customer?.email || '',
+          },
+          address: {
+            street: address?.address_line1 || '',
+            city: address?.city || '',
+            postalCode: address?.postal_code || '',
+            country: 'France',
+          },
+          products: ((selectedReservation as any).reservation_items || []).map((item: any) => ({
+            productId: item.product_id || '',
+            productName: item.product?.name || 'Produit',
+            quantity: item.quantity || 1,
+          })),
+        });
+      }
+
+      await refreshAfterAction();
       setShowAssignModal(false);
       setSelectedReservation(null);
+      toast.success('Livreur assigné avec succès');
     } catch (error) {
-      console.error('Error assigning task:', error);
-      alert('Erreur lors de l\'assignation. Veuillez reessayer.');
+      logger.error('Error assigning task', error);
+      toast.error("Erreur lors de l'assignation. Veuillez réessayer.");
     } finally {
       setAssigning(false);
     }
-  }, [selectedReservation, selectedTechnician, selectedVehicle, loadData]);
+  }, [selectedReservation, selectedTechnician, selectedVehicle, refreshAfterAction, toast]);
 
-  // Auto-refresh quand il y a des pending_payment (toutes les 10s)
+  // Auto-refresh silencieux quand il y a des pending_payment (toutes les 30s)
+  // Utilise refreshAfterAction au lieu de loadData pour ne pas afficher "Chargement..."
   const hasPendingPayments = useMemo(
     () => allReservations.some(r => r.status === 'pending_payment'),
     [allReservations]
@@ -157,10 +245,10 @@ export function useAdminReservations() {
   useEffect(() => {
     if (!hasPendingPayments) return;
     const interval = setInterval(() => {
-      loadData();
-    }, 10000);
+      refreshAfterAction();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [hasPendingPayments, loadData]);
+  }, [hasPendingPayments, refreshAfterAction]);
 
   // Realtime: subscribe to delivery_tasks changes for live status updates
   const techniciansRef = useRef(technicians);
@@ -213,6 +301,7 @@ export function useAdminReservations() {
   return {
     // Data
     loading,
+    allReservations,
     filteredReservations,
     unassignedReservations,
     stats,
@@ -225,6 +314,18 @@ export function useAdminReservations() {
     setStatusFilter,
     searchTerm,
     setSearchTerm,
+    deliveryModeFilter,
+    setDeliveryModeFilter,
+    technicianFilter,
+    setTechnicianFilter,
+    clearFilters,
+    hasActiveFilters,
+
+    // Cancel modal
+    showCancelModal,
+    setShowCancelModal,
+    cancelTargetId,
+    setCancelTargetId,
 
     // Expanded row
     expandedRow,

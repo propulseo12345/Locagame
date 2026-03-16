@@ -13,7 +13,7 @@
 -- =====================================================
 
 -- 1. ADMINISTRATEUR
--- Email: admin@locagame.fr
+-- Email: admin@locagame.net
 -- Password: admin123
 -- =====================================================
 
@@ -25,7 +25,7 @@ BEGIN
   -- Vérifier si l'utilisateur existe déjà
   SELECT id INTO admin_user_id
   FROM auth.users
-  WHERE email = 'admin@locagame.fr';
+  WHERE email = 'admin@locagame.net';
 
   -- Si l'utilisateur n'existe pas, le créer
   IF admin_user_id IS NULL THEN
@@ -35,13 +35,13 @@ BEGIN
     
     -- Créer le profil customer pour l'admin (optionnel mais recommandé)
     -- admin_user_id sera défini après création via dashboard
-    RAISE NOTICE '⚠️  Créer manuellement l''utilisateur admin@locagame.fr via Supabase Dashboard > Authentication > Users';
-    RAISE NOTICE '    Email: admin@locagame.fr';
+    RAISE NOTICE '⚠️  Créer manuellement l''utilisateur admin@locagame.net via Supabase Dashboard > Authentication > Users';
+    RAISE NOTICE '    Email: admin@locagame.net';
     RAISE NOTICE '    Password: admin123';
   ELSE
     -- Créer le profil customer pour l'admin
     INSERT INTO customers (id, email, first_name, last_name, customer_type, phone)
-    VALUES (admin_user_id, 'admin@locagame.fr', 'Sophie', 'Martin', 'individual', '+33 6 12 34 56 78')
+    VALUES (admin_user_id, 'admin@locagame.net', 'Sophie', 'Martin', 'individual', '+33 6 12 34 56 78')
     ON CONFLICT (id) DO UPDATE
     SET email = EXCLUDED.email,
         first_name = EXCLUDED.first_name,
@@ -55,7 +55,7 @@ BEGIN
     SET role = EXCLUDED.role,
         is_active = EXCLUDED.is_active;
 
-    RAISE NOTICE '✅ Profil admin créé/mis à jour pour admin@locagame.fr';
+    RAISE NOTICE '✅ Profil admin créé/mis à jour pour admin@locagame.net';
   END IF;
 END $$;
 
@@ -92,7 +92,7 @@ BEGIN
 END $$;
 
 -- 3. TECHNICIEN
--- Email: technicien@locagame.fr
+-- Email: technicien@locagame.net
 -- Password: tech123
 -- =====================================================
 
@@ -102,23 +102,23 @@ DECLARE
 BEGIN
   SELECT id INTO tech_user_id
   FROM auth.users
-  WHERE email = 'technicien@locagame.fr';
+  WHERE email = 'technicien@locagame.net';
 
   IF tech_user_id IS NULL THEN
-    RAISE NOTICE '⚠️  Créer manuellement l''utilisateur technicien@locagame.fr via Supabase Dashboard > Authentication > Users';
-    RAISE NOTICE '    Email: technicien@locagame.fr';
+    RAISE NOTICE '⚠️  Créer manuellement l''utilisateur technicien@locagame.net via Supabase Dashboard > Authentication > Users';
+    RAISE NOTICE '    Email: technicien@locagame.net';
     RAISE NOTICE '    Password: tech123';
   ELSE
     -- Créer le profil technician
     INSERT INTO technicians (user_id, first_name, last_name, email, phone, is_active)
-    VALUES (tech_user_id, 'Lucas', 'Moreau', 'technicien@locagame.fr', '+33 6 45 67 89 01', true)
+    VALUES (tech_user_id, 'Lucas', 'Moreau', 'technicien@locagame.net', '+33 6 45 67 89 01', true)
     ON CONFLICT (email) DO UPDATE
     SET first_name = EXCLUDED.first_name,
         last_name = EXCLUDED.last_name,
         phone = EXCLUDED.phone,
         is_active = EXCLUDED.is_active;
 
-    RAISE NOTICE '✅ Profil technicien créé/mis à jour pour technicien@locagame.fr';
+    RAISE NOTICE '✅ Profil technicien créé/mis à jour pour technicien@locagame.net';
   END IF;
 END $$;
 
@@ -135,7 +135,7 @@ SELECT
   au.is_active
 FROM admin_users au
 LEFT JOIN customers c ON c.id = au.user_id
-WHERE c.email = 'admin@locagame.fr'
+WHERE c.email = 'admin@locagame.net'
 
 UNION ALL
 
@@ -159,7 +159,7 @@ SELECT
   'technician' as role,
   t.is_active
 FROM technicians t
-WHERE t.email = 'technicien@locagame.fr';
+WHERE t.email = 'technicien@locagame.net';
 
 -- =====================================================
 -- Instructions pour créer les utilisateurs dans Supabase Auth
@@ -170,7 +170,7 @@ WHERE t.email = 'technicien@locagame.fr';
 -- 3. Créer les 3 utilisateurs avec ces credentials :
 --
 --    ADMINISTRATEUR:
---    - Email: admin@locagame.fr
+--    - Email: admin@locagame.net
 --    - Password: admin123
 --    - Auto Confirm User: ✅ (coché)
 --
@@ -180,7 +180,7 @@ WHERE t.email = 'technicien@locagame.fr';
 --    - Auto Confirm User: ✅ (coché)
 --
 --    TECHNICIEN:
---    - Email: technicien@locagame.fr
+--    - Email: technicien@locagame.net
 --    - Password: tech123
 --    - Auto Confirm User: ✅ (coché)
 --

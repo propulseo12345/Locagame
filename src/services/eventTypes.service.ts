@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface EventType {
   id: string;
@@ -22,7 +23,7 @@ export class EventTypesService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching event types:', error);
+      logger.error('Error fetching event types', error);
       throw error;
     }
 
@@ -39,7 +40,7 @@ export class EventTypesService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching all event types:', error);
+      logger.error('Error fetching all event types', error);
       throw error;
     }
 
@@ -58,7 +59,7 @@ export class EventTypesService {
 
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error fetching event type:', error);
+      logger.error('Error fetching event type', error);
       throw error;
     }
 
@@ -76,7 +77,7 @@ export class EventTypesService {
       .single();
 
     if (error) {
-      console.error('Error creating event type:', error);
+      logger.error('Error creating event type', error);
       throw error;
     }
 
@@ -95,7 +96,7 @@ export class EventTypesService {
       .single();
 
     if (error) {
-      console.error('Error updating event type:', error);
+      logger.error('Error updating event type', error);
       throw error;
     }
 
@@ -112,7 +113,7 @@ export class EventTypesService {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting event type:', error);
+      logger.error('Error deleting event type', error);
       throw error;
     }
   }

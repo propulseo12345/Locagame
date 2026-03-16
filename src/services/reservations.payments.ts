@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Order } from '../types';
+import { logger } from '../lib/logger';
 
 export class ReservationsPayments {
   /**
@@ -17,7 +18,7 @@ export class ReservationsPayments {
       .single();
 
     if (error) {
-      console.error('Error updating payment status:', error);
+      logger.error('Error updating payment status', error);
       throw error;
     }
 
@@ -39,7 +40,7 @@ export class ReservationsPayments {
     });
 
     if (error) {
-      console.error('[ReservationsService] Sync payment error:', error);
+      logger.error('[ReservationsService] Sync payment error', error);
       let errorMessage = 'Erreur de synchronisation';
       try {
         if (error.context && typeof error.context.json === 'function') {

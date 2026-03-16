@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { logger } from '../lib/logger';
 import { FavoritesService } from '../services';
 import { AuthModal } from '../components/auth/AuthModal';
 
@@ -30,7 +31,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       const favorites = await FavoritesService.getFavorites(userId);
       setFavoriteIds(new Set(favorites.map(f => f.id)));
     } catch (error) {
-      console.error('[Favorites] Error loading:', error);
+      logger.error('[Favorites] Error loading', error);
       setFavoriteIds(new Set());
     } finally {
       setLoading(false);
@@ -148,16 +149,19 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     // processPendingFavorite will be called by the useEffect when user changes
   };
 
+  const contextValue = useMemo(
+    () => ({
+      favoriteIds,
+      loading,
+      isFavorite,
+      toggleFavorite,
+      refreshFavorites,
+    }),
+    [favoriteIds, loading, isFavorite, toggleFavorite, refreshFavorites]
+  );
+
   return (
-    <FavoritesContext.Provider
-      value={{
-        favoriteIds,
-        loading,
-        isFavorite,
-        toggleFavorite,
-        refreshFavorites,
-      }}
-    >
+    <FavoritesContext.Provider value={contextValue}>
       {children}
       <AuthModal
         isOpen={authModalOpen}

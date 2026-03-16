@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface Testimonial {
   id: string;
@@ -26,7 +27,7 @@ export class TestimonialsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching testimonials:', error);
+      logger.error('Error fetching testimonials', error);
       throw error;
     }
 
@@ -45,7 +46,7 @@ export class TestimonialsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching featured testimonials:', error);
+      logger.error('Error fetching featured testimonials', error);
       throw error;
     }
 
@@ -62,7 +63,7 @@ export class TestimonialsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching all testimonials:', error);
+      logger.error('Error fetching all testimonials', error);
       throw error;
     }
 
@@ -81,7 +82,7 @@ export class TestimonialsService {
 
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error fetching testimonial:', error);
+      logger.error('Error fetching testimonial', error);
       throw error;
     }
 
@@ -99,7 +100,7 @@ export class TestimonialsService {
       .single();
 
     if (error) {
-      console.error('Error creating testimonial:', error);
+      logger.error('Error creating testimonial', error);
       throw error;
     }
 
@@ -118,7 +119,7 @@ export class TestimonialsService {
       .single();
 
     if (error) {
-      console.error('Error updating testimonial:', error);
+      logger.error('Error updating testimonial', error);
       throw error;
     }
 
@@ -135,7 +136,7 @@ export class TestimonialsService {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting testimonial:', error);
+      logger.error('Error deleting testimonial', error);
       throw error;
     }
   }

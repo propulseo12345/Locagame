@@ -28,7 +28,7 @@ export {
 export function isPastDate(date: string): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const checkDate = new Date(date);
+  const checkDate = new Date(date + 'T00:00:00');
   return checkDate < today;
 }
 
@@ -37,8 +37,10 @@ export function isPastDate(date: string): boolean {
  */
 export function isToday(date: string): boolean {
   const today = new Date();
-  const checkDate = new Date(date);
-  return checkDate.toDateString() === today.toDateString();
+  today.setHours(0, 0, 0, 0);
+  const checkDate = new Date(date + 'T00:00:00');
+  checkDate.setHours(0, 0, 0, 0);
+  return checkDate.getTime() === today.getTime();
 }
 
 /**

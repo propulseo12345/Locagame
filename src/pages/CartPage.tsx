@@ -10,7 +10,7 @@ export default function CartPage() {
   const { items: cartItems, removeItem, updateQuantity, totalPrice } = useCart();
   const [removingItem, setRemovingItem] = useState<string | null>(null);
 
-  const handleUpdateQuantity = (productId: string, startDate: string, currentQuantity: number, newQuantity: number) => {
+  const handleUpdateQuantity = (productId: string, startDate: string, _currentQuantity: number, newQuantity: number) => {
     if (newQuantity <= 0) {
       handleRemoveItem(productId, startDate);
       return;

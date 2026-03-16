@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface PortfolioEvent {
   id: string;
@@ -37,7 +38,7 @@ export class PortfolioEventsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching portfolio events:', error);
+      logger.error('Error fetching portfolio events', error);
       throw error;
     }
 
@@ -59,7 +60,7 @@ export class PortfolioEventsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching featured portfolio events:', error);
+      logger.error('Error fetching featured portfolio events', error);
       throw error;
     }
 
@@ -81,7 +82,7 @@ export class PortfolioEventsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching portfolio events by type:', error);
+      logger.error('Error fetching portfolio events by type', error);
       throw error;
     }
 
@@ -101,7 +102,7 @@ export class PortfolioEventsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching all portfolio events:', error);
+      logger.error('Error fetching all portfolio events', error);
       throw error;
     }
 
@@ -123,7 +124,7 @@ export class PortfolioEventsService {
 
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error fetching portfolio event:', error);
+      logger.error('Error fetching portfolio event', error);
       throw error;
     }
 
@@ -144,7 +145,7 @@ export class PortfolioEventsService {
       .single();
 
     if (error) {
-      console.error('Error creating portfolio event:', error);
+      logger.error('Error creating portfolio event', error);
       throw error;
     }
 
@@ -169,7 +170,7 @@ export class PortfolioEventsService {
       .single();
 
     if (error) {
-      console.error('Error updating portfolio event:', error);
+      logger.error('Error updating portfolio event', error);
       throw error;
     }
 
@@ -186,7 +187,7 @@ export class PortfolioEventsService {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting portfolio event:', error);
+      logger.error('Error deleting portfolio event', error);
       throw error;
     }
   }

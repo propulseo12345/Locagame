@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ReservationsService } from '../../services';
 import { Order } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { logger } from '../../lib/logger';
 
 interface UseReservationDetailReturn {
   reservation: Order | null;
@@ -36,7 +37,7 @@ export function useReservationDetail(id: string | undefined): UseReservationDeta
         setError('Reservation introuvable');
       }
     } catch (err) {
-      console.error('Erreur chargement reservation:', err);
+      logger.error('Erreur chargement reservation', err);
       setError('Erreur lors du chargement');
     } finally {
       setLoading(false);
@@ -52,7 +53,7 @@ export function useReservationDetail(id: string | undefined): UseReservationDeta
         .order('name');
       setTechnicians(data || []);
     } catch (err) {
-      console.error('Erreur chargement techniciens:', err);
+      logger.error('Erreur chargement techniciens', err);
     }
   }, []);
 
@@ -66,7 +67,7 @@ export function useReservationDetail(id: string | undefined): UseReservationDeta
         .order('scheduled_date');
       setDeliveryTasks(data || []);
     } catch (err) {
-      console.error('Erreur chargement taches:', err);
+      logger.error('Erreur chargement taches', err);
     }
   }, [id]);
 
@@ -85,7 +86,7 @@ export function useReservationDetail(id: string | undefined): UseReservationDeta
       await ReservationsService.updateReservationStatus(reservation.id, newStatus);
       await loadReservation();
     } catch (err) {
-      console.error('Erreur mise a jour statut:', err);
+      logger.error('Erreur mise a jour statut', err);
       alert('Erreur lors de la mise a jour du statut');
     } finally {
       setUpdating(false);
@@ -103,7 +104,7 @@ export function useReservationDetail(id: string | undefined): UseReservationDeta
       await loadDeliveryTasks();
       setSelectedTechnician('');
     } catch (err) {
-      console.error('Erreur assignation technicien:', err);
+      logger.error('Erreur assignation technicien', err);
       alert('Erreur lors de l\'assignation');
     } finally {
       setUpdating(false);

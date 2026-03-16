@@ -12,6 +12,7 @@ import { Product, PriceCalculation } from '../../types';
 import { formatPrice } from '../../utils/pricing';
 import AvailabilityCalendar from '../AvailabilityCalendar';
 import PriceCalculator from '../PriceCalculator';
+import { TarifsDegressifs } from './TarifsDegressifs';
 
 interface ProductReservationCardProps {
   product: Product;
@@ -89,6 +90,13 @@ export function ProductReservationCard({
           />
         </div>
 
+        {/* Tarifs dégressifs */}
+        <TarifsDegressifs
+          product={product}
+          selectedStartDate={selectedStartDate || undefined}
+          selectedEndDate={selectedEndDate || undefined}
+        />
+
         {/* Calculateur de prix */}
         {selectedStartDate && selectedEndDate && (
           <div className="pt-4 border-t border-white/10">
@@ -151,9 +159,9 @@ function DateSummary({
         <div>
           <div className="text-xs text-[#33ffcc] font-bold uppercase tracking-wider mb-1">Période</div>
           <div className="text-white font-bold">
-            {new Date(selectedStartDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+            {new Date(selectedStartDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
             {selectedEndDate !== selectedStartDate && (
-              <> &rarr; {new Date(selectedEndDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</>
+              <> &rarr; {new Date(selectedEndDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</>
             )}
           </div>
         </div>

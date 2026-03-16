@@ -69,18 +69,40 @@ export default function ProductFormModal({
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie *</label>
-              <select
-                required
-                value={formData.category_id}
-                onChange={(e) => setFormData(prev => ({ ...prev, category_id: e.target.value }))}
-                className={inputClass}
-              >
-                <option value="">Sélectionner une catégorie...</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Catégories
+                {formData.category_ids.length > 0 && (
+                  <span className="ml-2 text-xs font-normal text-gray-500">
+                    ({formData.category_ids.length} sélectionnée{formData.category_ids.length > 1 ? 's' : ''})
+                  </span>
+                )}
+              </label>
+              <div className="grid grid-cols-2 gap-2 p-3 border border-gray-300 rounded-lg bg-white max-h-48 overflow-y-auto">
+                {categories.map(cat => {
+                  const checked = formData.category_ids.includes(cat.id);
+                  return (
+                    <label key={cat.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded px-2 py-1">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            category_ids: checked
+                              ? prev.category_ids.filter(id => id !== cat.id)
+                              : [...prev.category_ids, cat.id],
+                          }));
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                      />
+                      <span className="text-sm text-gray-700">{cat.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {categories.length === 0 && (
+                <p className="text-sm text-gray-400 mt-1">Aucune catégorie disponible</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>

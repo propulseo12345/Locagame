@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { CheckCircle2, XCircle, AlertTriangle, Receipt, CreditCard } from 'lucide-react';
 import { Order } from '../../../types';
 

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface FAQ {
   id: string;
@@ -22,7 +23,7 @@ export class FaqsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching FAQs:', error);
+      logger.error('Error fetching FAQs', error);
       throw error;
     }
 
@@ -41,7 +42,7 @@ export class FaqsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching FAQs by category:', error);
+      logger.error('Error fetching FAQs by category', error);
       throw error;
     }
 
@@ -58,7 +59,7 @@ export class FaqsService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching all FAQs:', error);
+      logger.error('Error fetching all FAQs', error);
       throw error;
     }
 
@@ -77,7 +78,7 @@ export class FaqsService {
 
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error fetching FAQ:', error);
+      logger.error('Error fetching FAQ', error);
       throw error;
     }
 
@@ -95,7 +96,7 @@ export class FaqsService {
       .single();
 
     if (error) {
-      console.error('Error creating FAQ:', error);
+      logger.error('Error creating FAQ', error);
       throw error;
     }
 
@@ -114,7 +115,7 @@ export class FaqsService {
       .single();
 
     if (error) {
-      console.error('Error updating FAQ:', error);
+      logger.error('Error updating FAQ', error);
       throw error;
     }
 
@@ -131,7 +132,7 @@ export class FaqsService {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting FAQ:', error);
+      logger.error('Error deleting FAQ', error);
       throw error;
     }
   }

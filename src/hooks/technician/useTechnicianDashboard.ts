@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { DeliveryTask, Vehicle } from '../../types';
-import { getCurrentDateISO, getCurrentDate, isToday } from '../../utils/fixedDate';
+import { getCurrentDateISO, getCurrentDate } from '../../utils/fixedDate';
 import { DeliveryService, TechniciansService } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDateStr } from '../../components/technician/dashboard/technicianDashboard.utils';
+import { logger } from '../../lib/logger';
 
 export interface CalendarDay {
   date: Date | null;
@@ -54,9 +55,9 @@ export function useTechnicianDashboard() {
           TechniciansService.getAllVehicles(),
         ]);
         setAllTasks(tasksData);
-        setVehicles(vehiclesData);
+        setVehicles(vehiclesData as unknown as Vehicle[]);
       } catch (err) {
-        console.error('Erreur chargement donn\u00e9es:', err);
+        logger.error('Erreur chargement donn\u00e9es', err);
         setError('Impossible de charger vos t\u00e2ches');
       } finally {
         setLoading(false);

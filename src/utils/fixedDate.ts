@@ -71,7 +71,7 @@ export function isToday(date: string | Date): boolean {
  * Vérifie si une date est dans le passé par rapport à la date fixe
  */
 export function isPastDate(date: string | Date): boolean {
-  const checkDate = typeof date === 'string' ? new Date(date) : date;
+  const checkDate = typeof date === 'string' ? new Date(date + 'T00:00:00') : date;
   return checkDate < FIXED_DATE;
 }
 
@@ -79,7 +79,7 @@ export function isPastDate(date: string | Date): boolean {
  * Vérifie si une date est dans le futur par rapport à la date fixe
  */
 export function isFutureDate(date: string | Date): boolean {
-  const checkDate = typeof date === 'string' ? new Date(date) : date;
+  const checkDate = typeof date === 'string' ? new Date(date + 'T00:00:00') : date;
   return checkDate > FIXED_DATE;
 }
 

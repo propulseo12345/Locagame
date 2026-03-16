@@ -36,7 +36,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 const users = [
   {
-    email: 'admin@locagame.fr',
+    email: 'admin@locagame.net',
     password: 'admin123',
     profile: {
       first_name: 'Sophie',
@@ -57,7 +57,7 @@ const users = [
     }
   },
   {
-    email: 'technicien@locagame.fr',
+    email: 'technicien@locagame.net',
     password: 'tech123',
     profile: {
       first_name: 'Lucas',
@@ -183,9 +183,9 @@ async function main() {
 
   console.log('\n✅ Terminé !');
   console.log('\n📋 Credentials:');
-  console.log('   Admin: admin@locagame.fr / admin123');
+  console.log('   Admin: admin@locagame.net / admin123');
   console.log('   Client: client@exemple.fr / client123');
-  console.log('   Technicien: technicien@locagame.fr / tech123');
+  console.log('   Technicien: technicien@locagame.net / tech123');
 }
 
 main().catch(console.error);

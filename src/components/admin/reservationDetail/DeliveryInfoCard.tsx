@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Truck, Package, Calendar, Clock, MapPin } from 'lucide-react';
 import { Order } from '../../../types';
 
@@ -28,7 +28,7 @@ export default function DeliveryInfoCard({ reservation }: DeliveryInfoCardProps)
             <div>
               <div className="text-sm text-gray-500">Date de debut</div>
               <div className="font-medium text-gray-900">
-                {new Date(reservation.start_date).toLocaleDateString('fr-FR', {
+                {new Date(reservation.start_date + 'T00:00:00').toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',
@@ -42,7 +42,7 @@ export default function DeliveryInfoCard({ reservation }: DeliveryInfoCardProps)
             <div>
               <div className="text-sm text-gray-500">Date de fin</div>
               <div className="font-medium text-gray-900">
-                {new Date(reservation.end_date).toLocaleDateString('fr-FR', {
+                {new Date(reservation.end_date + 'T00:00:00').toLocaleDateString('fr-FR', {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',

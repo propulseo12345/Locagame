@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Calendar, AlertCircle, Check } from 'lucide-react';
 import { Product } from '../types';
 import { ProductsService } from '../services/products.service';
-import { calculateDurationDays, formatDate, formatPrice, calculateProductPrice } from '../utils/pricing';
+import { calculateDurationDays, calculateLocagameDays, calculateLocagamePrice, formatDate, formatPrice } from '../utils/pricing';
 
 interface DateRangePickerProps {
   product: Product;
@@ -81,7 +81,7 @@ export default function DateRangePicker({
   };
 
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const date = e.target.value ? new Date(e.target.value) : null;
+    const date = e.target.value ? new Date(e.target.value + 'T00:00:00') : null;
     setStartDate(date);
 
     // Si la date de fin est avant la nouvelle date de début, la réinitialiser
@@ -91,12 +91,13 @@ export default function DateRangePicker({
   };
 
   const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const date = e.target.value ? new Date(e.target.value) : null;
+    const date = e.target.value ? new Date(e.target.value + 'T00:00:00') : null;
     setEndDate(date);
   };
 
   const durationDays = startDate && endDate ? calculateDurationDays(startDate, endDate) : 0;
-  const estimatedPrice = durationDays > 0 ? calculateProductPrice(product, durationDays) * quantity : 0;
+  const locagameDays = startDate && endDate ? calculateLocagameDays(startDate, endDate) : 0;
+  const estimatedPrice = locagameDays > 0 ? calculateLocagamePrice(product.pricing.oneDay, locagameDays) * quantity : 0;
 
   return (
     <div className="space-y-4">

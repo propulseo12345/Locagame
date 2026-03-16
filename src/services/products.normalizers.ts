@@ -1,8 +1,8 @@
 import { Product } from '../types';
 
 export const DEFAULT_SPECIFICATIONS: Product['specifications'] = {
-  dimensions: { length: 0, width: 0, height: 0 },
-  weight: 0,
+  dimensions: null,
+  weight: null,
   players: { min: 1, max: 10 },
   electricity: false,
   setup_time: 0,
@@ -20,18 +20,23 @@ export function normalizeProduct(raw: any): Product {
   const specs = raw.specifications;
   const pricing = raw.pricing;
 
+  // Extraire les catégories depuis la table de liaison product_categories
+  const rawPc = raw.product_categories;
+  const categories: Product['categories'] = Array.isArray(rawPc)
+    ? rawPc.filter((pc: any) => pc.categories).map((pc: any) => pc.categories)
+    : undefined;
+
   return {
     ...raw,
+    ...(categories !== undefined && { categories }),
     description: raw.description || '',
     images: Array.isArray(raw.images) ? raw.images : [],
     total_stock: raw.total_stock || 0,
     is_active: raw.is_active ?? true,
     specifications: specs && typeof specs === 'object'
       ? {
-          dimensions: specs.dimensions && typeof specs.dimensions === 'object'
-            ? { length: specs.dimensions.length || 0, width: specs.dimensions.width || 0, height: specs.dimensions.height || 0 }
-            : DEFAULT_SPECIFICATIONS.dimensions,
-          weight: specs.weight || 0,
+          dimensions: typeof specs.dimensions === 'string' ? specs.dimensions : null,
+          weight: specs.weight != null ? Number(specs.weight) : null,
           players: specs.players && typeof specs.players === 'object'
             ? { min: specs.players.min || 1, max: specs.players.max || 10 }
             : DEFAULT_SPECIFICATIONS.players,

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface AppSetting {
   id: string;
@@ -25,12 +26,12 @@ export class SettingsService {
       .select('*');
 
     if (error) {
-      console.error('Error fetching settings:', error);
+      logger.error('Error fetching settings', error);
       throw error;
     }
 
     const settings: Record<string, string> = {};
-    (data || []).forEach((setting: AppSetting) => {
+    (data || []).forEach((setting) => {
       settings[setting.key] = setting.value || '';
     });
 
@@ -45,7 +46,7 @@ export class SettingsService {
 
     return {
       company_name: settings.company_name || 'LOCAGAME',
-      company_email: settings.company_email || 'contact@locagame.fr',
+      company_email: settings.company_email || 'contact@locagame.net',
       company_phone: settings.company_phone || '',
       company_address: settings.company_address || '',
     };
@@ -66,7 +67,7 @@ export class SettingsService {
       });
 
     if (error) {
-      console.error('Error updating setting:', error);
+      logger.error('Error updating setting', error);
       throw error;
     }
   }
@@ -87,7 +88,7 @@ export class SettingsService {
         .upsert(update, { onConflict: 'key' });
 
       if (error) {
-        console.error('Error updating setting:', error);
+        logger.error('Error updating setting', error);
         throw error;
       }
     }

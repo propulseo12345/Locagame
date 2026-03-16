@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Category } from '../../types';
 import { useCart } from '../../contexts/CartContext';
 import { useDebounce } from '../useDebounce';
+import { toLocalISODate } from '../../utils/dateHolidays';
 import { CATEGORY_SLUG_MAP, getCategorySlug } from '../../constants/categorySlugMap';
 
 interface UseCatalogSearchOptions {
@@ -52,7 +53,7 @@ export function useCatalogSearch({
 
   // Helper pour obtenir la date d'aujourd'hui au format YYYY-MM-DD
   const getTodayString = useCallback(() => {
-    return new Date().toISOString().split('T')[0];
+    return toLocalISODate(new Date());
   }, []);
 
   // Valider et corriger les dates

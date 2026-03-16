@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 import { User, loadUserProfile } from '../lib/auth-helpers';
 import { SignUpMetadata, SignUpResult, AuthContextType } from './authContext.types';
 import { buildWelcomeHtml } from './authContext.utils';
@@ -15,28 +16,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Vérifier la session existante
     const initAuth = async () => {
       try {
-        console.log('[Auth] Initialisation de la session...');
+        logger.log('[Auth] Initialisation de la session...');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionError) {
-          console.error('[Auth] Erreur getSession:', sessionError.message);
+          logger.error('[Auth] Erreur getSession', sessionError);
           return;
         }
 
         if (session?.user) {
-          console.log('[Auth] Session trouvée, chargement du profil...');
+          logger.log('[Auth] Session trouvée, chargement du profil...');
           const userProfile = await loadUserProfile(session.user);
-          if (userProfile) {
-            console.log('[Auth] Profil chargé:', userProfile.role);
-          } else {
-            console.warn('[Auth] Profil non trouvé pour user:', session.user.id);
+          if (!userProfile) {
+            logger.warn('[Auth] Profil non trouvé');
           }
           setUser(userProfile);
         } else {
-          console.log('[Auth] Pas de session active');
+          logger.log('[Auth] Pas de session active');
         }
-      } catch (error: any) {
-        console.error('[Auth] Erreur initialisation:', error?.message || error);
+      } catch (error: unknown) {
+        logger.error('[Auth] Erreur initialisation', error);
       } finally {
         setLoading(false);
       }
@@ -45,18 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
 
     // Écouter les changements d'authentification
+    // IMPORTANT: ne PAS faire d'appels Supabase async dans ce callback —
+    // onAuthStateChange est await-é par le SDK, ce qui crée un deadlock
+    // si on appelle supabase.rpc() ou autre pendant que l'auth est en cours.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          const userProfile = await loadUserProfile(session.user);
-          setUser(userProfile);
-        } else if (event === 'SIGNED_OUT') {
+      (event) => {
+        if (event === 'SIGNED_OUT') {
           setUser(null);
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          // Recharger le profil en cas de refresh de token
-          const userProfile = await loadUserProfile(session.user);
-          setUser(userProfile);
         }
+        // TOKEN_REFRESHED: le token JWT change mais le profil utilisateur
+        // reste identique — pas besoin de recharger (évite des re-renders inutiles).
+        // SIGNED_IN: géré par signIn() et initAuth() directement.
       }
     );
 
@@ -65,15 +63,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    console.log('[Auth] Tentative de connexion:', email);
+  const signIn = useCallback(async (email: string, password: string) => {
+    logger.log('[Auth] Tentative de connexion');
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      console.error('[Auth] Erreur signIn:', error.message, '| status:', error.status);
+      logger.error('[Auth] Erreur signIn', error);
       throw new Error(error.message || 'Email ou mot de passe incorrect');
     }
 
@@ -88,15 +86,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setUser(userProfile);
-  };
+    return userProfile;
+  }, []);
 
-  const signUp = async (email: string, password: string, metadata: SignUpMetadata): Promise<SignUpResult> => {
+  const signUp = useCallback(async (email: string, password: string, metadata: SignUpMetadata): Promise<SignUpResult> => {
     // Créer l'utilisateur dans Supabase Auth
     // Le trigger handle_new_user() crée automatiquement le profil dans customers
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           first_name: metadata.firstName,
           last_name: metadata.lastName,
@@ -113,21 +113,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Erreur lors de la création du compte');
     }
 
-    // Envoyer l'email de bienvenue (best-effort, non-bloquant)
-    try {
-      await supabase.functions.invoke('send-email', {
-        body: {
-          to: email,
-          subject: 'Bienvenue sur LOCAGAME',
-          html: buildWelcomeHtml(`${metadata.firstName} ${metadata.lastName}`),
-        },
-      });
-    } catch {
-      // Ne pas bloquer l'inscription si l'email échoue
-    }
-
     // Si une session est retournée, l'utilisateur est auto-confirmé
     if (data.session) {
+      // Envoyer l'email de bienvenue uniquement quand la session est active
+      // (garantit que supabase.functions.invoke passe un JWT utilisateur valide,
+      //  requis par la vérification d'auth de la Edge Function send-email)
+      try {
+        await supabase.functions.invoke('send-email', {
+          body: {
+            to: email,
+            subject: 'Bienvenue sur LOCAGAME',
+            html: buildWelcomeHtml(`${metadata.firstName} ${metadata.lastName}`),
+          },
+        });
+      } catch {
+        // Ne pas bloquer l'inscription si l'email échoue
+      }
+
       const userProfile = await loadUserProfile(data.user);
       if (userProfile) {
         setUser(userProfile);
@@ -137,20 +139,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Sinon, l'utilisateur doit confirmer son email
     return { needsEmailConfirmation: true };
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     setUser(null);
     supabase.auth.signOut().catch((err) => {
-      console.error('Error signing out:', err);
+      logger.error('[Auth] Error signing out', err);
     });
-  };
+  }, []);
 
-  const hasRole = (role: 'admin' | 'client' | 'technician'): boolean => {
+  const hasRole = useCallback((role: 'admin' | 'client' | 'technician'): boolean => {
     return user?.role === role;
-  };
+  }, [user]);
 
-  const updateUserProfile = async (updates: Partial<User>) => {
+  const updateUserProfile = useCallback(async (updates: Partial<User>) => {
     if (!user) return;
 
     try {
@@ -195,24 +197,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Mettre à jour l'état local
       setUser({ ...user, ...updates });
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      logger.error('[Auth] Error updating user profile', error);
       throw error;
     }
-  };
+  }, [user]);
+
+  const contextValue = useMemo(
+    () => ({
+      user,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      isAuthenticated: !!user,
+      hasRole,
+      updateUserProfile,
+    }),
+    [user, loading, signIn, signUp, signOut, hasRole, updateUserProfile]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        signIn,
-        signUp,
-        signOut,
-        isAuthenticated: !!user,
-        hasRole,
-        updateUserProfile,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

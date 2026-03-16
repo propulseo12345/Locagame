@@ -10,9 +10,9 @@
 
 | Email | Password | Auto Confirm |
 |-------|----------|--------------|
-| `admin@locagame.fr` | `admin123` | ✅ |
+| `admin@locagame.net` | `admin123` | ✅ |
 | `client@exemple.fr` | `client123` | ✅ |
-| `technicien@locagame.fr` | `tech123` | ✅ |
+| `technicien@locagame.net` | `tech123` | ✅ |
 
 ### Étape 2 : Créer les profils (automatique)
 
@@ -26,11 +26,11 @@ DO $$
 DECLARE
   admin_user_id uuid;
 BEGIN
-  SELECT id INTO admin_user_id FROM auth.users WHERE email = 'admin@locagame.fr';
+  SELECT id INTO admin_user_id FROM auth.users WHERE email = 'admin@locagame.net';
   
   IF admin_user_id IS NOT NULL THEN
     INSERT INTO customers (id, email, first_name, last_name, customer_type, phone)
-    VALUES (admin_user_id, 'admin@locagame.fr', 'Sophie', 'Martin', 'individual', '+33 6 12 34 56 78')
+    VALUES (admin_user_id, 'admin@locagame.net', 'Sophie', 'Martin', 'individual', '+33 6 12 34 56 78')
     ON CONFLICT (id) DO UPDATE
     SET email = EXCLUDED.email,
         first_name = EXCLUDED.first_name,
@@ -71,11 +71,11 @@ DO $$
 DECLARE
   tech_user_id uuid;
 BEGIN
-  SELECT id INTO tech_user_id FROM auth.users WHERE email = 'technicien@locagame.fr';
+  SELECT id INTO tech_user_id FROM auth.users WHERE email = 'technicien@locagame.net';
   
   IF tech_user_id IS NOT NULL THEN
     INSERT INTO technicians (user_id, first_name, last_name, email, phone, is_active)
-    VALUES (tech_user_id, 'Lucas', 'Moreau', 'technicien@locagame.fr', '+33 6 45 67 89 01', true)
+    VALUES (tech_user_id, 'Lucas', 'Moreau', 'technicien@locagame.net', '+33 6 45 67 89 01', true)
     ON CONFLICT (email) DO UPDATE
     SET first_name = EXCLUDED.first_name,
         last_name = EXCLUDED.last_name,

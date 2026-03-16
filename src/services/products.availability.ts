@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export class ProductsAvailability {
   /**
@@ -10,6 +11,7 @@ export class ProductsAvailability {
     endDate: string,
     quantity: number
   ): Promise<boolean> {
+    // @ts-expect-error — RPC check_product_availability_for_dates not in database.types.ts
     const { data, error } = await supabase.rpc('check_product_availability_for_dates', {
       p_product_id: productId,
       p_quantity: quantity,
@@ -18,7 +20,7 @@ export class ProductsAvailability {
     });
 
     if (error) {
-      console.error('Error checking availability:', error);
+      logger.error('Error checking availability', error);
       throw error;
     }
 
@@ -29,12 +31,13 @@ export class ProductsAvailability {
    * Récupère le stock disponible en temps réel pour un produit
    */
   static async getAvailableStock(productId: string): Promise<number> {
+    // @ts-expect-error — RPC get_available_stock not in database.types.ts
     const { data, error } = await supabase.rpc('get_available_stock', {
       p_product_id: productId,
     });
 
     if (error) {
-      console.error('Error getting available stock:', error);
+      logger.error('Error getting available stock', error);
       throw error;
     }
 
@@ -57,7 +60,7 @@ export class ProductsAvailability {
       .single();
 
     if (productError || !product) {
-      console.error('Error fetching product:', productError);
+      logger.error('Error fetching product', productError);
       throw new Error('Produit non trouvé');
     }
 
@@ -74,7 +77,7 @@ export class ProductsAvailability {
       .in('status', ['reserved', 'blocked', 'maintenance']);
 
     if (availError) {
-      console.error('Error fetching availabilities:', availError);
+      logger.error('Error fetching availabilities', availError);
       throw availError;
     }
 
@@ -110,7 +113,7 @@ export class ProductsAvailability {
       });
 
     if (error) {
-      console.error('Error creating reservation availability:', error);
+      logger.error('Error creating reservation availability', error);
       throw error;
     }
   }
@@ -125,7 +128,7 @@ export class ProductsAvailability {
       .eq('reservation_id', reservationId);
 
     if (error) {
-      console.error('Error releasing reservation availability:', error);
+      logger.error('Error releasing reservation availability', error);
       throw error;
     }
   }

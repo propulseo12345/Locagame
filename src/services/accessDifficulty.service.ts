@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface AccessDifficultyType {
   id: string;
@@ -23,7 +24,7 @@ export class AccessDifficultyService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching access difficulties:', error);
+      logger.error('Error fetching access difficulties', error);
       throw error;
     }
 
@@ -40,7 +41,7 @@ export class AccessDifficultyService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching all access difficulties:', error);
+      logger.error('Error fetching all access difficulties', error);
       throw error;
     }
 
@@ -59,7 +60,7 @@ export class AccessDifficultyService {
 
     if (error) {
       if (error.code === 'PGRST116') return null;
-      console.error('Error fetching access difficulty:', error);
+      logger.error('Error fetching access difficulty', error);
       throw error;
     }
 
@@ -77,7 +78,7 @@ export class AccessDifficultyService {
       .single();
 
     if (error) {
-      console.error('Error creating access difficulty:', error);
+      logger.error('Error creating access difficulty', error);
       throw error;
     }
 
@@ -96,7 +97,7 @@ export class AccessDifficultyService {
       .single();
 
     if (error) {
-      console.error('Error updating access difficulty:', error);
+      logger.error('Error updating access difficulty', error);
       throw error;
     }
 
@@ -113,7 +114,7 @@ export class AccessDifficultyService {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting access difficulty:', error);
+      logger.error('Error deleting access difficulty', error);
       throw error;
     }
   }

@@ -1,4 +1,5 @@
 import { Truck, Calendar, Clock } from 'lucide-react';
+import { toLocalISODate } from '../../utils/dateHolidays';
 
 interface DeliveryData {
   address: string;
@@ -38,7 +39,7 @@ export function DeliveryStep({ delivery, errors, onChange, timeSlots }: Delivery
     onChange({ ...delivery, [field]: value });
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalISODate(new Date());
 
   return (
     <div className="space-y-6">

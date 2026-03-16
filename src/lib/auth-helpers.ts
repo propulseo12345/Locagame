@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { logger } from './logger';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export interface User {
@@ -38,7 +39,7 @@ export async function getUserRole(userId: string): Promise<'admin' | 'client' | 
       const { data, error } = await supabase.rpc('get_current_user_role');
 
       if (error) {
-        console.error('[getUserRole] RPC error:', error);
+        logger.error('[getUserRole] RPC error', error);
         // Fallback vers les queries directes si la RPC n'existe pas encore
         return await getUserRoleFallback(userId);
       }
@@ -53,7 +54,7 @@ export async function getUserRole(userId: string): Promise<'admin' | 'client' | 
 
     return await Promise.race([rolePromise, timeoutPromise]);
   } catch (error) {
-    console.error('[getUserRole] Error determining user role:', error);
+    logger.error('[getUserRole] Error determining user role', error);
     return null;
   }
 }
@@ -148,7 +149,7 @@ export async function loadUserProfile(supabaseUser: SupabaseUser): Promise<User 
     // Fallback si la RPC n'existe pas encore
     return await loadUserProfileFallback(supabaseUser);
   } catch (error) {
-    console.error('[loadUserProfile] Error loading user profile:', error);
+    logger.error('[loadUserProfile] Error loading user profile', error);
     return null;
   }
 }

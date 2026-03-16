@@ -4,7 +4,8 @@
 
 import { supabase } from '../lib/supabase';
 import { DeliveryTask } from '../types';
-import type { Database } from '../lib/database.types';
+import type { Database, Json } from '../lib/database.types';
+import { logger } from '../lib/logger';
 
 type DeliveryTaskRow = Database['public']['Tables']['delivery_tasks']['Row'];
 
@@ -39,7 +40,7 @@ export class DeliveryTasksService {
       .eq('technician_id', technicianId)
       .order('scheduled_date', { ascending: true });
     if (error) {
-      console.error('Error fetching technician tasks:', error);
+      logger.error('Error fetching technician tasks', error);
       throw error;
     }
     return (data || []).map(mapRowToDeliveryTask);
@@ -53,7 +54,7 @@ export class DeliveryTasksService {
       .eq('id', taskId)
       .single();
     if (error) {
-      console.error('Error fetching task:', error);
+      logger.error('Error fetching task', error);
       throw error;
     }
     if (!data) return null;
@@ -76,7 +77,7 @@ export class DeliveryTasksService {
       .select()
       .single();
     if (error) {
-      console.error('Error updating task status:', error);
+      logger.error('Error updating task status', error);
       throw error;
     }
     return mapRowToDeliveryTask(data);
@@ -95,21 +96,21 @@ export class DeliveryTasksService {
         type: task.type,
         scheduled_date: task.scheduledDate,
         scheduled_time: task.scheduledTime,
-        vehicle_id: task.vehicleId,
-        technician_id: task.technicianId,
+        vehicle_id: task.vehicleId || null,
+        technician_id: task.technicianId || null,
         status: task.status,
-        customer_data: task.customer,
-        address_data: task.address,
-        products_data: task.products,
-        access_constraints: task.accessConstraints,
-        notes: task.notes,
-        started_at: task.startedAt,
-        completed_at: task.completedAt,
+        customer_data: task.customer as unknown as Json,
+        address_data: task.address as unknown as Json,
+        products_data: task.products as unknown as Json,
+        access_constraints: (task.accessConstraints as unknown as Json) || null,
+        notes: task.notes || null,
+        started_at: task.startedAt || null,
+        completed_at: task.completedAt || null,
       })
       .select()
       .single();
     if (error) {
-      console.error('Error creating delivery task:', error);
+      logger.error('Error creating delivery task', error);
       throw error;
     }
     return mapRowToDeliveryTask(data);
@@ -123,7 +124,7 @@ export class DeliveryTasksService {
       .eq('scheduled_date', date)
       .order('scheduled_time', { ascending: true });
     if (error) {
-      console.error('Error fetching tasks by date:', error);
+      logger.error('Error fetching tasks by date', error);
       throw error;
     }
     return (data || []).map(mapRowToDeliveryTask);
@@ -150,7 +151,7 @@ export class DeliveryTasksService {
       .select()
       .single();
     if (error) {
-      console.error('Error assigning task:', error);
+      logger.error('Error assigning task', error);
       throw error;
     }
     return mapRowToDeliveryTask(data);
@@ -188,7 +189,7 @@ export class DeliveryTasksService {
 
     const { data, error } = await query;
     if (error) {
-      console.error('Error fetching all tasks:', error);
+      logger.error('Error fetching all tasks', error);
       throw error;
     }
     return (data || []).map(mapRowToDeliveryTask);
@@ -206,7 +207,7 @@ export class DeliveryTasksService {
       .select()
       .single();
     if (error) {
-      console.error('Error unassigning task:', error);
+      logger.error('Error unassigning task', error);
       throw error;
     }
     return mapRowToDeliveryTask(data);
@@ -219,7 +220,7 @@ export class DeliveryTasksService {
       .delete()
       .eq('id', taskId);
     if (error) {
-      console.error('Error deleting task:', error);
+      logger.error('Error deleting task', error);
       throw error;
     }
   }

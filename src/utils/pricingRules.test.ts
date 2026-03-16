@@ -13,12 +13,14 @@ import {
   WEEKEND_DELIVERY_SURCHARGE,
   HOLIDAY_SURCHARGE,
 } from './pricingRules';
+import { calculateLocagameDays, calculateLocagamePrice } from './pricing';
 import {
   isFrenchHoliday,
   isWeekend,
   isWeekendPattern,
   calculateEasterDate,
   periodContainsWeekend,
+  toLocalISODate,
 } from './dateHolidays';
 import { REFERENCE_TIME } from '../constants/time';
 import type { Product } from '../types';
@@ -112,9 +114,9 @@ describe('dateHolidays', () => {
   describe('calculateEasterDate', () => {
     it('should calculate Easter dates correctly', () => {
       // Dates connues de Pâques
-      expect(calculateEasterDate(2024).toISOString().split('T')[0]).toBe('2024-03-31');
-      expect(calculateEasterDate(2025).toISOString().split('T')[0]).toBe('2025-04-20');
-      expect(calculateEasterDate(2026).toISOString().split('T')[0]).toBe('2026-04-05');
+      expect(toLocalISODate(calculateEasterDate(2024))).toBe('2024-03-31');
+      expect(toLocalISODate(calculateEasterDate(2025))).toBe('2025-04-20');
+      expect(toLocalISODate(calculateEasterDate(2026))).toBe('2026-04-05');
     });
   });
 
@@ -234,7 +236,7 @@ describe('pricingRules', () => {
       expect(breakdown.productSubtotal).toBe(125);
     });
 
-    it('should use standard pricing for babyfoot on weekday', () => {
+    it('should use LOCAGAME pricing for babyfoot on weekday', () => {
       const breakdown = calculatePricingBreakdown({
         product: babyfootProduct,
         startDate: '2026-02-02', // Lundi
@@ -242,11 +244,11 @@ describe('pricingRules', () => {
       });
 
       expect(breakdown.weekendFlatRateApplied).toBe(false);
-      // 2 jours = tarif weekend (80€)
-      expect(breakdown.basePrice).toBe(80);
+      // 2 jours LOCAGAME: P + 50% = 50 + 25 = 75
+      expect(breakdown.basePrice).toBe(75);
     });
 
-    it('should use standard pricing for product without weekend_flat_price', () => {
+    it('should use LOCAGAME pricing for product without weekend_flat_price', () => {
       const breakdown = calculatePricingBreakdown({
         product: regularProduct,
         startDate: '2026-01-30', // Vendredi
@@ -254,8 +256,9 @@ describe('pricingRules', () => {
       });
 
       expect(breakdown.weekendFlatRateApplied).toBe(false);
-      // Calcul standard: 3 jours = tarif weekend (70€)
-      expect(breakdown.basePrice).toBe(70);
+      // Ven-Dim = 1 jour LOCAGAME (sam/dim offerts, ven = 1j ouvré)
+      // 1j LOCAGAME × 40€/j = 40€
+      expect(breakdown.basePrice).toBe(40);
     });
 
     it('should add delivery surcharge for mandatory weekend delivery', () => {
@@ -399,5 +402,73 @@ describe('pricingRules', () => {
       expect(surcharges[0].description).toContain('3 pers.');
       expect(surcharges[0].description).toContain('47');
     });
+  });
+});
+
+describe('calculateLocagameDays', () => {
+  it('should count Mon→Fri as 5 jours LOCAGAME', () => {
+    expect(calculateLocagameDays('2026-03-09', '2026-03-13')).toBe(5);
+  });
+
+  it('should count Fri→Mon as 2 jours LOCAGAME (sam/dim offerts)', () => {
+    // Vendredi = 1j payant, sam+dim = offerts, lundi = 1j payant → 2
+    expect(calculateLocagameDays('2026-03-13', '2026-03-16')).toBe(2);
+  });
+
+  it('should handle single weekday', () => {
+    expect(calculateLocagameDays('2026-03-09', '2026-03-09')).toBe(1);
+  });
+
+  it('should handle weekend-only as 1 day minimum', () => {
+    // Samedi→Dimanche = 0 jours ouvrés → minimum 1
+    expect(calculateLocagameDays('2026-03-14', '2026-03-15')).toBe(1);
+  });
+
+  it('should span two weeks correctly', () => {
+    // Mon 9 → Fri 20 = 10 jours ouvrés
+    expect(calculateLocagameDays('2026-03-09', '2026-03-20')).toBe(10);
+  });
+});
+
+describe('calculateLocagamePrice', () => {
+  const P = 100;
+
+  it('should return P for 1 day', () => {
+    expect(calculateLocagamePrice(P, 1)).toBe(100);
+  });
+
+  it('should return P + 50% for 2 days', () => {
+    expect(calculateLocagamePrice(P, 2)).toBe(150);
+  });
+
+  it('should return 180 for 3 days', () => {
+    // P + (P*0.5*2) * (1-20%) = 100 + 80 = 180
+    expect(calculateLocagamePrice(P, 3)).toBe(180);
+  });
+
+  it('should return 205 for 4 days', () => {
+    // P + (P*0.5*3) * (1-30%) = 100 + 105 = 205
+    expect(calculateLocagamePrice(P, 4)).toBe(205);
+  });
+
+  it('should return 220 for 5 days (1 semaine)', () => {
+    // P + (P*0.5*4) * (1-40%) = 100 + 120 = 220
+    expect(calculateLocagamePrice(P, 5)).toBe(220);
+  });
+
+  it('should return 256.67 for 6 days (semaine + 1j)', () => {
+    // semainePrice=220, extraDayRate=220/6=36.67, total=220+36.67=256.67
+    expect(calculateLocagamePrice(P, 6)).toBeCloseTo(256.67, 2);
+  });
+
+  it('should return ~330 for 8 days (semaine + 3j)', () => {
+    // semainePrice=220, extraDayRate=ROUND2(220/6)=36.67
+    // 220 + 3*36.67 = 330.01 (rounding artifact)
+    expect(calculateLocagamePrice(P, 8)).toBeCloseTo(330, 0);
+  });
+
+  it('should return ~403.33 for 10 days (semaine + 5j)', () => {
+    // 220 + 5*36.67 = 403.35 (rounding artifact)
+    expect(calculateLocagamePrice(P, 10)).toBeCloseTo(403.33, 0);
   });
 });

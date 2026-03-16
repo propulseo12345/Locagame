@@ -1,14 +1,29 @@
-import { ReservationsService } from './reservations.service';
+import { supabase } from '../lib/supabase';
 import { CustomersService } from './customers.service';
 import { AddressesService } from './addresses.service';
-import { ProductsService } from './products.service';
-import { checkAvailability } from '../utils/availability';
+import type { Json } from '../lib/database.types';
 import type { CheckoutPayload, CheckoutResult } from './checkout.types';
+import { logger } from '../lib/logger';
+
+/** Shape returned by the validate_and_create_reservation RPC */
+interface RpcResult {
+  success?: boolean;
+  error?: string;
+  reservation_id?: string;
+  subtotal?: number;
+  delivery_fee?: number;
+  surcharges?: number;
+  deposit?: number;
+  total?: number;
+  pricing_breakdown?: Record<string, unknown>;
+  items?: Array<Record<string, unknown>>;
+}
 
 export class CheckoutAuthenticated {
   /**
-   * Crée une réservation pour un utilisateur connecté
-   * Utilise les services existants avec les policies RLS
+   * Crée une réservation pour un utilisateur connecté.
+   * Les prix sont RECALCULÉS côté serveur par la RPC validate_and_create_reservation.
+   * Le client envoie uniquement product_id + quantity ; le serveur fait foi.
    */
   static async createAuthenticatedCheckout(
     userId: string,
@@ -18,32 +33,10 @@ export class CheckoutAuthenticated {
     let deliveryAddressId: string | undefined;
 
     try {
-      // 0. SÉCURITÉ: Vérifier la disponibilité de TOUS les produits AVANT toute opération
-      for (const item of payload.items) {
-        const availability = await checkAvailability(
-          item.product_id,
-          payload.start_date,
-          payload.end_date,
-          item.quantity
-        );
-
-        // Si erreur de vérification OU indisponible -> bloquer la commande
-        if (!availability.available) {
-          const errorMsg = availability.error
-            ? availability.error
-            : 'Un ou plusieurs produits ne sont plus disponibles pour les dates sélectionnées';
-          return {
-            success: false,
-            error: errorMsg
-          };
-        }
-      }
-
       // 1. Vérifier/créer le customer
       const existingCustomer = await CustomersService.getCustomerById(userId);
 
       if (!existingCustomer) {
-        // Créer le profil customer pour cet utilisateur
         const newCustomer = await CustomersService.createCustomer({
           id: userId,
           email: payload.email,
@@ -54,9 +47,8 @@ export class CheckoutAuthenticated {
           company_name: payload.company_name,
           siret: payload.siret,
         });
-        customerId = newCustomer.id;
+        customerId = newCustomer.id || userId;
       } else {
-        // Mettre à jour si nécessaire
         await CustomersService.updateCustomer(userId, {
           first_name: payload.first_name,
           last_name: payload.last_name,
@@ -79,73 +71,190 @@ export class CheckoutAuthenticated {
         deliveryAddressId = addressData.id;
       }
 
-      // 3. Calculer la caution
-      const depositAmount = Math.max(Math.ceil(payload.subtotal * 0.20), 50);
+      // 3. Appel RPC — le serveur recalcule TOUT (prix, dispo, stock)
+      const rpcItems = payload.items.map((item) => ({
+        product_id: item.product_id,
+        quantity: item.quantity,
+        delivery_people_count: item.delivery_people_count ?? 1,
+        pickup_people_count: item.pickup_people_count ?? 1,
+      }));
 
-      // 4. Créer la réservation
-      const reservation = await ReservationsService.createReservation({
-        customer_id: customerId,
-        start_date: payload.start_date,
-        end_date: payload.end_date,
-        start_slot: payload.start_slot,
-        end_slot: payload.end_slot,
-        delivery_type: payload.delivery_type,
-        delivery_address_id: deliveryAddressId,
-        delivery_time: payload.delivery_time,
-        pickup_time: payload.pickup_time,
-        return_time: payload.return_time,
-        event_type: payload.event_type,
-        event_details: payload.event_details,
-        recipient_data: payload.recipient_data,
-        notes: payload.notes,
-        items: payload.items,
-        subtotal: payload.subtotal,
-        delivery_fee: payload.delivery_fee,
-        discount: payload.discount || 0,
-        total: payload.total,
-        deposit_amount: depositAmount,
-        cgv_accepted: payload.cgv_accepted,
-        newsletter_accepted: payload.newsletter_accepted || false,
-        is_business: payload.is_business || false,
-        billing_company_name: payload.billing_company_name,
-        billing_vat_number: payload.billing_vat_number,
-        billing_address_line1: payload.billing_address_line1,
-        billing_address_line2: payload.billing_address_line2,
-        billing_postal_code: payload.billing_postal_code,
-        billing_city: payload.billing_city,
-        billing_country: payload.billing_country,
-        delivery_is_mandatory: payload.delivery_is_mandatory || false,
-        pickup_is_mandatory: payload.pickup_is_mandatory || false,
-        pricing_breakdown: payload.pricing_breakdown,
-      });
+      const rpcMetadata: Record<string, unknown> = {
+        delivery_address_id: deliveryAddressId ?? null,
+        delivery_time: payload.delivery_time ?? null,
+        pickup_time: payload.pickup_time ?? null,
+        return_time: payload.return_time ?? null,
+        start_slot: payload.start_slot ?? 'AM',
+        end_slot: payload.end_slot ?? 'AM',
+        event_type: payload.event_type ?? null,
+        notes: payload.notes ?? null,
+        recipient_data: payload.recipient_data ?? null,
+        event_details: payload.event_details ?? null,
+        cgv_accepted: payload.cgv_accepted ?? false,
+        newsletter_accepted: payload.newsletter_accepted ?? false,
+        is_business: payload.is_business ?? false,
+        billing_company_name: payload.billing_company_name ?? null,
+        billing_vat_number: payload.billing_vat_number ?? null,
+        billing_address_line1: payload.billing_address_line1 ?? null,
+        billing_address_line2: payload.billing_address_line2 ?? null,
+        billing_postal_code: payload.billing_postal_code ?? null,
+        billing_city: payload.billing_city ?? null,
+        billing_country: payload.billing_country ?? 'FR',
+      };
 
-      // 5. Bloquer le stock pour chaque produit
-      for (const item of payload.items) {
-        await ProductsService.createReservationAvailability({
-          product_id: item.product_id,
-          start_date: payload.start_date,
-          end_date: payload.end_date,
-          quantity: item.quantity,
-          reservation_id: reservation.id,
-        });
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        'validate_and_create_reservation',
+        {
+          p_items: rpcItems as unknown as Json,
+          p_start_date: payload.start_date,
+          p_end_date: payload.end_date,
+          p_delivery_type: payload.delivery_type,
+          p_customer_id: customerId,
+          p_zone_id: null,
+          p_metadata: rpcMetadata as unknown as Json,
+          // Envoyer le sous-total + majorations (SANS frais de livraison)
+          // car le serveur calcule ses propres frais de livraison (zone-based)
+          // et le frontend utilise un calcul distance-based différent.
+          p_client_total: (payload.subtotal || 0) + (payload.surcharges_total || 0),
+          p_delivery_is_mandatory: payload.delivery_is_mandatory ?? false,
+          p_pickup_is_mandatory: payload.pickup_is_mandatory ?? false,
+        }
+      );
+
+      if (rpcError) {
+        logger.error('[CheckoutService] RPC error', rpcError);
+        return {
+          success: false,
+          error: rpcError.message || 'Erreur lors de la création de la réservation',
+        };
+      }
+
+      const result = rpcData as unknown as RpcResult;
+
+      if (!result.success) {
+        return {
+          success: false,
+          error: result.error || 'Erreur lors de la validation des prix',
+        };
+      }
+
+      // 4. Créer les tâches de livraison (non-bloquant)
+      try {
+        await this.createDeliveryTasks(
+          result.reservation_id!,
+          customerId,
+          deliveryAddressId,
+          payload
+        );
+      } catch (taskError) {
+        logger.error('[CheckoutService] Erreur création tâches (non-bloquant)', taskError);
       }
 
       return {
         success: true,
-        reservation_id: reservation.id,
+        reservation_id: result.reservation_id,
         customer_id: customerId,
         customer_email: payload.email,
-        total: payload.total,
-        deposit_amount: depositAmount,
-        status: 'pending_payment'
+        total: result.total,
+        deposit_amount: result.deposit,
+        status: 'pending_payment',
       };
-
     } catch (error) {
-      console.error('[CheckoutService] Authenticated checkout error:', error);
+      logger.error('[CheckoutService] Authenticated checkout error', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Erreur lors de la création de la réservation'
+        error: error instanceof Error ? error.message : 'Erreur lors de la création de la réservation',
       };
+    }
+  }
+
+  /**
+   * Crée les delivery_tasks après la réservation (non-bloquant).
+   * Reprend la logique de ReservationsCreation.createReservation §3.
+   */
+  private static async createDeliveryTasks(
+    reservationId: string,
+    customerId: string,
+    deliveryAddressId: string | undefined,
+    payload: CheckoutPayload
+  ): Promise<void> {
+    const { data: customer } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', customerId)
+      .single();
+
+    const { data: products } = await supabase
+      .from('products')
+      .select('*')
+      .in('id', payload.items.map((i) => i.product_id));
+
+    if (payload.delivery_type === 'delivery' && deliveryAddressId) {
+      const { data: address } = await supabase
+        .from('addresses')
+        .select('*')
+        .eq('id', deliveryAddressId)
+        .single();
+
+      // Tâche LIVRAISON (start_date)
+      await supabase.from('delivery_tasks').insert({
+        reservation_id: reservationId,
+        order_number: `ORD-${reservationId.substring(0, 8)}-DELIVERY`,
+        type: 'delivery',
+        scheduled_date: payload.start_date,
+        scheduled_time: payload.delivery_time || '09:00',
+        status: 'scheduled',
+        customer_data: customer as unknown as Json,
+        address_data: address as unknown as Json,
+        products_data: products as unknown as Json,
+      });
+
+      // Tâche RETOUR (end_date)
+      await supabase.from('delivery_tasks').insert({
+        reservation_id: reservationId,
+        order_number: `ORD-${reservationId.substring(0, 8)}-PICKUP`,
+        type: 'pickup',
+        scheduled_date: payload.end_date,
+        scheduled_time: payload.delivery_time || '09:00',
+        status: 'scheduled',
+        customer_data: customer as unknown as Json,
+        address_data: address as unknown as Json,
+        products_data: products as unknown as Json,
+      });
+    } else if (payload.delivery_type === 'pickup') {
+      const warehouseAddress = {
+        name: 'Entrepôt LOCAGAME',
+        street: 'Zone Industrielle des Paluds',
+        city: '13400 Aubagne',
+      };
+
+      // Tâche RETRAIT CLIENT (start_date)
+      await supabase.from('delivery_tasks').insert({
+        reservation_id: reservationId,
+        order_number: `ORD-${reservationId.substring(0, 8)}-CLIENT-PICKUP`,
+        type: 'client_pickup',
+        scheduled_date: payload.start_date,
+        scheduled_time: payload.pickup_time || '09:00',
+        status: 'scheduled',
+        customer_data: customer as unknown as Json,
+        address_data: warehouseAddress as unknown as Json,
+        products_data: products as unknown as Json,
+        notes: "Retrait client à l'entrepôt",
+      });
+
+      // Tâche RETOUR CLIENT (end_date)
+      await supabase.from('delivery_tasks').insert({
+        reservation_id: reservationId,
+        order_number: `ORD-${reservationId.substring(0, 8)}-CLIENT-RETURN`,
+        type: 'client_return',
+        scheduled_date: payload.end_date,
+        scheduled_time: payload.return_time || '09:00',
+        status: 'scheduled',
+        customer_data: customer as unknown as Json,
+        address_data: warehouseAddress as unknown as Json,
+        products_data: products as unknown as Json,
+        notes: "Retour client à l'entrepôt",
+      });
     }
   }
 }

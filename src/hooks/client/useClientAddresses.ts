@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { AddressesService, AddressInput, Address } from '../../services/addresses.service';
+import { logger } from '../../lib/logger';
 
 export type { Address, AddressInput };
 
@@ -39,7 +40,7 @@ export function useClientAddresses() {
       const addressesData = await AddressesService.getCustomerAddresses(user.id);
       setAddresses(addressesData);
     } catch (error) {
-      console.error('Error loading addresses:', error);
+      logger.error('Error loading addresses', error);
     } finally {
       setLoadingAddresses(false);
     }
@@ -91,7 +92,7 @@ export function useClientAddresses() {
       await loadAddresses();
       handleCloseModal();
     } catch (error) {
-      console.error('Error creating address:', error);
+      logger.error('Error creating address', error);
     } finally {
       setLoading(false);
     }
@@ -105,7 +106,7 @@ export function useClientAddresses() {
       await AddressesService.deleteAddress(addressId);
       await loadAddresses();
     } catch (error) {
-      console.error('Error deleting address:', error);
+      logger.error('Error deleting address', error);
     } finally {
       setDeletingId(null);
     }
@@ -119,7 +120,7 @@ export function useClientAddresses() {
       await AddressesService.setDefaultAddress(user.id, addressId);
       await loadAddresses();
     } catch (error) {
-      console.error('Error setting default address:', error);
+      logger.error('Error setting default address', error);
     } finally {
       setSettingDefaultId(null);
     }

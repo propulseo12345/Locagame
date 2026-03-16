@@ -3,10 +3,10 @@ import { DeliveryService } from '../../services';
 import type { DeliveryTask } from '../../types';
 import type { Technician } from '../../services/technicians.service';
 import type { UnassignedReservation } from '../../components/admin/planning/planning.types';
+import { logger } from '../../lib/logger';
 
 interface UsePlanningDragDropParams {
   technicians: Technician[];
-  selectedDate: string;
   setOperationInProgress: (op: string | null) => void;
   refreshTasksAndReservations: () => Promise<void>;
   toast: {
@@ -17,7 +17,6 @@ interface UsePlanningDragDropParams {
 
 export function usePlanningDragDrop({
   technicians,
-  selectedDate,
   setOperationInProgress,
   refreshTasksAndReservations,
   toast,
@@ -81,7 +80,7 @@ export function usePlanningDragDrop({
       toast.success('T\u00e2che r\u00e9assign\u00e9e');
       await refreshTasksAndReservations();
     } catch (err) {
-      console.error('Erreur r\u00e9assignation:', err);
+      logger.error('Erreur r\u00e9assignation', err);
       toast.error('Erreur lors de la r\u00e9assignation');
     } finally {
       setOperationInProgress(null);
@@ -130,11 +129,11 @@ export function usePlanningDragDrop({
           reservationId: draggedReservation.id,
           orderNumber: `ORD-${draggedReservation.id.substring(0, 8)}`,
           type: 'delivery',
-          scheduledDate: selectedDate,
+          scheduledDate: draggedReservation.start_date,
           scheduledTime: draggedReservation.delivery_time || '10:00',
           vehicleId: targetTechnician?.vehicle_id || '',
           technicianId: targetTechnicianId,
-          status: 'scheduled',
+          status: 'assigned',
           customer: {
             firstName: draggedReservation.customer?.first_name || '',
             lastName: draggedReservation.customer?.last_name || '',
@@ -157,7 +156,7 @@ export function usePlanningDragDrop({
       toast.success('Intervention assign\u00e9e avec succ\u00e8s');
       await refreshTasksAndReservations();
     } catch (err) {
-      console.error('Erreur assignation par drag:', err);
+      logger.error('Erreur assignation par drag', err);
       toast.error("Erreur lors de l'assignation");
     } finally {
       setOperationInProgress(null);

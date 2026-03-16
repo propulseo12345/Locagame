@@ -38,8 +38,8 @@ INSERT INTO auth.users (
   ('00000000-0000-0000-0003-000000000014', '00000000-0000-0000-0000-000000000000', 'david.martinez@startup.com', crypt('password123', gen_salt('bf')), now(), '2023-04-22', now(), '{"provider": "email", "providers": ["email"]}', '{"first_name": "David", "last_name": "Martinez"}', false, 'authenticated'),
   ('00000000-0000-0000-0003-000000000015', '00000000-0000-0000-0000-000000000000', 'claire.andre@email.com', crypt('password123', gen_salt('bf')), now(), '2024-03-18', now(), '{"provider": "email", "providers": ["email"]}', '{"first_name": "Claire", "last_name": "André"}', false, 'authenticated'),
   -- Admins
-  ('00000000-0000-0000-0007-000000000001', '00000000-0000-0000-0000-000000000000', 'admin@locagame.fr', crypt('admin123', gen_salt('bf')), now(), now(), now(), '{"provider": "email", "providers": ["email"]}', '{"first_name": "Sophie", "last_name": "Martin"}', false, 'authenticated'),
-  ('00000000-0000-0000-0007-000000000002', '00000000-0000-0000-0000-000000000000', 'manager@locagame.fr', crypt('manager123', gen_salt('bf')), now(), now(), now(), '{"provider": "email", "providers": ["email"]}', '{"first_name": "Thomas", "last_name": "Dubois"}', false, 'authenticated')
+  ('00000000-0000-0000-0007-000000000001', '00000000-0000-0000-0000-000000000000', 'admin@locagame.net', crypt('admin123', gen_salt('bf')), now(), now(), now(), '{"provider": "email", "providers": ["email"]}', '{"first_name": "Sophie", "last_name": "Martin"}', false, 'authenticated'),
+  ('00000000-0000-0000-0007-000000000002', '00000000-0000-0000-0000-000000000000', 'manager@locagame.net', crypt('manager123', gen_salt('bf')), now(), now(), now(), '{"provider": "email", "providers": ["email"]}', '{"first_name": "Thomas", "last_name": "Dubois"}', false, 'authenticated')
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. CRÉER LES IDENTITIES

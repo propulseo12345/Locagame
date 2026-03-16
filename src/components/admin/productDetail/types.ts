@@ -16,7 +16,7 @@ export interface ProductFormData {
   featured: boolean;
   images: string[];
   specifications: {
-    dimensions: { length: number; width: number; height: number };
+    dimensions: string;
     weight: number;
     players: { min: number; max: number };
     power_requirements: string;
@@ -53,7 +53,7 @@ export const INITIAL_FORM_DATA: ProductFormData = {
   featured: false,
   images: [],
   specifications: {
-    dimensions: { length: 0, width: 0, height: 0 },
+    dimensions: '',
     weight: 0,
     players: { min: 1, max: 1 },
     power_requirements: '',

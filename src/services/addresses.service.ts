@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface Address {
   id: string;
@@ -34,7 +35,7 @@ export class AddressesService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching addresses:', error);
+      logger.error('Error fetching addresses', error);
       throw error;
     }
 
@@ -68,7 +69,7 @@ export class AddressesService {
       .single();
 
     if (error) {
-      console.error('Error creating address:', error);
+      logger.error('Error creating address', error);
       throw error;
     }
 
@@ -90,7 +91,7 @@ export class AddressesService {
         .eq('id', addressId)
         .single();
 
-      if (address) {
+      if (address?.customer_id) {
         await supabase
           .from('addresses')
           .update({ is_default: false })
@@ -107,7 +108,7 @@ export class AddressesService {
       .single();
 
     if (error) {
-      console.error('Error updating address:', error);
+      logger.error('Error updating address', error);
       throw error;
     }
 
@@ -124,7 +125,7 @@ export class AddressesService {
       .eq('id', addressId);
 
     if (error) {
-      console.error('Error deleting address:', error);
+      logger.error('Error deleting address', error);
       throw error;
     }
   }

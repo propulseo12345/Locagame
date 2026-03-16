@@ -37,7 +37,7 @@ export function ProductCardImage({
         <img
           src={product.images?.[0] || '/placeholder-product.svg'}
           alt={isGrid
-            ? `${product.name} - Location de jeu pour ${product.specifications.players.min}-${product.specifications.players.max} joueurs en region PACA. ${product.shortDescription ? product.shortDescription.substring(0, 100) : 'Disponible a la location avec livraison et installation.'}`
+            ? `${product.name} - Location de jeu pour ${product.specifications.players.min}-${product.specifications.players.max} joueurs en region PACA. ${product.description ? product.description.substring(0, 100) : 'Disponible a la location avec livraison et installation.'}`
             : `${product.name} - Location de jeu pour ${product.specifications.players.min}-${product.specifications.players.max} joueurs`
           }
           onLoad={onImageLoad}

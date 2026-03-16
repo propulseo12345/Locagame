@@ -12,7 +12,7 @@ import {
   isWeekend,
   DaySlot,
 } from './dateHolidays';
-import { calculateProductPrice, calculateDurationDays } from './pricing';
+import { calculateDurationDays, calculateLocagameDays, calculateLocagamePrice } from './pricing';
 import {
   WEEKEND_DELIVERY_SURCHARGE,
   HOLIDAY_SURCHARGE,
@@ -127,6 +127,7 @@ export function calculatePricingBreakdown(input: PricingInput): PricingBreakdown
   } = input;
 
   const durationDays = calculateDurationDays(startDate, endDate);
+  const locagameDays = calculateLocagameDays(startDate, endDate);
   const rulesApplied: PricingRuleApplied[] = [];
   let basePrice: number;
   let basePriceLabel: string;
@@ -150,24 +151,30 @@ export function calculatePricingBreakdown(input: PricingInput): PricingBreakdown
       type: 'flat_rate',
     });
   } else {
-    // Calcul standard — coefficient uniquement si 100% semaine (lun-ven)
-    const isWeekdayOnly = !periodContainsWeekend(startDate, endDate);
-    basePrice = calculateProductPrice(product, durationDays, isWeekdayOnly);
-    basePriceLabel =
-      durationDays === 1 ? '1 jour' : `${durationDays} jours`;
+    // Calcul LOCAGAME : prix basé sur les jours ouvrés (week-end offert)
+    const rawPrice = calculateLocagamePrice(product.pricing.oneDay, locagameDays);
 
-    if (isWeekdayOnly && durationDays >= 2) {
-      const coefficient = product.multi_day_coefficient ?? 1.00;
-      if (coefficient < 1) {
-        const discount = Math.round((1 - coefficient) * 100);
-        rulesApplied.push({
-          id: 'multi_day_discount',
-          name: `Réduction multi-jours (-${discount}%)`,
-          description: `Coefficient ${coefficient} appliqué pour ${durationDays} jours en semaine`,
-          amount: 0,
-          type: 'discount',
-        });
-      }
+    // Coefficient multi-jours
+    const coefficient = product.multi_day_coefficient ?? 1.00;
+    basePrice = coefficient < 1 ? Math.round(rawPrice * coefficient * 100) / 100 : rawPrice;
+
+    if (locagameDays === 1) {
+      basePriceLabel = '1 jour LOCAGAME';
+    } else if (locagameDays <= 5) {
+      basePriceLabel = `${locagameDays}j LOCAGAME (${durationDays}j cal.)`;
+    } else {
+      basePriceLabel = `${locagameDays}j LOCAGAME (${durationDays}j cal.)`;
+    }
+
+    if (coefficient < 1) {
+      const discount = Math.round((1 - coefficient) * 100);
+      rulesApplied.push({
+        id: 'multi_day_discount',
+        name: `Réduction multi-jours (-${discount}%)`,
+        description: `Coefficient ${coefficient} appliqué pour ${locagameDays} jours LOCAGAME`,
+        amount: 0,
+        type: 'discount',
+      });
     }
   }
 

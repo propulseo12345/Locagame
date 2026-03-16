@@ -151,7 +151,7 @@ export default function EventDetailPage() {
               {event.event_date && (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg">
                   <Calendar className="w-4 h-4 text-[#33ffcc]" />
-                  <span className="text-sm">{new Date(event.event_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                  <span className="text-sm">{new Date(event.event_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                 </div>
               )}
               {event.location && (

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProductsService, CategoriesService } from '../../services';
 import { Product } from '../../types';
+import { logger } from '../../lib/logger';
 import {
   ProductFormData,
   NewAvailability,
@@ -69,7 +70,7 @@ export function useProductDetail() {
         });
       }
     } catch (error) {
-      console.error('Error loading product:', error);
+      logger.error('Error loading product', error);
       alert('Erreur lors du chargement du produit');
     } finally {
       setLoading(false);
@@ -81,7 +82,7 @@ export function useProductDetail() {
       const categoriesData = await CategoriesService.getCategories();
       setCategories(categoriesData);
     } catch (error) {
-      console.error('Error loading categories:', error);
+      logger.error('Error loading categories', error);
     }
   };
 
@@ -91,7 +92,7 @@ export function useProductDetail() {
       const data = await ProductsService.getProductAvailability(id);
       setAvailabilities(data.filter((a: any) => !a.reservation_id && (a.status === 'maintenance' || a.status === 'blocked')));
     } catch (error) {
-      console.error('Error loading availabilities:', error);
+      logger.error('Error loading availabilities', error);
     }
   };
 
@@ -114,7 +115,7 @@ export function useProductDetail() {
       setShowAvailabilityModal(false);
       setNewAvailability(INITIAL_AVAILABILITY);
     } catch (error) {
-      console.error('Error adding availability:', error);
+      logger.error('Error adding availability', error);
       alert('Erreur lors de l\'ajout de la disponibilite');
     }
   };
@@ -128,7 +129,7 @@ export function useProductDetail() {
       await ProductsService.deleteAvailability(availabilityId);
       await loadAvailabilities();
     } catch (error) {
-      console.error('Error deleting availability:', error);
+      logger.error('Error deleting availability', error);
       alert('Erreur lors de la suppression');
     }
   };
@@ -160,7 +161,7 @@ export function useProductDetail() {
       alert('Produit mis a jour avec succes !');
       navigate('/admin/products');
     } catch (error) {
-      console.error('Error updating product:', error);
+      logger.error('Error updating product', error);
       alert('Erreur lors de la mise a jour du produit');
     } finally {
       setSaving(false);

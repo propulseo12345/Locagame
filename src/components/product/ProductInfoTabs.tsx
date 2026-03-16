@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DOMPurify from 'dompurify';
 import { Info, Check, Ruler, Truck, MessageCircle, Package, Shield, Zap, Users, Clock, Weight } from 'lucide-react';
 import { Product } from '../../types';
 
@@ -41,12 +42,7 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
       <div className="p-6">
         {activeTab === 'description' && (
           <div className="space-y-4">
-            <div className="text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1" dangerouslySetInnerHTML={{ __html: product.description }} />
-            {product.shortDescription && (
-              <p className="text-white/50 text-sm italic">
-                {product.shortDescription}
-              </p>
-            )}
+            <div className="text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }} />
           </div>
         )}
 
@@ -101,13 +97,24 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
             </div>
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <Ruler className="w-5 h-5 text-[#33ffcc] mb-2" />
-              <div className="text-lg font-black text-white">{product.specifications.dimensions.width}×{product.specifications.dimensions.length}</div>
-              <div className="text-xs text-white/50 uppercase tracking-wider">Dimensions (cm)</div>
+              <div className="text-lg font-black text-white leading-snug">
+                {(() => {
+                  const raw = product.specifications.dimensions;
+                  if (!raw) return <span className="text-white/30 text-sm font-normal">Non renseigné</span>;
+                  // Strip HTML tags and decode basic entities
+                  const plain = raw.replace(/<[^>]*>/g, '').replace(/&nbsp;?/g, ' ').replace(/&[a-z]+;/gi, '').trim();
+                  if (!plain || plain === 'Non spécifié') return <span className="text-white/30 text-sm font-normal">Non renseigné</span>;
+                  return plain;
+                })()}
+              </div>
+              <div className="text-xs text-white/50 uppercase tracking-wider">Dimensions</div>
             </div>
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <Weight className="w-5 h-5 text-[#66cccc] mb-2" />
-              <div className="text-2xl font-black text-white">{product.specifications.weight}</div>
-              <div className="text-xs text-white/50 uppercase tracking-wider">Poids (kg)</div>
+              <div className="text-2xl font-black text-white">
+                {product.specifications.weight ? `${product.specifications.weight} kg` : <span className="text-white/30 text-sm font-normal">Non renseigné</span>}
+              </div>
+              <div className="text-xs text-white/50 uppercase tracking-wider">Poids</div>
             </div>
           </div>
         )}

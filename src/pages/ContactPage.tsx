@@ -61,8 +61,8 @@ export default function ContactPage() {
 
   // Breadcrumb pour le schema
   const breadcrumbItems = [
-    { name: 'Accueil', url: 'https://www.locagame.fr' },
-    { name: 'Contact', url: 'https://www.locagame.fr/contact' }
+    { name: 'Accueil', url: 'https://www.locagame.net' },
+    { name: 'Contact', url: 'https://www.locagame.net/contact' }
   ];
 
   return (
@@ -71,7 +71,7 @@ export default function ContactPage() {
         title="Contact"
         description="Contactez LOCAGAME pour vos projets d'événements : location de jeux, demande de devis gratuit, questions. Réponse sous 24h. Tél: 04 30 22 03 83"
         keywords="contact locagame, devis location jeux, contact événement Marseille, location jeux PACA"
-        url="https://www.locagame.fr/contact"
+        url="https://www.locagame.net/contact"
       />
       <BreadcrumbSchema items={breadcrumbItems} />
 

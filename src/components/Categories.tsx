@@ -55,7 +55,7 @@ export function Categories() {
           };
         });
 
-        setCategories(enrichedCategories);
+        setCategories(enrichedCategories as typeof categories);
       } catch (error) {
         console.error('Error loading categories:', error);
       } finally {

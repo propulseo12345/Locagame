@@ -41,7 +41,7 @@ export function ProductResultsBar({
           {startDate && endDate && (
             <span className="hidden sm:inline-flex items-center gap-1 px-2 py-1 bg-[#33ffcc]/10 border border-[#33ffcc]/30 rounded-full text-xs text-[#33ffcc]">
               <Calendar className="w-3 h-3" />
-              Dispo {new Date(startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - {new Date(endDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+              Dispo {new Date(startDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} - {new Date(endDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
               {unavailableCount != null && unavailableCount > 0 && (
                 <span className="ml-1 text-gray-400">
                   ({unavailableCount} indispo)

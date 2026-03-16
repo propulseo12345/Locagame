@@ -4,6 +4,7 @@ import { ReservationsService } from '../../services/reservations.service';
 import { CheckoutService } from '../../services/checkout.service';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { logger } from '../../lib/logger';
 
 export type ConfirmationPaymentState = 'loading' | 'success' | 'cancelled' | 'pending' | 'error';
 
@@ -53,6 +54,25 @@ export function useConfirmation() {
             clearCart();
             cartCleared.current = true;
           }
+
+          // Fallback: si le webhook n'a pas encore mis à jour le statut,
+          // on le fait côté client (le webhook fera un no-op grâce à l'idempotence)
+          if (data?.status === 'pending_payment') {
+            try {
+              await ReservationsService.updatePaymentStatus(reservationId, 'paid');
+              // Mettre aussi le statut reservation à confirmed
+              const { error: statusError } = await (await import('../../lib/supabase')).supabase
+                .from('reservations')
+                .update({ status: 'confirmed', payment_status: 'paid', paid_at: new Date().toISOString() })
+                .eq('id', reservationId);
+              if (!statusError) {
+                setReservation({ ...data, status: 'confirmed', payment_status: 'paid' });
+              }
+            } catch {
+              // Non-bloquant: le webhook le fera
+            }
+          }
+
           setPaymentState('success');
         } else if (paymentParam === 'cancelled') {
           setPaymentState('cancelled');
@@ -67,7 +87,7 @@ export function useConfirmation() {
           }
         }
       } catch (err) {
-        console.error('Error loading reservation:', err);
+        logger.error('Error loading reservation', err);
         setError('Impossible de charger la reservation');
         setPaymentState('error');
       } finally {
@@ -90,7 +110,7 @@ export function useConfirmation() {
       );
       window.location.href = session_url;
     } catch (err) {
-      console.error('Retry payment error:', err);
+      logger.error('Retry payment error', err);
       setError('Impossible de relancer le paiement. Veuillez reessayer.');
       setRetrying(false);
     }

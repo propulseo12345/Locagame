@@ -17,7 +17,7 @@ interface DemoCardProps {
  * Demo account card with hover effects for quick login.
  */
 export function DemoCard({
-  type,
+  type: _type,
   icon: Icon,
   title,
   description,

@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Order } from '../types';
+import { logger } from '../lib/logger';
 
 export class ReservationsQueries {
   /**
@@ -8,12 +9,12 @@ export class ReservationsQueries {
   static async getCustomerReservations(customerId: string): Promise<Order[]> {
     const { data, error } = await supabase
       .from('reservations')
-      .select('*, customer:customers(*), reservation_items:reservation_items(*)')
+      .select('*, customer:customers(*), reservation_items:reservation_items(*, product:products(name, images))')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching customer reservations:', error);
+      logger.error('Error fetching customer reservations', error);
       throw error;
     }
 
@@ -26,12 +27,12 @@ export class ReservationsQueries {
   static async getReservationById(id: string): Promise<Order | null> {
     const { data, error } = await supabase
       .from('reservations')
-      .select('*, customer:customers(*), reservation_items:reservation_items(*)')
+      .select('*, customer:customers(*), reservation_items:reservation_items(*, product:products(name, images))')
       .eq('id', id)
       .single();
 
     if (error) {
-      console.error('Error fetching reservation:', error);
+      logger.error('Error fetching reservation', error);
       throw error;
     }
 
@@ -50,7 +51,7 @@ export class ReservationsQueries {
   ): Promise<Order[]> {
     let query = supabase
       .from('reservations')
-      .select('*, customer:customers(*), reservation_items:reservation_items(*)')
+      .select('*, customer:customers(*), reservation_items:reservation_items(*, product:products(name))')
       .order('created_at', { ascending: false });
 
     if (filters?.status) {
@@ -68,7 +69,7 @@ export class ReservationsQueries {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching all reservations:', error);
+      logger.error('Error fetching all reservations', error);
       throw error;
     }
 

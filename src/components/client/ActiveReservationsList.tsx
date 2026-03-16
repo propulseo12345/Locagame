@@ -49,7 +49,7 @@ export default function ActiveReservationsList({ reservations }: ActiveReservati
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                   <div className="flex items-center gap-2 text-gray-300">
                     <Calendar className="w-4 h-4 text-[#33ffcc]" />
-                    <span>Du {new Date(reservation.start_date).toLocaleDateString('fr-FR')} au {new Date(reservation.end_date).toLocaleDateString('fr-FR')}</span>
+                    <span>Du {new Date(reservation.start_date + 'T00:00:00').toLocaleDateString('fr-FR')} au {new Date(reservation.end_date + 'T00:00:00').toLocaleDateString('fr-FR')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-300">
                     <Clock className="w-4 h-4 text-[#66cccc]" />

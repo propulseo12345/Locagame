@@ -39,13 +39,13 @@ export const baseTemplate = (content: string) => `
                        border-top:1px solid #e5e5e7;text-align:center;">
               <p style="color:#6b6b80;font-size:12px;margin:0;">
                 &copy; 2025 LOCAGAME &mdash;
-                <a href="https://locagame.fr/cgv" style="color:#6b6b80;">CGV</a> &middot;
-                <a href="https://locagame.fr/confidentialite" style="color:#6b6b80;">
+                <a href="https://locagame.net/cgv" style="color:#6b6b80;">CGV</a> &middot;
+                <a href="https://locagame.net/confidentialite" style="color:#6b6b80;">
                   Confidentialit&eacute;
                 </a>
               </p>
               <p style="color:#9b9baa;font-size:11px;margin:8px 0 0;">
-                Vous recevez cet email car vous avez effectu&eacute; une action sur locagame.fr
+                Vous recevez cet email car vous avez effectu&eacute; une action sur locagame.net
               </p>
             </td>
           </tr>
@@ -152,8 +152,8 @@ export const reservationConfirmationTemplate = (data: {
 
   <p style="color:#6b6b80;font-size:13px;margin-top:32px;text-align:center;">
     Une question ? Contactez-nous &agrave;
-    <a href="mailto:contact@locagame.fr" style="color:#1a1a2e;">
-      contact@locagame.fr
+    <a href="mailto:contact@locagame.net" style="color:#1a1a2e;">
+      contact@locagame.net
     </a>
   </p>
 `);

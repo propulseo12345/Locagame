@@ -2,6 +2,7 @@ import { Truck } from 'lucide-react';
 import type { AssignFilter, VehicleFormData } from './planning.types';
 import { DEFAULT_VEHICLE_FORM } from './planning.types';
 import type { Vehicle } from '../../../services/technicians.service';
+import { toLocalISODate } from '../../../utils/dateHolidays';
 
 interface PlanningHeaderProps {
   viewMode: 'day' | 'month';
@@ -155,7 +156,7 @@ export default function PlanningHeader({
                 const today = new Date();
                 setCurrentMonth(today.getMonth());
                 setCurrentYear(today.getFullYear());
-                setSelectedDate(today.toISOString().split('T')[0]);
+                setSelectedDate(toLocalISODate(today));
               }}
               className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
             >

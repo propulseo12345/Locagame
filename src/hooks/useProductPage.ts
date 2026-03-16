@@ -5,6 +5,7 @@ import { ProductsService, CategoriesService } from '../services';
 import { checkAvailability } from '../utils/availability';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { logger } from '../lib/logger';
 
 export interface UseProductPageReturn {
   // Data
@@ -74,7 +75,7 @@ export function useProductPage(): UseProductPageReturn {
             }
           }
         } catch (error) {
-          console.error('Error loading product:', error);
+          logger.error('Error loading product', error);
         } finally {
           setLoading(false);
         }
@@ -135,7 +136,7 @@ export function useProductPage(): UseProductPageReturn {
         start_date: selectedStartDate,
         end_date: selectedEndDate,
         quantity,
-        delivery_mode: priceCalculation.delivery_mode,
+        delivery_mode: priceCalculation.delivery_mode || 'pickup',
         delivery_address: priceCalculation.delivery_address,
         delivery_city: priceCalculation.delivery_city,
         delivery_postal_code: priceCalculation.delivery_postal_code,
@@ -148,7 +149,7 @@ export function useProductPage(): UseProductPageReturn {
       await new Promise(resolve => setTimeout(resolve, 500));
       navigate('/panier');
     } catch (error) {
-      console.error('Error checking availability:', error);
+      logger.error('Error checking availability', error);
       setAvailabilityError('Impossible de v\u00e9rifier la disponibilit\u00e9. Contactez-nous via le formulaire de contact.');
       setIsAddingToCart(false);
     }
@@ -170,7 +171,7 @@ export function useProductPage(): UseProductPageReturn {
           url: window.location.href,
         });
       } catch (error) {
-        console.error('Error sharing:', error);
+        logger.error('Error sharing', error);
       }
     }
   };

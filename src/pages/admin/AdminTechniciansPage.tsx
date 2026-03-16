@@ -1,3 +1,4 @@
+import { AlertTriangle } from 'lucide-react';
 import { useAdminTechnicians } from '../../hooks/admin/useAdminTechnicians';
 import {
   TechnicianFormModal,
@@ -34,41 +35,37 @@ export default function AdminTechniciansPage() {
     loadData,
   } = useAdminTechnicians();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-2 border-[#33ffcc] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
-          <p className="text-red-700">{error}</p>
+        <div className="flex items-start gap-3 bg-red-50 border-l-4 border-l-red-500 rounded-r-lg p-4">
+          <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0 animate-pulse" />
+          <p className="text-red-700 text-sm flex-1">{error}</p>
           <button
             onClick={loadData}
-            className="px-4 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+            className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm font-medium hover:bg-red-200 transition-colors"
           >
             Réessayer
           </button>
         </div>
       )}
 
-      <TechniciansHeader onCreateClick={handleCreate} />
+      <TechniciansHeader onCreateClick={handleCreate} totalCount={loading ? undefined : stats.total} />
       <TechniciansStats stats={stats} />
       <TechniciansFilters
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
+        totalCount={stats.total}
+        filteredCount={filteredTechnicians.length}
       />
       <TechniciansTable
         technicians={filteredTechnicians}
         vehicleMap={vehicleMap}
         onEdit={handleEdit}
         onDelete={setDeleteConfirm}
+        loading={loading}
       />
 
       {showModal && (

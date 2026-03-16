@@ -4,9 +4,9 @@
 
 | Rôle | Email | Description |
 |------|-------|-------------|
-| Admin | admin@locagame.fr | Accès total |
+| Admin | admin@locagame.net | Accès total |
 | Client | client@exemple.fr | Accès ses données uniquement |
-| Technicien | technicien@locagame.fr | Accès ses tâches uniquement |
+| Technicien | technicien@locagame.net | Accès ses tâches uniquement |
 
 ---
 
@@ -136,7 +136,7 @@ curl -X POST 'https://koqdpkkuarbjiimkopei.supabase.co/functions/v1/create-techn
   -H 'Content-Type: application/json' \
   -d '{
     "technician": {
-      "email": "nouveau.tech@locagame.fr",
+      "email": "nouveau.tech@locagame.net",
       "first_name": "Jean",
       "last_name": "Test",
       "phone": "0600000000"
@@ -153,7 +153,7 @@ curl -X POST 'https://koqdpkkuarbjiimkopei.supabase.co/functions/v1/create-techn
 ```json
 {
   "success": true,
-  "technician": { "id": "...", "email": "nouveau.tech@locagame.fr", ... },
+  "technician": { "id": "...", "email": "nouveau.tech@locagame.net", ... },
   "vehicle": { "id": "...", "name": "Camion Test", "license_plate": "TEST-123" },
   "invite_sent": true
 }

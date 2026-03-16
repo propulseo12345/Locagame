@@ -3,12 +3,13 @@
 export interface Product {
   id: string;
   name: string;
+  slug?: string;
   description: string;
   category_id: string;
   images: string[];
   specifications: {
-    dimensions: { length: number; width: number; height?: number };
-    weight: number;
+    dimensions: string | null;
+    weight: number | null;
     players: {
       min: number;
       max: number;
@@ -22,19 +23,28 @@ export interface Product {
     weekend: number;
     week: number;
     custom: number;
+    customDurations?: Array<{ minDays: number; maxDays: number; price: number }>;
   };
   total_stock: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  /** Coefficient multiplicateur pour réservations multi-jours (2+ jours). Ex: 0.85 = -15%. Borné 0.50-1.00 */
+  featured?: boolean | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
   multi_day_coefficient?: number;
-  /** Prix forfaitaire week-end. Si défini, remplace le calcul standard quand la période couvre un week-end */
   weekend_flat_price?: number | null;
-  /** Nombre de personnes nécessaires pour la livraison */
   delivery_people_count?: number;
-  /** Nombre de personnes nécessaires pour la récupération */
   pickup_people_count?: number;
+  /** Catégorie principale jointe (relation Supabase, rétrocompat) */
+  category?: Category | null;
+  /** Multi-catégories — données brutes de la table de liaison */
+  product_categories?: Array<{
+    category_id: string;
+    categories: { id: string; name: string; slug?: string } | null;
+  }>;
+  /** Multi-catégories normalisées (extrait de product_categories) */
+  categories?: Category[];
 }
 
 /** Créneau horaire: matin (AM) ou après-midi (PM) */
@@ -43,9 +53,11 @@ export type DaySlot = 'AM' | 'PM';
 export interface Category {
   id: string;
   name: string;
+  slug?: string;
   description: string;
   icon: string;
-  is_active: boolean;
+  display_order?: number | null;
+  created_at?: string;
 }
 
 export interface ProductAvailability {
@@ -87,18 +99,19 @@ export interface CartItem {
 
 export interface Customer {
   id?: string;
-  first_name: string;
-  last_name: string;
+  first_name: string | null;
+  last_name: string | null;
   email: string;
-  phone: string;
-  company_name?: string;
-  siret?: string;
-  is_professional: boolean;
-  customer_type?: 'individual' | 'professional';
-  loyalty_points?: number;
-  is_guest?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  phone: string | null;
+  company_name?: string | null;
+  siret?: string | null;
+  is_professional?: boolean;
+  customer_type?: string | null;
+  loyalty_points?: number | null;
+  is_guest?: boolean | null;
+  stripe_customer_id?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface RecipientData {
@@ -156,56 +169,81 @@ export interface PricingBreakdownData {
   info_message?: string;
 }
 
+/** Item d'une réservation (table reservation_items) */
+export interface ReservationItem {
+  id: string;
+  reservation_id?: string | null;
+  product_id: string | null;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+  duration_days: number;
+  delivery_people_count?: number | null;
+  pickup_people_count?: number | null;
+  created_at?: string | null;
+  /** Produit joint (relation Supabase) */
+  product?: { name: string } & Record<string, unknown>;
+}
+
 export interface Order {
   id: string;
-  customer: Customer;
-  items: CartItem[];
+  customer_id?: string | null;
+  customer?: Customer;
+  items?: CartItem[];
+  // Dates de la réservation (champs DB obligatoires)
+  start_date: string;
+  end_date: string;
+  // Adresse de livraison
+  delivery_address_id?: string | null;
   delivery_address?: {
     street: string;
     city: string;
     postal_code: string;
     country: string;
   };
-  delivery_date?: string;
-  delivery_time?: string;
-  delivery_type?: 'pickup' | 'delivery';
-  pickup_time?: string;
-  return_time?: string;
-  pickup_slot?: string;
-  event_type: string;
-  special_notes?: string;
-  subtotal: number;
-  delivery_fee: number;
-  discount: number;
+  delivery_time?: string | null;
+  delivery_type: string;
+  pickup_time?: string | null;
+  return_time?: string | null;
+  pickup_slot?: string | null;
+  event_type?: string | null;
+  notes?: string | null;
+  subtotal?: number | null;
+  delivery_fee?: number | null;
+  discount?: number | null;
   total: number;
   status: 'pending_payment' | 'pending' | 'confirmed' | 'preparing' | 'delivered' | 'returned' | 'completed' | 'cancelled';
-  payment_status?: 'unpaid' | 'pending_payment' | 'paid' | 'failed' | 'expired' | 'refunded';
-  payment_intent_id?: string;
-  stripe_checkout_session_id?: string;
-  paid_at?: string;
-  payment_method?: string;
-  created_at: string;
-  updated_at?: string;
-  // Nouveaux champs
+  payment_status?: 'unpaid' | 'pending_payment' | 'paid' | 'failed' | 'expired' | 'refunded' | string | null;
+  payment_intent_id?: string | null;
+  stripe_checkout_session_id?: string | null;
+  paid_at?: string | null;
+  payment_method?: string | null;
+  created_at: string | null;
+  updated_at?: string | null;
+  // Relations
+  reservation_items?: ReservationItem[];
+  // Métadonnées checkout
   recipient_data?: RecipientData | null;
   event_details?: EventDetails | null;
-  cgv_accepted?: boolean;
-  newsletter_accepted?: boolean;
+  cgv_accepted?: boolean | null;
+  newsletter_accepted?: boolean | null;
   // Champs de facturation (clients professionnels)
   is_business?: boolean;
-  billing_company_name?: string;
-  billing_vat_number?: string;
-  billing_address_line1?: string;
-  billing_address_line2?: string;
-  billing_postal_code?: string;
-  billing_city?: string;
-  billing_country?: string;
+  billing_company_name?: string | null;
+  billing_vat_number?: string | null;
+  billing_address_line1?: string | null;
+  billing_address_line2?: string | null;
+  billing_postal_code?: string | null;
+  billing_city?: string | null;
+  billing_country?: string | null;
   // Champs pricing rules (forfait week-end + majorations)
-  start_slot?: DaySlot;
-  end_slot?: DaySlot;
-  delivery_is_mandatory?: boolean;
-  pickup_is_mandatory?: boolean;
+  start_slot?: DaySlot | string | null;
+  end_slot?: DaySlot | string | null;
+  delivery_is_mandatory?: boolean | null;
+  pickup_is_mandatory?: boolean | null;
   pricing_breakdown?: PricingBreakdownData | null;
+  deposit_amount?: number | null;
+  zone_id?: string | null;
 }
 
 export interface FilterOptions {
@@ -227,18 +265,19 @@ export interface PriceCalculation {
   delivery_fee: number;
   total: number;
   duration_days: number;
-  delivery_mode: 'pickup' | 'delivery';
+  delivery_mode?: 'pickup' | 'delivery';
   delivery_address?: string;
   delivery_city?: string;
   delivery_postal_code?: string;
   delivery_distance?: number;
+  zone?: DeliveryZone;
 }
 
 export interface Vehicle {
   id: string;
-  name: string; // "Camion 1", "Utilitaire 2"
+  name: string;
   type: 'truck' | 'van';
-  capacity: number; // m³ ou poids max
+  capacity: number;
   licensePlate: string;
   isActive: boolean;
 }
@@ -249,7 +288,7 @@ export interface Technician {
   lastName: string;
   email: string;
   phone: string;
-  vehicleId: string | null; // Véhicule assigné
+  vehicleId: string | null;
   isActive: boolean;
 }
 

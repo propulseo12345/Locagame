@@ -51,21 +51,16 @@ export default function AdminProducts() {
 
   const [showImportModal, setShowImportModal] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-gray-600">Chargement des produits...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Produits</h1>
-          <p className="text-gray-600 mt-1">Gérez votre catalogue de jeux et activités</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Produits
+            {!loading && <span className="text-gray-400 font-normal ml-2 text-lg">{products.length}</span>}
+          </h1>
+          <p className="text-sm text-gray-600 mt-0.5">Gérez votre catalogue de jeux et activités</p>
         </div>
         <div className="flex items-center gap-3">
           {isAdmin && (
@@ -73,14 +68,14 @@ export default function AdminProducts() {
               <button
                 onClick={handleExport}
                 disabled={exporting}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
+                className="h-9 px-4 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 <Download className="w-4 h-4" />
                 {exporting ? 'Export...' : 'Exporter'}
               </button>
               <button
                 onClick={() => setShowImportModal(true)}
-                className="px-4 py-2 border border-green-300 bg-green-50 rounded-lg text-green-700 hover:bg-green-100 transition-colors flex items-center gap-2"
+                className="h-9 px-4 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
                 <Upload className="w-4 h-4" />
                 Importer
@@ -89,7 +84,7 @@ export default function AdminProducts() {
           )}
           <button
             onClick={() => openModal()}
-            className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
+            className="h-9 px-4 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
           >
             + Nouveau produit
           </button>
@@ -106,12 +101,15 @@ export default function AdminProducts() {
         categoryFilter={categoryFilter}
         onCategoryChange={setCategoryFilter}
         categories={categories}
+        totalCount={products.length}
+        filteredCount={filteredProducts.length}
       />
 
       <AdminProductsTable
         products={filteredProducts}
         categories={categories}
         onDelete={setShowDeleteConfirm}
+        loading={loading}
       />
 
       {/* Modals */}

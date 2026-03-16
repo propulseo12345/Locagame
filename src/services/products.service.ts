@@ -27,4 +27,6 @@ export class ProductsService {
   static getProductAvailability = ProductsAdmin.getProductAvailability;
   static createAvailability = ProductsAdmin.createAvailability;
   static deleteAvailability = ProductsAdmin.deleteAvailability;
+  static setProductCategories = ProductsAdmin.setProductCategories;
+  static upsertProductsBatch = ProductsAdmin.upsertProductsBatch;
 }

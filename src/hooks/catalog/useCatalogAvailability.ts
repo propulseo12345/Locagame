@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Product } from '../../types';
 import { getUnavailableProductIds } from '../../utils/availability';
+import { logger } from '../../lib/logger';
 
 interface UseCatalogAvailabilityOptions {
   products: Product[];
@@ -54,7 +55,7 @@ export function useCatalogAvailability({
           }
         }
       } catch (error) {
-        console.error('Error checking availabilities:', error);
+        logger.error('Error checking availabilities', error);
         if (!cancelled) {
           setUnavailableProductIds(new Set());
           setAvailabilityError('Impossible de vérifier la disponibilité. Contactez-nous via le formulaire de contact.');

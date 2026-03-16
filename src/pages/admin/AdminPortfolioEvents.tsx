@@ -69,7 +69,9 @@ export default function AdminPortfolioEvents() {
 
   // Filtrage
   const filteredItems = items.filter(item => {
-    const matchesSearch = !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.location?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = !searchTerm ||
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.location?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || item.event_type_id === filterType;
     return matchesSearch && matchesType;
   });
@@ -81,10 +83,54 @@ export default function AdminPortfolioEvents() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#33ffcc] border-t-transparent mb-3"></div>
-          <p className="text-gray-500">Chargement...</p>
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-56 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="h-4 w-36 bg-gray-100 rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-40 bg-gray-200 rounded-lg animate-pulse" />
+        </div>
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-200 animate-pulse">
+              <div className="h-4 w-20 bg-gray-100 rounded mb-3" />
+              <div className="h-8 w-14 bg-gray-200 rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Filters skeleton */}
+        <div className="flex gap-3">
+          <div className="h-11 flex-1 bg-gray-100 rounded-xl animate-pulse" />
+          <div className="h-11 w-44 bg-gray-100 rounded-xl animate-pulse" />
+        </div>
+        {/* Cards skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
+              <div className="h-44 bg-gray-200" />
+              <div className="p-4 space-y-3">
+                <div className="h-5 w-3/4 bg-gray-200 rounded" />
+                <div className="space-y-1.5">
+                  <div className="h-3 w-32 bg-gray-100 rounded" />
+                  <div className="h-3 w-24 bg-gray-100 rounded" />
+                </div>
+                <div className="h-5 w-20 bg-gray-100 rounded-md" />
+                <div className="flex justify-between pt-3 border-t border-gray-100">
+                  <div className="flex gap-1">
+                    <div className="h-7 w-7 bg-gray-100 rounded-lg" />
+                    <div className="h-7 w-7 bg-gray-100 rounded-lg" />
+                  </div>
+                  <div className="flex gap-1">
+                    <div className="h-7 w-7 bg-gray-100 rounded-lg" />
+                    <div className="h-7 w-7 bg-gray-100 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -92,74 +138,115 @@ export default function AdminPortfolioEvents() {
 
   return (
     <div className="space-y-6">
+      {/* Error banner */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between">
-          <p className="text-red-700">{error}</p>
-          <button onClick={loadData} className="px-4 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium">Réessayer</button>
+        <div className="p-4 bg-red-50 border-l-4 border-l-red-500 rounded-r-lg flex items-center justify-between">
+          <p className="text-red-700 text-sm">{error}</p>
+          <button
+            onClick={loadData}
+            className="px-4 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+          >
+            Réessayer
+          </button>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Portfolio / Réalisations</h1>
-          <p className="text-gray-500 mt-1">{items.length} événement(s)</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Portfolio / Réalisations{' '}
+            <span className="text-gray-400 font-normal">{items.length}</span>
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">Gérez les événements affichés dans le portfolio</p>
         </div>
-        <button onClick={() => handleOpenModal()} className="flex items-center gap-2 px-5 py-2.5 bg-[#33ffcc] text-[#000033] rounded-xl font-semibold hover:bg-[#66cccc] transition-all hover:shadow-lg">
-          <Plus className="w-5 h-5" />Nouvel événement
+        <button
+          onClick={() => handleOpenModal()}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors text-sm"
+        >
+          <Plus className="w-4 h-4" />
+          Nouvel événement
         </button>
       </div>
 
-      {/* Stats cards */}
+      {/* Stats bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500 mb-1">Total</p>
-          <p className="text-2xl font-bold text-gray-900">{items.length}</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all">
+          <div className="flex items-start justify-between">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total</p>
+            <Image className="w-4 h-4 text-gray-400 opacity-50" />
+          </div>
+          <p className="text-2xl font-bold tabular-nums text-gray-900 mt-2">{items.length}</p>
+          <p className="text-xs text-gray-400 mt-0.5">événements</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500 mb-1">Actifs</p>
-          <p className="text-2xl font-bold text-green-600">{activeCount}</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all">
+          <div className="flex items-start justify-between">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Actifs</p>
+            <Eye className="w-4 h-4 text-green-400 opacity-50" />
+          </div>
+          <p className="text-2xl font-bold tabular-nums text-gray-900 mt-2">{activeCount}</p>
+          <p className="text-xs text-gray-400 mt-0.5">visibles sur le site</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500 mb-1">Mis en avant</p>
-          <p className="text-2xl font-bold text-[#33ccaa]">{featuredCount}</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-yellow-500 hover:shadow-md transition-all">
+          <div className="flex items-start justify-between">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Mis en avant</p>
+            <Star className="w-4 h-4 text-yellow-400 opacity-50" />
+          </div>
+          <p className="text-2xl font-bold tabular-nums text-gray-900 mt-2">{featuredCount}</p>
+          <p className="text-xs text-gray-400 mt-0.5">en vedette</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500 mb-1">Invités total</p>
-          <p className="text-2xl font-bold text-gray-900">{totalGuests.toLocaleString('fr-FR')}</p>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-blue-500 hover:shadow-md transition-all">
+          <div className="flex items-start justify-between">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Invités total</p>
+            <Users className="w-4 h-4 text-blue-400 opacity-50" />
+          </div>
+          <p className="text-2xl font-bold tabular-nums text-gray-900 mt-2">{totalGuests.toLocaleString('fr-FR')}</p>
+          <p className="text-xs text-gray-400 mt-0.5">participants cumulés</p>
         </div>
       </div>
 
       {/* Filters bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-48">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Rechercher un événement..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent text-sm"
+            className="w-full h-11 pl-10 pr-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
           />
         </div>
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent text-sm"
+          className="h-11 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
         >
           <option value="all">Tous les types</option>
-          {eventTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          {eventTypes.map(t => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
         </select>
+        <span className="text-sm text-gray-500 whitespace-nowrap">
+          {filteredItems.length} · {items.length} événements
+        </span>
       </div>
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredItems.map((item) => (
-          <div key={item.id} className="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200">
+          <div
+            key={item.id}
+            className="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md hover:border-gray-300 transition-all duration-200"
+          >
             {/* Image */}
             <div className="relative h-44 bg-gray-100 overflow-hidden">
               {item.featured_image ? (
-                <img src={item.featured_image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img
+                  src={item.featured_image}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
               ) : (
                 <div className="flex items-center justify-center h-full bg-gray-50">
                   <Image className="w-12 h-12 text-gray-300" />
@@ -171,13 +258,15 @@ export default function AdminPortfolioEvents() {
               {/* Badges */}
               <div className="absolute top-3 right-3 flex gap-1.5">
                 {item.is_featured && (
-                  <span className="flex items-center gap-1 px-2.5 py-1 bg-[#33ffcc] text-[#000033] rounded-lg text-xs font-bold shadow-sm">
+                  <span className="ring-1 ring-yellow-200 bg-yellow-50 text-yellow-700 rounded-md px-2 py-0.5 text-xs font-medium flex items-center gap-1 shadow-sm">
                     <Star className="w-3 h-3 fill-current" />
                     Featured
                   </span>
                 )}
                 {!item.is_active && (
-                  <span className="px-2.5 py-1 bg-red-500 text-white rounded-lg text-xs font-medium shadow-sm">Inactif</span>
+                  <span className="ring-1 ring-red-200 bg-red-50 text-red-700 rounded-md px-2 py-0.5 text-xs font-medium shadow-sm">
+                    Inactif
+                  </span>
                 )}
               </div>
 
@@ -197,26 +286,28 @@ export default function AdminPortfolioEvents() {
               <div className="space-y-1.5 text-sm text-gray-500 mb-3">
                 {item.event_date && (
                   <div className="flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                    {new Date(item.event_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                    {new Date(item.event_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </div>
                 )}
                 {item.location && (
                   <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                    <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                     <span className="truncate">{item.location}</span>
                   </div>
                 )}
                 {item.guest_count && (
                   <div className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-gray-400" />
+                    <Users className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                     {item.guest_count} invités
                   </div>
                 )}
               </div>
 
               {item.event_type && (
-                <span className="inline-flex px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">{item.event_type.name}</span>
+                <span className="inline-flex ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                  {item.event_type.name}
+                </span>
               )}
 
               {/* Actions */}
@@ -238,10 +329,18 @@ export default function AdminPortfolioEvents() {
                   </button>
                 </div>
                 <div className="flex gap-1">
-                  <button onClick={() => handleOpenModal(item)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier">
+                  <button
+                    onClick={() => handleOpenModal(item)}
+                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Modifier"
+                  >
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => setShowDeleteConfirm(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Supprimer">
+                  <button
+                    onClick={() => setShowDeleteConfirm(item.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Supprimer"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -251,10 +350,14 @@ export default function AdminPortfolioEvents() {
         ))}
       </div>
 
+      {/* Empty state */}
       {filteredItems.length === 0 && !loading && (
-        <div className="text-center py-12">
+        <div className="text-center py-16">
           <Image className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">Aucun événement trouvé.</p>
+          <p className="text-gray-500 font-medium">Aucun événement trouvé.</p>
+          {(searchTerm || filterType !== 'all') && (
+            <p className="text-gray-400 text-sm mt-1">Essayez de modifier vos filtres</p>
+          )}
         </div>
       )}
 
@@ -271,10 +374,20 @@ export default function AdminPortfolioEvents() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer cet événement ?</h3>
-            <p className="text-gray-600 mb-4">Cette action est irréversible.</p>
+            <p className="text-gray-600 text-sm mb-4">Cette action est irréversible.</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800 rounded-lg">Annuler</button>
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Supprimer</button>
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDelete(showDeleteConfirm)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium"
+              >
+                Supprimer
+              </button>
             </div>
           </div>
         </div>

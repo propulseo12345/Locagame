@@ -4,7 +4,6 @@ import {
   ProfileHeader,
   PersonalInfoForm,
   SecurityForm,
-  NotificationPreferences,
   DangerZone,
 } from '../../components/client/profile';
 
@@ -16,8 +15,6 @@ export default function ClientProfile() {
     setPasswordData,
     showPasswords,
     togglePasswordVisibility,
-    preferences,
-    setPreferences,
     loading,
     saving,
     savingPassword,
@@ -74,10 +71,6 @@ export default function ClientProfile() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <NotificationPreferences
-            preferences={preferences}
-            setPreferences={setPreferences}
-          />
           <DangerZone />
         </div>
       </div>

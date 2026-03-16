@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Calendar, X } from 'lucide-react';
 import { Product } from '../types';
 import { ProductsService } from '../services/products.service';
-import { calculateDurationDays, calculateProductPrice } from '../utils/pricing';
+import { calculateDurationDays, calculateLocagameDays, calculateLocagamePrice } from '../utils/pricing';
 import { CalendarGrid } from './date-range-picker/CalendarGrid';
 import { DateSelectionSummary } from './date-range-picker/DateSelectionSummary';
 
@@ -99,7 +99,8 @@ export default function DateRangePickerCalendar({
   };
 
   const durationDays = startDate && endDate ? calculateDurationDays(startDate, endDate) : 0;
-  const estimatedPrice = durationDays > 0 ? calculateProductPrice(product, durationDays) * quantity : 0;
+  const locagameDays = startDate && endDate ? calculateLocagameDays(startDate, endDate) : 0;
+  const estimatedPrice = locagameDays > 0 ? calculateLocagamePrice(product.pricing.oneDay, locagameDays) * quantity : 0;
 
   return (
     <div className="space-y-4">

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Heart, Star, Users, Clock, ShoppingCart, Sparkles, ArrowRight } from 'lucide-react';
+import { Heart, Users, Clock, ShoppingCart, Sparkles, ArrowRight } from 'lucide-react';
 import { Product } from '../../../types';
 
 interface FavoritesGridProps {
@@ -53,7 +53,7 @@ export default function FavoritesGrid({ products, onRemoveFavorite }: FavoritesG
               <div className="absolute bottom-3 left-3">
                 <div className="px-4 py-2 bg-[#33ffcc]/95 backdrop-blur-sm text-[#000033] rounded-full shadow-lg border border-white/20">
                   <span className="text-2xl font-black">
-                    {product.pricing?.oneDay || product.pricing?.one_day || 0}€
+                    {product.pricing?.oneDay || 0}€
                   </span>
                   <span className="text-sm font-bold">/jour</span>
                 </div>
@@ -69,7 +69,7 @@ export default function FavoritesGrid({ products, onRemoveFavorite }: FavoritesG
               </div>
 
               <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-1">
-                {product.shortDescription}
+                {product.description}
               </p>
 
               {/* Specs */}
@@ -86,34 +86,7 @@ export default function FavoritesGrid({ products, onRemoveFavorite }: FavoritesG
                     {product.specifications?.setup_time || 30}min
                   </span>
                 </div>
-                {(product.rating || product.totalReservations) && (
-                  <div className="flex items-center gap-1.5 ml-auto">
-                    {product.rating && (
-                      <>
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span className="text-xs text-white font-bold">{product.rating}</span>
-                      </>
-                    )}
-                    {product.totalReservations && (
-                      <span className="text-xs text-gray-500">({product.totalReservations})</span>
-                    )}
-                  </div>
-                )}
               </div>
-
-              {/* Tags */}
-              {product.tags && product.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {product.tags.slice(0, 2).map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-2.5 py-1 text-xs bg-white/10 text-[#33ffcc] rounded-full border border-white/20 font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
 
               {/* Actions */}
               <div className="flex gap-2">

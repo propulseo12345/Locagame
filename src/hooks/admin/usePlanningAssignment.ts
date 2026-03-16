@@ -1,5 +1,6 @@
 import { DeliveryService } from '../../services';
 import type { UnassignedReservation } from '../../components/admin/planning/planning.types';
+import { logger } from '../../lib/logger';
 
 interface UsePlanningAssignmentParams {
   setOperationInProgress: (op: string | null) => void;
@@ -35,7 +36,7 @@ export function usePlanningAssignment({
           scheduledTime: reservation.delivery_time || '10:00',
           vehicleId: vehicleId,
           technicianId: technicianId,
-          status: 'scheduled',
+          status: 'assigned',
           customer: {
             firstName: reservation.customer?.first_name || '',
             lastName: reservation.customer?.last_name || '',
@@ -58,7 +59,7 @@ export function usePlanningAssignment({
       toast.success('Livreur assign\u00e9 avec succ\u00e8s');
       await refreshTasksAndReservations();
     } catch (err) {
-      console.error('Erreur assignation:', err);
+      logger.error('Erreur assignation', err);
       toast.error("Erreur lors de l'assignation du livreur");
     } finally {
       setOperationInProgress(null);
@@ -73,7 +74,7 @@ export function usePlanningAssignment({
       toast.success('T\u00e2che d\u00e9sassign\u00e9e');
       await refreshTasksAndReservations();
     } catch (err) {
-      console.error('Erreur d\u00e9sassignation:', err);
+      logger.error('Erreur d\u00e9sassignation', err);
       toast.error('Erreur lors de la d\u00e9sassignation');
     } finally {
       setOperationInProgress(null);

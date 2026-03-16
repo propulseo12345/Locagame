@@ -21,7 +21,7 @@ export default function TechnicianFormActions({
       <button
         type="submit"
         disabled={submitting}
-        className="px-6 py-2 bg-[#000033] text-white hover:bg-[#000055] rounded-lg transition-colors disabled:opacity-50"
+        className="px-6 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
       >
         {submitting ? 'En cours...' : isEdit ? 'Enregistrer' : 'Cr\u00e9er le technicien'}
       </button>

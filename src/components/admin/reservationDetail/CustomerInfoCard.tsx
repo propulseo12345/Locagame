@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { User, Mail, Phone, Building2, Users } from 'lucide-react';
 import { Order } from '../../../types';
 

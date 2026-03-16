@@ -40,6 +40,8 @@ const MentionsLegalesPage = lazy(() => import('./pages/MentionsLegalesPage'));
 const ConfidentialitePage = lazy(() => import('./pages/ConfidentialitePage'));
 const AProposPage = lazy(() => import('./pages/AProposPage'));
 const ConfirmationPage = lazy(() => import('./pages/ConfirmationPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
 
 // Admin pages
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
@@ -136,6 +138,7 @@ function AppContent() {
             <Route path={ROUTES.CONFIDENTIALITE} element={<ConfidentialitePage />} />
             <Route path={ROUTES.A_PROPOS} element={<AProposPage />} />
             <Route path="/confirmation/:reservationId" element={<ConfirmationPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
           {/* Admin Routes - Protégées */}
           <Route path={`${ROUTES.ADMIN.BASE}/*`} element={
@@ -193,6 +196,9 @@ function AppContent() {
               </TechnicianLayout>
             </ProtectedRoute>
           } />
+
+          {/* Fix B4 : catch-all global — page 404 pour toute URL non reconnue */}
+          <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
         {!isAdminOrClientOrTechnician && !isAuthPage && <Footer />}

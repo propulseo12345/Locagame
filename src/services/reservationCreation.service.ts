@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase';
+import type { Json } from '../lib/database.types';
+import { logger } from '../lib/logger';
 
 interface CreateReservationData {
   customer_id: string;
@@ -73,9 +75,9 @@ async function createDeliveryTasks(
       scheduled_date: orderData.start_date,
       scheduled_time: orderData.delivery_time || '09:00',
       status: 'scheduled',
-      customer_data: customer,
-      address_data: address,
-      products_data: products,
+      customer_data: customer as unknown as Json,
+      address_data: address as unknown as Json,
+      products_data: products as unknown as Json,
     });
 
     await supabase.from('delivery_tasks').insert({
@@ -85,9 +87,9 @@ async function createDeliveryTasks(
       scheduled_date: orderData.end_date,
       scheduled_time: orderData.delivery_time || '09:00',
       status: 'scheduled',
-      customer_data: customer,
-      address_data: address,
-      products_data: products,
+      customer_data: customer as unknown as Json,
+      address_data: address as unknown as Json,
+      products_data: products as unknown as Json,
     });
   } else if (orderData.delivery_type === 'pickup') {
     const warehouseAddress = {
@@ -103,9 +105,9 @@ async function createDeliveryTasks(
       scheduled_date: orderData.start_date,
       scheduled_time: orderData.pickup_time || '09:00',
       status: 'scheduled',
-      customer_data: customer,
-      address_data: warehouseAddress,
-      products_data: products,
+      customer_data: customer as unknown as Json,
+      address_data: warehouseAddress as unknown as Json,
+      products_data: products as unknown as Json,
       notes: "Retrait client à l'entrepôt",
     });
 
@@ -116,9 +118,9 @@ async function createDeliveryTasks(
       scheduled_date: orderData.end_date,
       scheduled_time: orderData.return_time || '09:00',
       status: 'scheduled',
-      customer_data: customer,
-      address_data: warehouseAddress,
-      products_data: products,
+      customer_data: customer as unknown as Json,
+      address_data: warehouseAddress as unknown as Json,
+      products_data: products as unknown as Json,
       notes: "Retour client à l'entrepôt",
     });
   }
@@ -148,8 +150,8 @@ export async function createReservation(orderData: CreateReservationData): Promi
         deposit_amount: orderData.deposit || 0,
         total: orderData.total,
         status: 'pending',
-        recipient_data: orderData.recipient_data,
-        event_details: orderData.event_details,
+        recipient_data: (orderData.recipient_data ?? null) as unknown as Json,
+        event_details: (orderData.event_details ?? null) as unknown as Json,
         cgv_accepted: orderData.cgv_accepted ?? false,
         newsletter_accepted: orderData.newsletter_accepted ?? false,
         is_business: orderData.is_business ?? false,
@@ -164,13 +166,13 @@ export async function createReservation(orderData: CreateReservationData): Promi
         end_slot: orderData.end_slot ?? 'AM',
         delivery_is_mandatory: orderData.delivery_is_mandatory ?? false,
         pickup_is_mandatory: orderData.pickup_is_mandatory ?? false,
-        pricing_breakdown: orderData.pricing_breakdown,
+        pricing_breakdown: (orderData.pricing_breakdown ?? null) as unknown as Json,
       })
       .select('*')
       .single();
 
     if (reservationError) {
-      console.error('Error creating reservation:', reservationError);
+      logger.error('Error creating reservation', reservationError);
       throw reservationError;
     }
 
@@ -189,7 +191,7 @@ export async function createReservation(orderData: CreateReservationData): Promi
       .insert(itemsToInsert);
 
     if (itemsError) {
-      console.error('Error creating reservation items:', itemsError);
+      logger.error('Error creating reservation items', itemsError);
       await supabase.from('reservations').delete().eq('id', reservation.id);
       throw itemsError;
     }
@@ -198,7 +200,7 @@ export async function createReservation(orderData: CreateReservationData): Promi
     try {
       await createDeliveryTasks(reservation, orderData);
     } catch (taskError) {
-      console.error('Erreur création tâche (non-bloquant):', taskError);
+      logger.error('Erreur création tâche (non-bloquant)', taskError);
     }
 
     // 4. Retourner la réservation complète
@@ -210,7 +212,7 @@ export async function createReservation(orderData: CreateReservationData): Promi
 
     return fullReservation;
   } catch (error) {
-    console.error('Error in createReservation:', error);
+    logger.error('Error in createReservation', error);
     throw error;
   }
 }

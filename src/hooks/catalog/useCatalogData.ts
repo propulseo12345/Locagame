@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Product, Category } from '../../types';
 import { CategoriesService } from '../../services';
 import { supabase } from '../../lib/supabase';
+import { logger } from '../../lib/logger';
 
 interface UseCatalogDataReturn {
   products: Product[];
@@ -30,8 +31,8 @@ export function useCatalogData(): UseCatalogDataReturn {
         if (!supabaseUrl || !supabaseKey ||
             supabaseUrl === 'https://placeholder.supabase.co' ||
             supabaseKey === 'placeholder-anon-key') {
-          console.error('❌ Supabase non configuré! Vérifiez votre fichier .env');
-          console.error('Variables requises: VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY');
+          logger.error('Supabase non configuré! Vérifiez votre fichier .env');
+          logger.error('Variables requises: VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY');
           setError('Supabase non configuré. Veuillez créer un fichier .env avec vos identifiants Supabase.');
           setProducts([]);
           setCategories([]);
@@ -43,13 +44,13 @@ export function useCatalogData(): UseCatalogDataReturn {
         // Recuperer TOUS les produits actifs pour le catalogue
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*, category:categories(*)')
+          .select('*, category:categories!products_category_id_fkey(*)')
           .eq('is_active', true)
           .order('name', { ascending: true });
 
         if (productsError) {
-          console.error('❌ Erreur lors du chargement des produits:', productsError);
-          console.error('Détails:', {
+          logger.error('Erreur lors du chargement des produits', productsError);
+          logger.error('Détails', {
             message: productsError.message,
             code: productsError.code,
             details: productsError.details,
@@ -58,7 +59,7 @@ export function useCatalogData(): UseCatalogDataReturn {
 
           // Si c'est une erreur de permission (RLS), afficher un message specifique
           if (productsError.code === 'PGRST301' || productsError.message?.includes('permission')) {
-            console.error('💡 Problème de permissions RLS. Vérifiez les politiques de sécurité dans Supabase.');
+            logger.error('Problème de permissions RLS. Vérifiez les politiques de sécurité dans Supabase.');
             setError('Erreur de permissions. Vérifiez les politiques RLS dans Supabase.');
           } else {
             setError(`Erreur lors du chargement: ${productsError.message}`);
@@ -122,7 +123,7 @@ export function useCatalogData(): UseCatalogDataReturn {
         setProducts(mappedProducts);
         setCategories(categoriesData);
       } catch (err: any) {
-        console.error('[CatalogPage] Erreur chargement:', err);
+        logger.error('[CatalogPage] Erreur chargement', err);
         setError(err?.message || 'Impossible de charger le catalogue');
       } finally {
         setLoading(false);

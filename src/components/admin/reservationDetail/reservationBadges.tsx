@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 const STATUS_STYLES: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',

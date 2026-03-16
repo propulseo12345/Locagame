@@ -1,4 +1,4 @@
-import type { DaySlot, CartItem } from '../../types';
+import type { DaySlot } from '../../types';
 import type { PricingBreakdown } from '../../utils/pricingRules';
 import type { EventType, TimeSlot, AccessDifficultyType } from '../../services';
 

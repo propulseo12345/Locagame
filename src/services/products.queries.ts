@@ -1,20 +1,25 @@
 import { supabase } from '../lib/supabase';
 import { Product, FilterOptions } from '../types';
 import { normalizeProduct } from './products.normalizers';
+import { logger } from '../lib/logger';
+
+const PRODUCT_SELECT = '*, category:categories!products_category_id_fkey(*), product_categories(category_id, categories(id, name, slug))';
+const PRODUCT_SELECT_CATEGORY_FILTER = '*, category:categories!products_category_id_fkey(*), product_categories!inner(category_id, categories(id, name, slug))';
 
 export class ProductsQueries {
   /**
    * Récupère tous les produits avec filtres optionnels
    */
   static async getProducts(filters?: FilterOptions): Promise<Product[]> {
+    const hasCategory = !!filters?.category;
     let query = supabase
       .from('products')
-      .select('*, category:categories(*)')
+      .select(hasCategory ? PRODUCT_SELECT_CATEGORY_FILTER : PRODUCT_SELECT)
       .eq('is_active', true);
 
-    // Filtres
-    if (filters?.category) {
-      query = query.eq('category_id', filters.category);
+    // Filtre catégorie via product_categories (many-to-many)
+    if (hasCategory) {
+      query = query.eq('product_categories.category_id', filters!.category!);
     }
 
     if (filters?.price_min) {
@@ -49,7 +54,7 @@ export class ProductsQueries {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching products:', error);
+      logger.error('Error fetching products', error);
       throw error;
     }
 
@@ -64,14 +69,14 @@ export class ProductsQueries {
     // 1. Essayer les produits marqués "featured"
     const { data: featured, error: featuredError } = await supabase
       .from('products')
-      .select('*, category:categories(*)')
+      .select(PRODUCT_SELECT)
       .eq('is_active', true)
       .eq('featured', true)
       .order('created_at', { ascending: false })
       .limit(limit);
 
     if (featuredError) {
-      console.error('Error fetching featured products:', featuredError);
+      logger.error('Error fetching featured products', featuredError);
       throw featuredError;
     }
 
@@ -85,7 +90,7 @@ export class ProductsQueries {
 
     let query = supabase
       .from('products')
-      .select('*, category:categories(*)')
+      .select(PRODUCT_SELECT)
       .eq('is_active', true)
       .gt('pricing->oneDay', 0);
 
@@ -98,7 +103,7 @@ export class ProductsQueries {
       .limit(remaining);
 
     if (fallbackError) {
-      console.error('Error fetching fallback featured products:', fallbackError);
+      logger.error('Error fetching fallback featured products', fallbackError);
       throw fallbackError;
     }
 
@@ -113,13 +118,13 @@ export class ProductsQueries {
 
     const { data, error } = await supabase
       .from('products')
-      .select('id, name, images, pricing, category:categories(name)')
+      .select('id, name, images, pricing, category:categories!products_category_id_fkey(name), product_categories(category_id, categories(id, name, slug))')
       .eq('is_active', true)
       .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
       .limit(limit);
 
     if (error) {
-      console.error('Error searching products:', error);
+      logger.error('Error searching products', error);
       throw error;
     }
 
@@ -132,12 +137,12 @@ export class ProductsQueries {
   static async getProductById(id: string): Promise<Product | null> {
     const { data, error } = await supabase
       .from('products')
-      .select('*, category:categories(*)')
+      .select(PRODUCT_SELECT)
       .eq('id', id)
       .single();
 
     if (error) {
-      console.error('Error fetching product:', error);
+      logger.error('Error fetching product', error);
       throw error;
     }
 
@@ -147,15 +152,16 @@ export class ProductsQueries {
   /**
    * Récupère tous les produits avec leurs stocks disponibles en temps réel
    */
-  static async getProductsWithStock(): Promise<any[]> {
+  static async getProductsWithStock(): Promise<unknown[]> {
     const { data, error } = await supabase
+      // @ts-expect-error — view products_with_available_stock not in database.types.ts
       .from('products_with_available_stock')
       .select('*')
       .eq('is_active', true)
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('Error fetching products with stock:', error);
+      logger.error('Error fetching products with stock', error);
       throw error;
     }
 
@@ -163,22 +169,27 @@ export class ProductsQueries {
   }
 
   /**
-   * Récupère le nombre de produits par catégorie (requête légère)
+   * Récupère le nombre de produits par catégorie via la table de liaison
+   * Un produit multi-catégories compte pour chaque catégorie
    */
   static async getProductCountsByCategory(): Promise<Record<string, number>> {
     const { data, error } = await supabase
       .from('products')
-      .select('category_id')
+      .select('id, is_active, product_categories(category_id)')
       .eq('is_active', true);
 
     if (error) {
-      console.error('Error fetching product counts:', error);
+      logger.error('Error fetching product counts', error);
       throw error;
     }
 
     const counts: Record<string, number> = {};
     for (const row of data || []) {
-      counts[row.category_id] = (counts[row.category_id] || 0) + 1;
+      for (const pc of (row as any).product_categories || []) {
+        if (pc.category_id) {
+          counts[pc.category_id] = (counts[pc.category_id] || 0) + 1;
+        }
+      }
     }
     return counts;
   }

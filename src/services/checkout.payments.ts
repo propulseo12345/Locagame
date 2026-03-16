@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export class CheckoutPaymentsService {
   /**
@@ -18,7 +19,7 @@ export class CheckoutPaymentsService {
     });
 
     if (error) {
-      console.error('[CheckoutService] Stripe session error:', error);
+      logger.error('[CheckoutService] Stripe session error', error);
       // Extraire le message d'erreur du body de la réponse si possible
       let errorMessage = 'Erreur lors de la création de la session de paiement';
       try {
@@ -49,7 +50,7 @@ export class CheckoutPaymentsService {
       });
 
       if (error) {
-        console.error('[CheckoutService] check_email_exists error:', error);
+        logger.error('[CheckoutService] check_email_exists error', error);
         // En cas d'erreur, on autorise (fail open pour UX)
         // La RPC gérera le cas si nécessaire
         return false;

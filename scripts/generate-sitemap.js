@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // ─── Config ───────────────────────────────────────────────
-const SITE_URL = 'https://www.locagame.fr';
+const SITE_URL = 'https://www.locagame.net';
 const OUTPUT_PATH = join(__dirname, '..', 'public', 'sitemap.xml');
 
 // Pages statiques avec priorité et fréquence

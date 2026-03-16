@@ -214,7 +214,7 @@ export default function ImportProductsModal({ onClose, onImportComplete }: Impor
           {step === 'report' && (
             <button
               onClick={() => { onImportComplete(); onClose(); }}
-              className="px-6 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
+              className="px-6 py-2 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
             >
               Fermer
             </button>

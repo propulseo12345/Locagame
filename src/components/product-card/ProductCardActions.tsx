@@ -33,18 +33,17 @@ export function ProductCardActions({
         <ShoppingCart className={`w-${isGrid ? '4' : '5'} h-${isGrid ? '4' : '5'}`} />
         {isAddingToCart ? 'Ajout...' : addedToCart ? (isGrid ? 'Ajoute!' : 'Ajoute !') : (isGrid ? 'Ajouter' : 'Ajouter au panier')}
       </button>
-      <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      <span
         className={`flex items-center gap-${isGrid ? '1.5' : '2'} ${
           isGrid ? 'px-3 py-2.5' : 'px-6 py-3'
         } border-2 border-white/20 text-white rounded-xl hover:border-[#33ffcc] hover:bg-white/10 transition-all duration-300 font-semibold ${
           isGrid ? 'text-sm' : ''
-        } group/link ${isGrid ? 'focus:outline-none focus:ring-2 focus:ring-[#33ffcc]' : ''}`}
+        } group/link ${isGrid ? 'focus:outline-none focus:ring-2 focus:ring-[#33ffcc]' : ''} cursor-pointer`}
         aria-label={`Voir les details de ${productName}`}
       >
         {isGrid ? 'Voir' : 'Details'}
         <ArrowRight className={`w-${isGrid ? '4' : '5'} h-${isGrid ? '4' : '5'} group-hover/link:translate-x-1 transition-transform ${isGrid ? 'duration-300' : ''}`} />
-      </button>
+      </span>
     </div>
   );
 }

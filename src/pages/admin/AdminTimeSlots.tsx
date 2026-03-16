@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, Edit2, Plus, Clock } from 'lucide-react';
+import { X, Trash2, Edit2, Plus, Clock, CheckCircle, Layers } from 'lucide-react';
 import { TimeSlotsService, type TimeSlot } from '../../services';
 
 export default function AdminTimeSlots() {
@@ -79,97 +79,240 @@ export default function AdminTimeSlots() {
     return labels[type] || type;
   };
 
+  const totalActive = items.filter(i => i.is_active).length;
+  const deliveryCount = items.filter(i => i.slot_type === 'delivery').length;
+  const pickupCount = items.filter(i => i.slot_type === 'pickup').length;
+  const bothCount = items.filter(i => i.slot_type === 'both').length;
+
+  // Skeleton loading
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-gray-600">Chargement...</div>
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-56 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-40 bg-gray-100 rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-40 bg-gray-200 rounded-lg animate-pulse" />
+        </div>
+
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
+              <div className="h-4 w-20 bg-gray-200 rounded mb-3" />
+              <div className="h-8 w-12 bg-gray-200 rounded mb-1" />
+              <div className="h-3 w-24 bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Table skeleton */}
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="h-10 bg-gray-50 border-b border-gray-200 animate-pulse" />
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0">
+              <div className="h-4 w-8 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+              <div className="h-5 w-20 bg-gray-100 rounded animate-pulse" />
+              <div className="h-5 w-16 bg-gray-100 rounded animate-pulse ml-auto" />
+              <div className="h-6 w-16 bg-gray-100 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Créneaux horaires</h1>
-          <p className="text-gray-600 mt-1">{items.length} créneau(x) configuré(s)</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Créneaux horaires <span className="text-gray-400 font-normal">{items.length}</span>
+          </h1>
+          <p className="text-gray-600 mt-0.5 text-sm">Gérez les créneaux de livraison et de récupération</p>
         </div>
-        <button onClick={() => handleOpenModal()} className="flex items-center gap-2 px-4 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-semibold hover:bg-[#66cccc] transition-colors">
-          <Plus className="w-5 h-5" />Nouveau créneau
+        <button
+          onClick={() => handleOpenModal()}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Nouveau créneau
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Stats bar */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all relative overflow-hidden">
+          <Clock className="absolute top-3 right-3 w-8 h-8 text-gray-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Total</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{items.length}</p>
+          <p className="text-sm text-gray-500 mt-0.5">créneaux configurés</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all relative overflow-hidden">
+          <CheckCircle className="absolute top-3 right-3 w-8 h-8 text-green-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Actifs</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalActive}</p>
+          <p className="text-sm text-gray-500 mt-0.5">créneaux actifs</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-blue-500 hover:shadow-md transition-all relative overflow-hidden">
+          <Layers className="absolute top-3 right-3 w-8 h-8 text-blue-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Répartition</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{bothCount}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{deliveryCount} liv. · {pickupCount} récup. · {bothCount} les deux</p>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Ordre</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Libellé</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Horaires</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Type</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Statut</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-16">Ordre</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Libellé</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Horaires</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Type</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Statut</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {items.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-500">{item.display_order}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#33ffcc]" />
-                    <span className="text-gray-900 font-medium">{item.label}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-sm">{item.start_time} - {item.end_time}</td>
-                <td className="px-4 py-3">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                    {getSlotTypeLabel(item.slot_type)}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {item.is_active ? 'Actif' : 'Inactif'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleOpenModal(item)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"><Edit2 className="w-4 h-4" /></button>
-                    <button onClick={() => setShowDeleteConfirm(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button>
-                  </div>
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-16 text-center">
+                  <Clock className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">Aucun créneau configuré</p>
+                  <button
+                    onClick={() => handleOpenModal()}
+                    className="mt-3 text-sm text-gray-900 underline hover:no-underline"
+                  >
+                    Créer un premier créneau
+                  </button>
                 </td>
               </tr>
-            ))}
+            ) : (
+              items.map((item, index) => (
+                <tr
+                  key={item.id}
+                  className={`hover:bg-gray-100/60 transition-colors ${index % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}
+                >
+                  <td className="px-4 py-3 text-gray-400 text-sm tabular-nums">{item.display_order}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-blue-500 shrink-0" />
+                      <span className="text-gray-900 font-medium text-sm">{item.label}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-sm tabular-nums">
+                    {item.start_time} – {item.end_time}
+                  </td>
+                  <td className="px-4 py-3">
+                    {item.slot_type === 'delivery' && (
+                      <span className="inline-flex items-center ring-1 ring-blue-200 bg-blue-50 text-blue-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Livraison
+                      </span>
+                    )}
+                    {item.slot_type === 'pickup' && (
+                      <span className="inline-flex items-center ring-1 ring-purple-200 bg-purple-50 text-purple-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Récupération
+                      </span>
+                    )}
+                    {item.slot_type === 'both' && (
+                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Les deux
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {item.is_active ? (
+                      <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Actif
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-600 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Inactif
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => handleOpenModal(item)}
+                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(item.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
+      {/* Form modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-bold text-gray-900">{editingItem ? 'Modifier' : 'Nouveau créneau'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Libellé *</label>
-                <input type="text" value={formData.label} onChange={(e) => setFormData({...formData, label: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" placeholder="08:00 - 10:00" required />
+                <input
+                  type="text"
+                  value={formData.label}
+                  onChange={e => setFormData({ ...formData, label: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                  placeholder="08:00 - 10:00"
+                  required
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Heure début *</label>
-                  <input type="time" value={formData.start_time} onChange={(e) => setFormData({...formData, start_time: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" required />
+                  <input
+                    type="time"
+                    value={formData.start_time}
+                    onChange={e => setFormData({ ...formData, start_time: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                    required
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Heure fin *</label>
-                  <input type="time" value={formData.end_time} onChange={(e) => setFormData({...formData, end_time: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" required />
+                  <input
+                    type="time"
+                    value={formData.end_time}
+                    onChange={e => setFormData({ ...formData, end_time: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                    required
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Type de créneau</label>
-                  <select value={formData.slot_type} onChange={(e) => setFormData({...formData, slot_type: e.target.value as any})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent">
+                  <select
+                    value={formData.slot_type}
+                    onChange={e => setFormData({ ...formData, slot_type: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                  >
                     <option value="both">Les deux</option>
                     <option value="delivery">Livraison uniquement</option>
                     <option value="pickup">Récupération uniquement</option>
@@ -177,30 +320,54 @@ export default function AdminTimeSlots() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ordre d'affichage</label>
-                  <input type="number" value={formData.display_order} onChange={(e) => setFormData({...formData, display_order: Number(e.target.value)})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" min="0" />
+                  <input
+                    type="number"
+                    value={formData.display_order}
+                    onChange={e => setFormData({ ...formData, display_order: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                    min="0"
+                  />
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" id="is_active" checked={formData.is_active} onChange={(e) => setFormData({...formData, is_active: e.target.checked})} className="rounded border-gray-300 text-[#33ffcc] focus:ring-[#33ffcc]" />
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
                 <label htmlFor="is_active" className="text-gray-700">Actif</label>
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-                <button type="submit" className="px-4 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-semibold hover:bg-[#66cccc]">{editingItem ? 'Enregistrer' : 'Créer'}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                  Annuler
+                </button>
+                <button type="submit" className="px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800">
+                  {editingItem ? 'Enregistrer' : 'Créer'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* Delete confirm modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer ce créneau ?</h3>
             <p className="text-gray-600 mb-4">Cette action est irréversible.</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Supprimer</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDelete(showDeleteConfirm)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Supprimer
+              </button>
             </div>
           </div>
         </div>

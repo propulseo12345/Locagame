@@ -63,6 +63,7 @@ export async function getUnavailableProductIds(
     // Grouper les indisponibilités par produit
     const productAvailabilities = new Map<string, typeof availabilities>();
     for (const avail of availabilities) {
+      if (!avail.product_id) continue;
       const existing = productAvailabilities.get(avail.product_id) || [];
       existing.push(avail);
       productAvailabilities.set(avail.product_id, existing);

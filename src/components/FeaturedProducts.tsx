@@ -1,14 +1,13 @@
 import { ArrowRight, Heart, Users } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { ProductsService, CategoriesService } from '../services';
 import { Product } from '../types';
 import { formatPrice } from '../utils/pricing';
 import { ScrollReveal } from './ui';
 
 export function FeaturedProducts() {
-  const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +23,7 @@ export function FeaturedProducts() {
     }
   };
 
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, y: 60, scale: 0.95 },
     visible: {
       opacity: 1,

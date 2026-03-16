@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { DeliveryTask, Vehicle } from '../../types';
-import { getCurrentDateISO, getCurrentDate, isToday } from '../../utils/fixedDate';
+import { getCurrentDateISO, getCurrentDate } from '../../utils/fixedDate';
 import { DeliveryService, TechniciansService } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDateStr } from '../../components/technician/tasks/taskConfigs';
+import { logger } from '../../lib/logger';
 
 export function useTechnicianTasks() {
   const { user } = useAuth();
@@ -65,10 +66,10 @@ export function useTechnicianTasks() {
           TechniciansService.getAllVehicles(),
         ]);
         setAllTasks(tasks);
-        setVehicles(vehiclesData);
+        setVehicles(vehiclesData as unknown as Vehicle[]);
       }
     } catch (error) {
-      console.error('Error loading tasks:', error);
+      logger.error('Error loading tasks', error);
     } finally {
       setLoading(false);
     }

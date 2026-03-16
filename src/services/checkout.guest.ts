@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase';
+import type { Json } from '../lib/database.types';
 import type { CheckoutPayload, CheckoutResult } from './checkout.types';
+import { logger } from '../lib/logger';
 
 export class CheckoutGuest {
   /**
@@ -9,11 +11,11 @@ export class CheckoutGuest {
   static async createGuestCheckout(payload: CheckoutPayload): Promise<CheckoutResult> {
     try {
       const { data, error } = await supabase.rpc('create_guest_checkout', {
-        payload: payload as unknown as Record<string, unknown>
+        payload: payload as unknown as Json
       });
 
       if (error) {
-        console.error('[CheckoutService] RPC error:', error);
+        logger.error('[CheckoutService] RPC error', error);
         return {
           success: false,
           error: error.message || 'Erreur lors de la création de la réservation'
@@ -21,7 +23,7 @@ export class CheckoutGuest {
       }
 
       // La RPC retourne un JSONB avec les infos de la réservation
-      const result = data as CheckoutResult;
+      const result = data as unknown as CheckoutResult;
 
       if (!result.success) {
         return {
@@ -32,7 +34,7 @@ export class CheckoutGuest {
 
       return result;
     } catch (error) {
-      console.error('[CheckoutService] Exception:', error);
+      logger.error('[CheckoutService] Exception', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Erreur inattendue'

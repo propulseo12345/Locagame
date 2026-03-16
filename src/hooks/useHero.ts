@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { CategoriesService } from '../services';
 import { Category } from '../types';
 import { useCart } from '../contexts/CartContext';
+import { toLocalISODate } from '../utils/dateHolidays';
 import { useDebounce } from './useDebounce';
 import { useProductSearch } from './useProductSearch';
 import { heroImages, calculateDays } from '../components/hero/constants';
+import { logger } from '../lib/logger';
 
 export function useHero() {
   const navigate = useNavigate();
@@ -34,7 +36,7 @@ export function useHero() {
   const debouncedQuery = useDebounce(searchQuery, 300);
   const { suggestions, isSearching } = useProductSearch(debouncedQuery);
 
-  const getTodayString = useCallback(() => new Date().toISOString().split('T')[0], []);
+  const getTodayString = useCallback(() => toLocalISODate(new Date()), []);
 
   // Diaporama
   useEffect(() => {
@@ -48,7 +50,7 @@ export function useHero() {
   useEffect(() => {
     CategoriesService.getCategories()
       .then(setCategories)
-      .catch((error) => console.error('Error loading categories:', error));
+      .catch((error) => logger.error('Error loading categories', error));
   }, []);
 
   useEffect(() => {

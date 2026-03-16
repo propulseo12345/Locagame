@@ -65,8 +65,8 @@ export default function CatalogPage() {
 
   return (
     <>
-      <SEO title={pageTitle} description={`Découvrez notre catalogue de ${products.length}+ jeux à louer pour vos événements : jeux de bar, casino, jeux en bois, bornes arcade et plus. Livraison en région PACA.`} keywords="location jeux, catalogue jeux, jeux événement, baby-foot location, poker location, borne arcade, jeux bois, Marseille, PACA" url="https://www.locagame.fr/catalogue" />
-      <BreadcrumbSchema items={[{ name: 'Accueil', url: 'https://www.locagame.fr' }, { name: 'Catalogue', url: 'https://www.locagame.fr/catalogue' }]} />
+      <SEO title={pageTitle} description={`Découvrez notre catalogue de ${products.length}+ jeux à louer pour vos événements : jeux de bar, casino, jeux en bois, bornes arcade et plus. Livraison en région PACA.`} keywords="location jeux, catalogue jeux, jeux événement, baby-foot location, poker location, borne arcade, jeux bois, Marseille, PACA" url="https://www.locagame.net/catalogue" />
+      <BreadcrumbSchema items={[{ name: 'Accueil', url: 'https://www.locagame.net' }, { name: 'Catalogue', url: 'https://www.locagame.net/catalogue' }]} />
       <div className="min-h-screen bg-gradient-to-b from-[#000033] via-[#000033] to-[#001144] pt-header">
         <CatalogHeroSection productsCount={products.length} searchTerm={search.searchTerm} setSearchTerm={search.setSearchTerm} startDate={search.startDate} endDate={search.endDate} handleStartDateChange={search.handleStartDateChange} handleEndDateChange={search.handleEndDateChange} clearDates={search.clearDates} handleSearchSubmit={search.handleSearchSubmit} getTodayString={search.getTodayString} checkingAvailability={checkingAvailability} availabilityError={availabilityError} searchParams={search.searchParams} setSearchParams={search.setSearchParams} />
         <CatalogCategoriesBar categoriesWithCount={categoriesWithCount} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} handleCategoryClick={handleCategoryClick} totalProductsCount={products.length} />

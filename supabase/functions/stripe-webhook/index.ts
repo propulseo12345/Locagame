@@ -3,8 +3,11 @@ import Stripe from "https://esm.sh/stripe@17.7.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { reservationConfirmationTemplate } from "../_shared/email-templates.ts";
 
+// CORS restreint — les webhooks Stripe sont server-to-server (pas affectés par CORS)
+const ALLOWED_ORIGIN = Deno.env.get("SITE_URL") || "https://www.locagame.net";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, stripe-signature",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -66,7 +69,7 @@ async function sendConfirmationEmail(
       })
     ),
     totalAmount: reservation.total_amount || 0,
-    reservationUrl: `https://locagame.fr/client/reservations/${reservation.id}`,
+    reservationUrl: `https://www.locagame.net/client/reservations/${reservation.id}`,
   });
 
   try {

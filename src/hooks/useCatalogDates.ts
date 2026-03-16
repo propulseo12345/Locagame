@@ -3,7 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { Product } from '../types';
 import { useCart } from '../contexts/CartContext';
 import { useDebounce } from './useDebounce';
+import { toLocalISODate } from '../utils/dateHolidays';
 import { getUnavailableProductIds } from '../utils/availability';
+import { logger } from '../lib/logger';
 
 interface UseCatalogDatesReturn {
   startDate: string;
@@ -37,7 +39,7 @@ export function useCatalogDates(products: Product[]): UseCatalogDatesReturn {
   const debouncedEndDate = useDebounce(endDate, 300);
 
   const getTodayString = useCallback(() => {
-    return new Date().toISOString().split('T')[0];
+    return toLocalISODate(new Date());
   }, []);
 
   const validateAndCorrectDates = useCallback((from: string, to: string): { from: string; to: string } => {
@@ -154,7 +156,7 @@ export function useCatalogDates(products: Product[]): UseCatalogDatesReturn {
           }
         }
       } catch (error) {
-        console.error('Error checking availabilities:', error);
+        logger.error('Error checking availabilities', error);
         if (!cancelled) {
           setUnavailableProductIds(new Set());
           setAvailabilityError('Impossible de verifier la disponibilite. Contactez-nous via le formulaire de contact.');

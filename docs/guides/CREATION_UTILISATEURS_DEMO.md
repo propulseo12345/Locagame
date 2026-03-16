@@ -25,7 +25,7 @@ Créer 3 comptes de démonstration pour tester :
 2. **Créer le premier utilisateur (Admin)**
    - Cliquer sur **"Add User"** > **"Create new user"**
    - Remplir :
-     - **Email** : `admin@locagame.fr`
+     - **Email** : `admin@locagame.net`
      - **Password** : `admin123`
      - **Auto Confirm User** : ✅ **Cocher cette case**
    - Cliquer sur **"Create user"**
@@ -41,7 +41,7 @@ Créer 3 comptes de démonstration pour tester :
 4. **Créer le troisième utilisateur (Technicien)**
    - Cliquer sur **"Add User"** > **"Create new user"**
    - Remplir :
-     - **Email** : `technicien@locagame.fr`
+     - **Email** : `technicien@locagame.net`
      - **Password** : `tech123`
      - **Auto Confirm User** : ✅ **Cocher cette case**
    - Cliquer sur **"Create user"**
@@ -83,9 +83,9 @@ SELECT
   created_at
 FROM auth.users
 WHERE email IN (
-  'admin@locagame.fr',
+  'admin@locagame.net',
   'client@exemple.fr',
-  'technicien@locagame.fr'
+  'technicien@locagame.net'
 )
 ORDER BY email;
 ```
@@ -105,7 +105,7 @@ SELECT
   au.is_active
 FROM admin_users au
 LEFT JOIN customers c ON c.id = au.user_id
-WHERE c.email = 'admin@locagame.fr'
+WHERE c.email = 'admin@locagame.net'
 
 UNION ALL
 
@@ -129,7 +129,7 @@ SELECT
   'technician' as role,
   t.is_active
 FROM technicians t
-WHERE t.email = 'technicien@locagame.fr';
+WHERE t.email = 'technicien@locagame.net';
 ```
 
 **Résultat attendu** : 3 lignes (une pour chaque type)
@@ -158,9 +158,9 @@ WHERE t.email = 'technicien@locagame.fr';
 
 | Rôle | Email | Password | Interface |
 |------|-------|----------|-----------|
-| 🔧 **Administrateur** | `admin@locagame.fr` | `admin123` | `/admin/dashboard` |
+| 🔧 **Administrateur** | `admin@locagame.net` | `admin123` | `/admin/dashboard` |
 | 👤 **Client** | `client@exemple.fr` | `client123` | `/client/dashboard` |
-| 🚚 **Technicien** | `technicien@locagame.fr` | `tech123` | `/technician/dashboard` |
+| 🚚 **Technicien** | `technicien@locagame.net` | `tech123` | `/technician/dashboard` |
 
 ---
 

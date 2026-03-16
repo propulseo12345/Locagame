@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { DaySlot } from '../../types';
+import { logger } from '../../lib/logger';
 import {
   EventTypesService,
   TimeSlotsService,
@@ -120,7 +121,7 @@ export function useCheckoutForm(): CheckoutFormReturn {
         setTimeSlots(slots);
         setAccessDifficulties(difficulties);
       } catch (error) {
-        console.error('Failed to load checkout data:', error);
+        logger.error('Failed to load checkout data', error);
       }
     }
     fetchLookupData();

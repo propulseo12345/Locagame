@@ -13,6 +13,7 @@ export default function DeleteCustomerModal({ customer, onClose, onDeleted }: De
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
+    if (!customer.id) return;
     try {
       setDeleting(true);
       await CustomersService.forceDeleteCustomer(customer.id);

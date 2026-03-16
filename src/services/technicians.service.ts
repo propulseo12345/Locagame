@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface Technician {
   id: string;
@@ -39,7 +40,7 @@ export class TechniciansService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error fetching technician:', error);
+      logger.error('Error fetching technician', error);
       throw error;
     }
 
@@ -60,7 +61,7 @@ export class TechniciansService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error fetching technician:', error);
+      logger.error('Error fetching technician', error);
       throw error;
     }
 
@@ -83,7 +84,7 @@ export class TechniciansService {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching technicians:', error);
+      logger.error('Error fetching technicians', error);
       throw error;
     }
 
@@ -105,7 +106,7 @@ export class TechniciansService {
       .single();
 
     if (error) {
-      console.error('Error updating technician:', error);
+      logger.error('Error updating technician', error);
       throw error;
     }
 
@@ -123,7 +124,7 @@ export class TechniciansService {
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('Error fetching vehicles:', error);
+      logger.error('Error fetching vehicles', error);
       throw error;
     }
 
@@ -144,7 +145,7 @@ export class TechniciansService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error fetching vehicle:', error);
+      logger.error('Error fetching vehicle', error);
       throw error;
     }
 

@@ -20,7 +20,7 @@ export default function EventSidebar({ event }: EventSidebarProps) {
               <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                 <span className="text-gray-400 text-sm">Date</span>
                 <span className="font-bold text-[#33ffcc]">
-                  {new Date(event.event_date).toLocaleDateString('fr-FR')}
+                  {new Date(event.event_date + 'T00:00:00').toLocaleDateString('fr-FR')}
                 </span>
               </div>
             )}

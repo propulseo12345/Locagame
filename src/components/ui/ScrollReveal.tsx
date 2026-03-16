@@ -105,8 +105,8 @@ interface StaggerContainerProps {
 export function StaggerContainer({
   children,
   staggerDelay = 0.1,
-  animation = 'fadeUp',
-  duration = 0.5,
+  animation: _animation = 'fadeUp',
+  duration: _duration = 0.5,
   once = true,
   threshold = 0.2,
   className = ''

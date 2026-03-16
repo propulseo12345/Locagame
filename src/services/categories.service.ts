@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface Category {
   id: string;
@@ -21,7 +22,7 @@ export class CategoriesService {
       .order('display_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching categories:', error);
+      logger.error('Error fetching categories', error);
       throw error;
     }
 
@@ -42,7 +43,7 @@ export class CategoriesService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error fetching category:', error);
+      logger.error('Error fetching category', error);
       throw error;
     }
 
@@ -63,7 +64,7 @@ export class CategoriesService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error fetching category:', error);
+      logger.error('Error fetching category', error);
       throw error;
     }
 
@@ -81,7 +82,7 @@ export class CategoriesService {
       .single();
 
     if (error) {
-      console.error('Error creating category:', error);
+      logger.error('Error creating category', error);
       throw error;
     }
 
@@ -100,11 +101,46 @@ export class CategoriesService {
       .single();
 
     if (error) {
-      console.error('Error updating category:', error);
+      logger.error('Error updating category', error);
       throw error;
     }
 
     return data as Category;
+  }
+
+  /**
+   * Retourne un objet permettant de résoudre un nom/slug de catégorie en UUID
+   * et de lister les slugs valides (pour la validation à l'import)
+   */
+  static async getCategoriesMap(): Promise<{
+    resolve: (nameOrSlug: string) => string | null;
+    slugs: string[];
+  }> {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, slug');
+
+    if (error) {
+      logger.error('Error fetching categories map', error);
+      throw error;
+    }
+
+    const categories = data as Array<{ id: string; name: string; slug: string }>;
+    const byName = new Map<string, string>();
+    const bySlug = new Map<string, string>();
+
+    for (const cat of categories) {
+      byName.set(cat.name.toLowerCase(), cat.id);
+      bySlug.set(cat.slug.toLowerCase(), cat.id);
+    }
+
+    return {
+      resolve: (nameOrSlug: string) => {
+        const key = nameOrSlug.toLowerCase();
+        return byName.get(key) ?? bySlug.get(key) ?? null;
+      },
+      slugs: categories.map(c => c.slug),
+    };
   }
 
   /**
@@ -114,7 +150,7 @@ export class CategoriesService {
     const { error } = await supabase.from('categories').delete().eq('id', id);
 
     if (error) {
-      console.error('Error deleting category:', error);
+      logger.error('Error deleting category', error);
       throw error;
     }
   }

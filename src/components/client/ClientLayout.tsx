@@ -11,7 +11,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [_mobileMenuOpen, _setMobileMenuOpen] = useState(false);
 
   const menuItems = [
     { label: 'Tableau de bord', href: '/client/dashboard', icon: LayoutDashboard },

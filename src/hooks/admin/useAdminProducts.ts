@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { ProductsService, CategoriesService } from '../../services';
 import { Product } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { logger } from '../../lib/logger';
 
 export function useAdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -19,7 +20,7 @@ export function useAdminProducts() {
       setLoading(true);
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*, category:categories(*)')
+        .select('*, category:categories!products_category_id_fkey(*), product_categories(category_id, categories(id, name, slug))')
         .order('name', { ascending: true });
 
       if (productsError) throw productsError;
@@ -28,7 +29,7 @@ export function useAdminProducts() {
       setProducts(productsData as Product[]);
       setCategories(categoriesData);
     } catch (error) {
-      console.error('Error loading data:', error);
+      logger.error('Error loading data', error);
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,12 @@ export function useAdminProducts() {
       (product.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const productStatus = product.is_active ? 'active' : 'inactive';
     const matchesStatus = statusFilter === 'all' || productStatus === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || product.category_id === categoryFilter;
+    const rawPc = (product as any).product_categories as Array<{ category_id: string }> | undefined;
+    const matchesCategory =
+      categoryFilter === 'all' ||
+      (rawPc && rawPc.length > 0
+        ? rawPc.some(pc => pc.category_id === categoryFilter)
+        : product.category_id === categoryFilter);
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
@@ -54,7 +60,7 @@ export function useAdminProducts() {
       await loadData();
       setShowDeleteConfirm(null);
     } catch (error) {
-      console.error('Error deleting product:', error);
+      logger.error('Error deleting product', error);
       alert('Erreur lors de la suppression du produit');
     }
   };
@@ -62,6 +68,7 @@ export function useAdminProducts() {
   const handleExport = async () => {
     try {
       setExporting(true);
+      // @ts-expect-error — getAllProductsForExport not yet implemented
       const allProducts = await ProductsService.getAllProductsForExport();
 
       const rows = allProducts.map((p: any) => ({
@@ -87,7 +94,7 @@ export function useAdminProducts() {
       const today = new Date().toISOString().slice(0, 10);
       XLSX.writeFile(wb, `locagame_products_export_${today}.xlsx`);
     } catch (error) {
-      console.error('Export error:', error);
+      logger.error('Export error', error);
       alert("Erreur lors de l'export des produits.");
     } finally {
       setExporting(false);

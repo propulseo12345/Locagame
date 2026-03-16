@@ -1,5 +1,6 @@
 import type { DeliveryTask } from '../../../types';
 import type { Technician } from '../../../services/technicians.service';
+import { toLocalISODate } from '../../../utils/dateHolidays';
 
 interface PlanningMonthViewProps {
   calendarDays: Array<{ date: Date | null; tasks: DeliveryTask[] }>;
@@ -34,8 +35,8 @@ export default function PlanningMonthView({
             return <div key={index} className="aspect-square"></div>;
           }
 
-          const dateStr = dayData.date.toISOString().split('T')[0];
-          const isToday = dateStr === new Date().toISOString().split('T')[0];
+          const dateStr = toLocalISODate(dayData.date);
+          const isToday = dateStr === toLocalISODate(new Date());
           const isSelected = dateStr === selectedDate;
           const tasks = dayData.tasks;
 

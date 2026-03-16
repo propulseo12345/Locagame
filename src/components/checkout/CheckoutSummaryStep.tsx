@@ -6,7 +6,7 @@ import {
   Shield,
   Lock,
 } from 'lucide-react';
-import { formatPrice } from '../../utils/pricing';
+import { formatPrice, calculateDeposit } from '../../utils/pricing';
 import { PRICE_PER_KM } from '../../services/distance.service';
 import type { PricingBreakdown } from '../../utils/pricingRules';
 import type { CartItem } from '../../types';
@@ -71,10 +71,10 @@ export function CheckoutSummaryStep({
             <div className="flex-1 min-w-0">
               <p className="text-white font-medium truncate">{item.product.name}</p>
               <p className="text-gray-500 text-sm">
-                {new Date(item.start_date).toLocaleDateString('fr-FR')} &rarr; {new Date(item.end_date).toLocaleDateString('fr-FR')}
+                {new Date(item.start_date + 'T00:00:00').toLocaleDateString('fr-FR')} &rarr; {new Date(item.end_date + 'T00:00:00').toLocaleDateString('fr-FR')}
               </p>
             </div>
-            <p className="text-white font-bold">{formatPrice(item.total_price)}</p>
+            <p className="text-white font-bold">{formatPrice(pricingBreakdowns[index]?.productSubtotal ?? item.total_price)}</p>
           </div>
         ))}
       </div>
@@ -142,6 +142,14 @@ export function CheckoutSummaryStep({
             <span className="text-white font-semibold">Total</span>
             <span className="text-2xl font-bold text-[#33ffcc]">{formatPrice(finalTotal)}</span>
           </div>
+        </div>
+
+        <div className="flex justify-between items-center pt-2">
+          <span className="text-gray-500 text-sm flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5" />
+            Caution (remboursee en fin de location)
+          </span>
+          <span className="text-gray-400 font-medium">{formatPrice(calculateDeposit(productsSubtotal))}</span>
         </div>
 
         <p className="text-gray-500 text-xs">* Paiement securise par Stripe. Vous recevrez une confirmation par email.</p>

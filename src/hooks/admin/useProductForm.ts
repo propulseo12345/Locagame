@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { ProductsService } from '../../services';
 import { Product } from '../../types';
+import { logger } from '../../lib/logger';
 
 export interface ProductFormData {
   name: string;
   slug: string;
-  category_id: string;
+  category_ids: string[];
   description: string;
   images: string[];
   pricing: { oneDay: number; weekend: number; week: number };
   specifications: {
-    dimensions: { length: number; width: number; height: number };
+    dimensions: string;
     weight: number;
     players: { min: number; max: number };
     power_requirements: string;
@@ -28,12 +29,12 @@ export interface ProductFormData {
 const EMPTY_FORM: ProductFormData = {
   name: '',
   slug: '',
-  category_id: '',
+  category_ids: [],
   description: '',
   images: [],
   pricing: { oneDay: 0, weekend: 0, week: 0 },
   specifications: {
-    dimensions: { length: 0, width: 0, height: 0 },
+    dimensions: '',
     weight: 0,
     players: { min: 1, max: 1 },
     power_requirements: '',
@@ -59,10 +60,22 @@ export function useProductForm(onSuccess: () => void) {
       setEditingProduct(product);
       const pricing = product.pricing || {};
       const specs = product.specifications || {};
+
+      // Extraire les category_ids depuis product_categories (many-to-many)
+      // avec fallback sur category_id (legacy)
+      let categoryIds: string[] = [];
+      if (product.product_categories && product.product_categories.length > 0) {
+        categoryIds = product.product_categories.map(pc => pc.category_id);
+      } else if (product.categories && product.categories.length > 0) {
+        categoryIds = product.categories.map(c => c.id);
+      } else if (product.category_id) {
+        categoryIds = [product.category_id];
+      }
+
       setFormData({
         name: product.name || '',
         slug: product.slug || '',
-        category_id: product.category_id || '',
+        category_ids: categoryIds,
         description: product.description || '',
         images: product.images || [],
         pricing: {
@@ -71,7 +84,7 @@ export function useProductForm(onSuccess: () => void) {
           week: pricing.week || 0,
         },
         specifications: {
-          dimensions: specs.dimensions || { length: 0, width: 0, height: 0 },
+          dimensions: typeof specs.dimensions === 'string' ? specs.dimensions : '',
           weight: specs.weight || 0,
           players: specs.players || { min: 1, max: 1 },
           power_requirements: specs.power_requirements || '',
@@ -118,10 +131,13 @@ export function useProductForm(onSuccess: () => void) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // category_id = première catégorie sélectionnée (rétrocompat)
+      const primaryCategoryId = formData.category_ids[0] || null;
+
       const productData = {
         name: formData.name,
         slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-        category_id: formData.category_id || null,
+        category_id: primaryCategoryId,
         description: formData.description,
         images: formData.images,
         pricing: formData.pricing,
@@ -135,15 +151,22 @@ export function useProductForm(onSuccess: () => void) {
         pickup_people_count: formData.pickup_people_count,
       };
 
+      let productId: string;
       if (editingProduct) {
         await ProductsService.updateProduct(editingProduct.id, productData as any);
+        productId = editingProduct.id;
       } else {
-        await ProductsService.createProduct(productData as any);
+        const created = await ProductsService.createProduct(productData as any);
+        productId = created.id;
       }
+
+      // Synchronise la table de liaison many-to-many
+      await ProductsService.setProductCategories(productId, formData.category_ids);
+
       onSuccess();
       closeModal();
     } catch (error) {
-      console.error('Error saving product:', error);
+      logger.error('Error saving product', error);
       alert("Erreur lors de l'enregistrement du produit");
     }
   };

@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase';
+import type { Json } from '../lib/database.types';
+import { logger } from '../lib/logger';
 
 export class ReservationsCreation {
   /**
@@ -94,8 +96,8 @@ export class ReservationsCreation {
           status: 'pending_payment',
           payment_status: 'unpaid',
           // Nouveaux champs
-          recipient_data: orderData.recipient_data,
-          event_details: orderData.event_details,
+          recipient_data: (orderData.recipient_data ?? null) as unknown as Json,
+          event_details: (orderData.event_details ?? null) as unknown as Json,
           cgv_accepted: orderData.cgv_accepted ?? false,
           newsletter_accepted: orderData.newsletter_accepted ?? false,
           // Champs de facturation
@@ -112,13 +114,13 @@ export class ReservationsCreation {
           end_slot: orderData.end_slot ?? 'AM',
           delivery_is_mandatory: orderData.delivery_is_mandatory ?? false,
           pickup_is_mandatory: orderData.pickup_is_mandatory ?? false,
-          pricing_breakdown: orderData.pricing_breakdown,
+          pricing_breakdown: (orderData.pricing_breakdown ?? null) as unknown as Json,
         })
         .select('*')
         .single();
 
       if (reservationError) {
-        console.error('Error creating reservation:', reservationError);
+        logger.error('Error creating reservation', reservationError);
         throw reservationError;
       }
 
@@ -139,7 +141,7 @@ export class ReservationsCreation {
         .insert(itemsToInsert);
 
       if (itemsError) {
-        console.error('Error creating reservation items:', itemsError);
+        logger.error('Error creating reservation items', itemsError);
         // Rollback: supprimer la réservation si les items échouent
         await supabase.from('reservations').delete().eq('id', reservation.id);
         throw itemsError;
@@ -177,9 +179,9 @@ export class ReservationsCreation {
             scheduled_date: orderData.start_date,
             scheduled_time: orderData.delivery_time || '09:00',
             status: 'scheduled',
-            customer_data: customer,
-            address_data: address,
-            products_data: products,
+            customer_data: customer as unknown as Json,
+            address_data: address as unknown as Json,
+            products_data: products as unknown as Json,
           });
 
           // Créer la tâche de RETOUR/RÉCUPÉRATION (end_date)
@@ -190,9 +192,9 @@ export class ReservationsCreation {
             scheduled_date: orderData.end_date,
             scheduled_time: orderData.delivery_time || '09:00',
             status: 'scheduled',
-            customer_data: customer,
-            address_data: address,
-            products_data: products,
+            customer_data: customer as unknown as Json,
+            address_data: address as unknown as Json,
+            products_data: products as unknown as Json,
           });
         } else if (orderData.delivery_type === 'pickup') {
           // MODE PICKUP: tâches client_pickup + client_return à l'entrepôt
@@ -210,9 +212,9 @@ export class ReservationsCreation {
             scheduled_date: orderData.start_date,
             scheduled_time: orderData.pickup_time || '09:00',
             status: 'scheduled',
-            customer_data: customer,
-            address_data: warehouseAddress,
-            products_data: products,
+            customer_data: customer as unknown as Json,
+            address_data: warehouseAddress as unknown as Json,
+            products_data: products as unknown as Json,
             notes: 'Retrait client à l\'entrepôt',
           });
 
@@ -224,14 +226,14 @@ export class ReservationsCreation {
             scheduled_date: orderData.end_date,
             scheduled_time: orderData.return_time || '09:00',
             status: 'scheduled',
-            customer_data: customer,
-            address_data: warehouseAddress,
-            products_data: products,
+            customer_data: customer as unknown as Json,
+            address_data: warehouseAddress as unknown as Json,
+            products_data: products as unknown as Json,
             notes: 'Retour client à l\'entrepôt',
           });
         }
       } catch (taskError) {
-        console.error('⚠️ Erreur création tâche (non-bloquant):', taskError);
+        logger.error('Erreur création tâche (non-bloquant)', taskError);
         // Non-bloquant: la réservation est déjà créée
       }
 
@@ -245,7 +247,7 @@ export class ReservationsCreation {
       return fullReservation;
 
     } catch (error) {
-      console.error('Error in createReservation:', error);
+      logger.error('Error in createReservation', error);
       throw error;
     }
   }

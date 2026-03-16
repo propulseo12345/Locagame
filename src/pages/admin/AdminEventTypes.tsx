@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, Edit2, Plus, Calendar } from 'lucide-react';
+import { X, Trash2, Edit2, Plus, Calendar, CheckCircle } from 'lucide-react';
 import { EventTypesService, type EventType } from '../../services';
 
 export default function AdminEventTypes() {
@@ -74,120 +74,249 @@ export default function AdminEventTypes() {
     }
   };
 
+  const totalActive = items.filter(i => i.is_active).length;
+
+  // Skeleton loading
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-gray-600">Chargement...</div>
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-56 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-40 bg-gray-100 rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-36 bg-gray-200 rounded-lg animate-pulse" />
+        </div>
+
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-2 gap-4">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
+              <div className="h-4 w-20 bg-gray-200 rounded mb-3" />
+              <div className="h-8 w-12 bg-gray-200 rounded mb-1" />
+              <div className="h-3 w-24 bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Table skeleton */}
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="h-10 bg-gray-50 border-b border-gray-200 animate-pulse" />
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0">
+              <div className="h-4 w-8 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-40 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 flex-1 bg-gray-100 rounded animate-pulse" />
+              <div className="h-5 w-16 bg-gray-100 rounded animate-pulse" />
+              <div className="h-6 w-16 bg-gray-100 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Types d'événements</h1>
-          <p className="text-gray-600 mt-1">{items.length} type(s) configuré(s)</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Types d'événements <span className="text-gray-400 font-normal">{items.length}</span>
+          </h1>
+          <p className="text-gray-600 mt-0.5 text-sm">Gérez les catégories d'événements disponibles</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-semibold hover:bg-[#66cccc] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           Nouveau type
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Stats bar */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all relative overflow-hidden">
+          <Calendar className="absolute top-3 right-3 w-8 h-8 text-gray-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Total</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{items.length}</p>
+          <p className="text-sm text-gray-500 mt-0.5">types d'événements</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all relative overflow-hidden">
+          <CheckCircle className="absolute top-3 right-3 w-8 h-8 text-green-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Actifs</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalActive}</p>
+          <p className="text-sm text-gray-500 mt-0.5">visibles sur le site</p>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Ordre</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Nom</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Description</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Statut</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-16">Ordre</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Nom</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Description</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Statut</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {items.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-500">{item.display_order}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#33ffcc]" />
-                    <span className="text-gray-900 font-medium">{item.name}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-sm">{item.description || '-'}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {item.is_active ? 'Actif' : 'Inactif'}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleOpenModal(item)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded">
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setShowDeleteConfirm(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-16 text-center">
+                  <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">Aucun type d'événement configuré</p>
+                  <button
+                    onClick={() => handleOpenModal()}
+                    className="mt-3 text-sm text-gray-900 underline hover:no-underline"
+                  >
+                    Créer un premier type
+                  </button>
                 </td>
               </tr>
-            ))}
+            ) : (
+              items.map((item, index) => (
+                <tr
+                  key={item.id}
+                  className={`hover:bg-gray-100/60 transition-colors ${index % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}
+                >
+                  <td className="px-4 py-3 text-gray-400 text-sm tabular-nums">{item.display_order}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-500 shrink-0" />
+                      <span className="text-gray-900 font-medium text-sm">{item.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-sm">{item.description || '—'}</td>
+                  <td className="px-4 py-3">
+                    {item.is_active ? (
+                      <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Actif
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Inactif
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => handleOpenModal(item)}
+                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(item.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
+      {/* Form modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-bold text-gray-900">{editingItem ? 'Modifier le type' : 'Nouveau type'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" required />
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent resize-none" rows={2} />
+                <textarea
+                  value={formData.description}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 resize-none"
+                  rows={2}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Icône (lucide)</label>
-                  <input type="text" value={formData.icon} onChange={(e) => setFormData({...formData, icon: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" placeholder="heart, cake, briefcase..." />
+                  <input
+                    type="text"
+                    value={formData.icon}
+                    onChange={e => setFormData({ ...formData, icon: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                    placeholder="heart, cake, briefcase..."
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ordre d'affichage</label>
-                  <input type="number" value={formData.display_order} onChange={(e) => setFormData({...formData, display_order: Number(e.target.value)})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" min="0" />
+                  <input
+                    type="number"
+                    value={formData.display_order}
+                    onChange={e => setFormData({ ...formData, display_order: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                    min="0"
+                  />
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" id="is_active" checked={formData.is_active} onChange={(e) => setFormData({...formData, is_active: e.target.checked})} className="rounded border-gray-300 text-[#33ffcc] focus:ring-[#33ffcc]" />
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
                 <label htmlFor="is_active" className="text-gray-700">Actif</label>
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-                <button type="submit" className="px-4 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-semibold hover:bg-[#66cccc]">{editingItem ? 'Enregistrer' : 'Créer'}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                  Annuler
+                </button>
+                <button type="submit" className="px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800">
+                  {editingItem ? 'Enregistrer' : 'Créer'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* Delete confirm modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer ce type ?</h3>
             <p className="text-gray-600 mb-4">Cette action est irréversible.</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Supprimer</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDelete(showDeleteConfirm)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Supprimer
+              </button>
             </div>
           </div>
         </div>

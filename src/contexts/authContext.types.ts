@@ -13,7 +13,7 @@ export interface SignUpResult {
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User>;
   signUp: (email: string, password: string, metadata: SignUpMetadata) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;

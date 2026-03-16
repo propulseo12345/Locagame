@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Product, PriceCalculation } from '../types';
+import { calculateDurationDays } from '../utils/pricing';
+import { calculatePricingBreakdown } from '../utils/pricingRulesEngine';
 import { PRICE_PER_KM, estimateDistance, calculateHaversineDistance } from './price-calculator/constants';
 import { DeliveryModeSelector } from './price-calculator/DeliveryModeSelector';
 import { DeliveryForm } from './price-calculator/DeliveryForm';
@@ -25,20 +27,23 @@ export default function PriceCalculator({
   const [geoError, setGeoError] = useState('');
 
   const durationDays = startDate && endDate
-    ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
+    ? calculateDurationDays(startDate, endDate)
     : 1;
 
-  const getProductPrice = () => {
-    const { pricing } = product;
-    if (durationDays === 1) return pricing.oneDay;
-    if (durationDays >= 2 && durationDays <= 3) return pricing.weekend;
-    if (durationDays >= 4 && durationDays <= 7) return pricing.week;
-    return pricing.custom * durationDays;
-  };
+  // Calcul via le vrai moteur de pricing (paliers, coefficient, forfait WE…)
+  const breakdown = useMemo(() => {
+    if (!startDate || !endDate) return null;
+    return calculatePricingBreakdown({
+      product,
+      startDate,
+      endDate,
+      quantity,
+    });
+  }, [product, startDate, endDate, quantity]);
 
-  const productPrice = getProductPrice() * quantity;
+  const productPrice = breakdown?.productSubtotal ?? 0;
   const deliveryFee = deliveryMode === 'delivery' && distance ? Math.round(distance * PRICE_PER_KM * 100) / 100 : 0;
-  const totalPrice = productPrice + deliveryFee;
+  const totalPrice = productPrice + deliveryFee + (breakdown?.surchargesTotal ?? 0);
 
   // Calculer la distance quand le code postal change
   useEffect(() => {
@@ -51,7 +56,7 @@ export default function PriceCalculator({
 
   // Mettre a jour le prix parent
   useEffect(() => {
-    if (startDate && endDate) {
+    if (startDate && endDate && breakdown) {
       const calculation: PriceCalculation = {
         product_price: productPrice,
         delivery_fee: deliveryFee,
@@ -107,7 +112,7 @@ export default function PriceCalculator({
     );
   };
 
-  if (!startDate || !endDate) return null;
+  if (!startDate || !endDate || !breakdown) return null;
 
   return (
     <div className="space-y-5">
@@ -137,6 +142,7 @@ export default function PriceCalculator({
         deliveryFee={deliveryFee}
         totalPrice={totalPrice}
         distance={distance}
+        breakdown={breakdown}
       />
     </div>
   );

@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { Package, Truck } from 'lucide-react';
+import { isWeekendOrHoliday } from '../../utils/dateHolidays';
 import type { CartItem } from '../../types';
 import type {
   DeliveryState,
@@ -43,7 +45,7 @@ interface CheckoutDeliveryStepProps {
 
 export function CheckoutDeliveryStep({
   isPickup,
-  selectedDeliveryMode,
+  selectedDeliveryMode: _selectedDeliveryMode,
   setSelectedDeliveryMode,
   delivery,
   setDelivery,
@@ -68,6 +70,26 @@ export function CheckoutDeliveryStep({
 }: CheckoutDeliveryStepProps) {
   const startDate = cartItems[0]?.start_date || '';
   const endDate = cartItems[0]?.end_date || '';
+
+  // Pré-remplir les dates de livraison/reprise depuis le panier
+  useEffect(() => {
+    if (!startDate || !endDate) return;
+    const needsUpdate = !delivery.date || !delivery.pickupDate;
+    if (!needsUpdate) return;
+
+    const newDelivery = { ...delivery };
+    if (!delivery.date) newDelivery.date = startDate;
+    if (!delivery.pickupDate) newDelivery.pickupDate = endDate;
+    setDelivery(newDelivery);
+
+    // Déclencher les flags de majoration si dates tombent un weekend/férié
+    if (isWeekendOrHoliday(startDate) && !deliveryIsMandatory) {
+      setDeliveryIsMandatory(true);
+    }
+    if (isWeekendOrHoliday(endDate) && !pickupIsMandatory) {
+      setPickupIsMandatory(true);
+    }
+  }, [startDate, endDate]);
 
   return (
     <div className="space-y-6">
@@ -146,6 +168,8 @@ export function CheckoutDeliveryStep({
             setDeliveryIsMandatory={setDeliveryIsMandatory}
             pickupIsMandatory={pickupIsMandatory}
             setPickupIsMandatory={setPickupIsMandatory}
+            cartStartDate={startDate}
+            cartEndDate={endDate}
           />
           <CheckoutEventDetails
             eventDetails={eventDetails}

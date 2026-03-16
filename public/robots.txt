@@ -8,4 +8,4 @@ Disallow: /panier
 Disallow: /checkout
 
 # Sitemap
-Sitemap: https://www.locagame.fr/sitemap.xml
+Sitemap: https://www.locagame.net/sitemap.xml

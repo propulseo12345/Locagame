@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Users } from 'lucide-react';
 import type { Technician, Vehicle } from '../../../services/technicians.service';
 
 interface TechniciansTableProps {
@@ -6,6 +6,22 @@ interface TechniciansTableProps {
   vehicleMap: Map<string, Vehicle>;
   onEdit: (tech: Technician) => void;
   onDelete: (tech: Technician) => void;
+  loading?: boolean;
+}
+
+function SkeletonRow() {
+  return (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4">
+        <div className="h-4 bg-gray-200 rounded w-36 mb-1" />
+        <div className="h-3 bg-gray-100 rounded w-24" />
+      </td>
+      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-40" /></td>
+      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-28" /></td>
+      <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded w-16" /></td>
+      <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-12 ml-auto" /></td>
+    </tr>
+  );
 }
 
 export default function TechniciansTable({
@@ -13,103 +29,97 @@ export default function TechniciansTable({
   vehicleMap,
   onEdit,
   onDelete,
+  loading = false,
 }: TechniciansTableProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nom
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Véhicule
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Statut
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nom</th>
+              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Véhicule</th>
+              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+              <th className="px-6 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {technicians.map((tech) => {
-              const vehicle = tech.vehicle_id ? vehicleMap.get(tech.vehicle_id) : null;
-              return (
-                <tr key={tech.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {tech.first_name} {tech.last_name}
-                    </div>
-                    {tech.phone && (
-                      <div className="text-xs text-gray-500">{tech.phone}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">{tech.email}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {vehicle ? (
-                      <div className="text-sm text-gray-900">
-                        {vehicle.name}
-                        <span className="text-xs text-gray-500 ml-1">
-                          ({vehicle.type === 'truck' ? 'Camion' : 'Fourgon'})
-                        </span>
+          <tbody>
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
+            ) : technicians.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-16 text-center">
+                  <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-500">Aucun technicien trouvé</p>
+                </td>
+              </tr>
+            ) : (
+              technicians.map((tech, idx) => {
+                const vehicle = tech.vehicle_id ? vehicleMap.get(tech.vehicle_id) : null;
+                return (
+                  <tr
+                    key={tech.id}
+                    className={`border-l-4 ${tech.is_active ? 'border-l-green-400' : 'border-l-gray-300'} ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'} hover:bg-gray-100/60 transition-colors`}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {tech.first_name} {tech.last_name}
                       </div>
-                    ) : (
-                      <span className="text-sm text-gray-400">Aucun</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${
+                      {tech.phone && (
+                        <div className="text-xs text-gray-400">{tech.phone}</div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-600">{tech.email}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {vehicle ? (
+                        <div className="text-sm text-gray-900">
+                          {vehicle.name}
+                          <span className="text-xs text-gray-400 ml-1">
+                            ({vehicle.type === 'truck' ? 'Camion' : 'Fourgon'})
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">Aucun</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md ${
                         tech.is_active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          tech.is_active ? 'bg-green-500' : 'bg-red-500'
-                        }`}
-                      />
-                      {tech.is_active ? 'Actif' : 'Inactif'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => onEdit(tech)}
-                        className="p-1.5 text-gray-500 hover:text-[#000033] hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Modifier"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => onDelete(tech)}
-                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                          ? 'ring-1 ring-green-200 bg-green-50 text-green-700'
+                          : 'ring-1 ring-red-200 bg-red-50 text-red-700'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${tech.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+                        {tech.is_active ? 'Actif' : 'Inactif'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => onEdit(tech)}
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="Modifier"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => onDelete(tech)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
-      {technicians.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          Aucun technicien trouvé
-        </div>
-      )}
     </div>
   );
 }

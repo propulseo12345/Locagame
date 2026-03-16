@@ -52,7 +52,7 @@ export default function ClientDashboard() {
     r => r.status === 'confirmed' || r.status === 'preparing'
   );
   const upcomingReservations = customerReservations.filter(
-    r => new Date(r.start_date) > new Date() && r.status !== 'cancelled'
+    r => new Date(r.start_date + 'T00:00:00') > new Date() && r.status !== 'cancelled'
   );
 
   if (loading) {
@@ -192,7 +192,7 @@ export default function ClientDashboard() {
                     <div className="flex items-center gap-3 text-sm text-gray-400">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
-                        {new Date(reservation.start_date).toLocaleDateString('fr-FR')}
+                        {new Date(reservation.start_date + 'T00:00:00').toLocaleDateString('fr-FR')}
                       </span>
                       <span className="text-[#33ffcc] font-bold">{reservation.total}€</span>
                     </div>

@@ -57,9 +57,9 @@ export default function ConfirmationNextSteps({ paymentState }: ConfirmationNext
             <Phone className="w-3 h-3" />
             04 30 22 03 83
           </a>
-          <a href="mailto:contact@locagame.fr" className="flex items-center gap-1 text-[#33ffcc] hover:underline">
+          <a href="mailto:contact@locagame.net" className="flex items-center gap-1 text-[#33ffcc] hover:underline">
             <Mail className="w-3 h-3" />
-            contact@locagame.fr
+            contact@locagame.net
           </a>
         </div>
       </div>

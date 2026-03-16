@@ -78,10 +78,10 @@ export default function ProductAvailabilitySection({
                     </div>
                     <div className="text-sm text-gray-700">
                       <p>
-                        <strong>Du:</strong> {new Date(availability.start_date).toLocaleDateString('fr-FR')}
+                        <strong>Du:</strong> {new Date(availability.start_date + 'T00:00:00').toLocaleDateString('fr-FR')}
                       </p>
                       <p>
-                        <strong>Au:</strong> {new Date(availability.end_date).toLocaleDateString('fr-FR')}
+                        <strong>Au:</strong> {new Date(availability.end_date + 'T00:00:00').toLocaleDateString('fr-FR')}
                       </p>
                       <p>
                         <strong>Quantite:</strong> {availability.quantity} unite(s)

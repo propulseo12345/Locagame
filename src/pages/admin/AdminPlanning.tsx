@@ -15,7 +15,6 @@ export default function AdminPlanning() {
 
   const dragDrop = usePlanningDragDrop({
     technicians: planning.technicians,
-    selectedDate: planning.selectedDate,
     setOperationInProgress: planning.setOperationInProgress,
     refreshTasksAndReservations: planning.refreshTasksAndReservations,
     toast: planning.toast,
@@ -30,7 +29,7 @@ export default function AdminPlanning() {
   if (planning.loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-[#33ffcc]" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
         <span className="ml-3 text-gray-600">Chargement des livraisons...</span>
       </div>
     );
@@ -61,7 +60,7 @@ export default function AdminPlanning() {
       {planning.operationInProgress && (
         <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-40 pointer-events-none">
           <div className="bg-white rounded-lg shadow-lg px-6 py-4 flex items-center gap-3 pointer-events-auto">
-            <Loader2 className="w-5 h-5 animate-spin text-[#33ffcc]" />
+            <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
             <span className="text-gray-700 text-sm">Op\u00e9ration en cours...</span>
           </div>
         </div>

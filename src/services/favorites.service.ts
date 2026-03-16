@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Product } from '../types';
+import { logger } from '../lib/logger';
 
 export class FavoritesService {
   /**
@@ -14,7 +15,7 @@ export class FavoritesService {
       .order('created_at', { ascending: false });
 
     if (favoritesError) {
-      console.error('Error fetching favorites:', favoritesError);
+      logger.error('Error fetching favorites', favoritesError);
       throw favoritesError;
     }
 
@@ -28,7 +29,7 @@ export class FavoritesService {
       .from('products')
       .select(`
         *,
-        category:categories(
+        category:categories!products_category_id_fkey(
           id,
           name,
           slug,
@@ -39,7 +40,7 @@ export class FavoritesService {
       .eq('is_active', true);
 
     if (productsError) {
-      console.error('Error fetching products for favorites:', productsError);
+      logger.error('Error fetching products for favorites', productsError);
       throw productsError;
     }
 
@@ -119,7 +120,7 @@ export class FavoritesService {
       if (error.code === 'PGRST116') {
         return false;
       }
-      console.error('Error checking favorite:', error);
+      logger.error('Error checking favorite', error);
       throw error;
     }
 
@@ -140,7 +141,7 @@ export class FavoritesService {
     if (error) {
       // Ignorer l'erreur si déjà en favoris (contrainte unique)
       if (error.code !== '23505') {
-        console.error('Error adding favorite:', error);
+        logger.error('Error adding favorite', error);
         throw error;
       }
     }
@@ -157,7 +158,7 @@ export class FavoritesService {
       .eq('product_id', productId);
 
     if (error) {
-      console.error('Error removing favorite:', error);
+      logger.error('Error removing favorite', error);
       throw error;
     }
   }
@@ -187,7 +188,7 @@ export class FavoritesService {
       .eq('customer_id', customerId);
 
     if (error) {
-      console.error('Error counting favorites:', error);
+      logger.error('Error counting favorites', error);
       throw error;
     }
 

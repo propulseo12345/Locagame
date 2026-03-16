@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
+import { toLocalISODate } from '../../utils/dateHolidays';
 
 interface ContactFormProps {
   onSubmitSuccess: () => void;
@@ -104,7 +105,7 @@ export default function ContactForm({ onSubmitSuccess }: ContactFormProps) {
             name="eventDate"
             value={formData.eventDate}
             onChange={handleInputChange}
-            min={new Date().toISOString().split('T')[0]}
+            min={toLocalISODate(new Date())}
             className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:border-[#33ffcc] focus:outline-none transition-colors [color-scheme:dark]"
           />
         </div>

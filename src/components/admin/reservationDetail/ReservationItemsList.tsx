@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Package, Truck, Calendar } from 'lucide-react';
 import { Order } from '../../../types';
 import { TaskTypeBadge } from './reservationBadges';
@@ -78,7 +78,7 @@ export default function ReservationItemsList({
                     <div className="text-sm text-gray-600">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
-                        {new Date(task.scheduled_date).toLocaleDateString('fr-FR', {
+                        {new Date(task.scheduled_date + 'T00:00:00').toLocaleDateString('fr-FR', {
                           weekday: 'long',
                           day: 'numeric',
                           month: 'long'

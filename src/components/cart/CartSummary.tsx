@@ -127,12 +127,6 @@ export default function CartSummary({ productsTotal, deliveryFee, totalPrice }: 
           </div>
           <div className="flex items-center gap-3 text-sm text-white/60">
             <div className="w-8 h-8 rounded-lg bg-[#33ffcc]/10 flex items-center justify-center flex-shrink-0">
-              <Truck className="w-4 h-4 text-[#33ffcc]" />
-            </div>
-            <span>Livraison et installation incluses</span>
-          </div>
-          <div className="flex items-center gap-3 text-sm text-white/60">
-            <div className="w-8 h-8 rounded-lg bg-[#33ffcc]/10 flex items-center justify-center flex-shrink-0">
               <Clock className="w-4 h-4 text-[#33ffcc]" />
             </div>
             <span>Assistance 7j/7</span>

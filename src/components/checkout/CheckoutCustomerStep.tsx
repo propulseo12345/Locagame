@@ -1,6 +1,7 @@
 import { Mail, Phone, Building, FileText } from 'lucide-react';
 import type { CustomerState, BillingAddressState } from '../../hooks/checkout/types';
 import { inputClass, labelClass, errorClass } from '../../hooks/checkout/types';
+import { GuestAccountBanner } from './GuestAccountBanner';
 
 interface CheckoutCustomerStepProps {
   customer: CustomerState;
@@ -19,6 +20,8 @@ export function CheckoutCustomerStep({
 }: CheckoutCustomerStepProps) {
   return (
     <div className="space-y-6">
+      <GuestAccountBanner />
+
       <div>
         <h2 className="text-xl font-bold text-white mb-1">Vos coordonnees</h2>
         <p className="text-gray-400 text-sm">Informations de facturation</p>

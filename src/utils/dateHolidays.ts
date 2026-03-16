@@ -83,10 +83,23 @@ export function getAllHolidays(year: number): Array<{ date: Date; name: string }
 
 /**
  * Normalise une date pour comparaison (minuit, heure locale)
+ * Pour les strings YYYY-MM-DD, ajoute T00:00:00 pour éviter le décalage UTC
  */
 function normalizeDate(date: Date | string): Date {
-  const d = typeof date === 'string' ? new Date(date) : new Date(date);
+  const d = typeof date === 'string' ? new Date(date + 'T00:00:00') : date;
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+/**
+ * Formate une Date en string YYYY-MM-DD en heure LOCALE (pas UTC).
+ * Remplace `date.toISOString().split('T')[0]` qui décale d'un jour
+ * dans les fuseaux horaires positifs (ex. CET UTC+1).
+ */
+export function toLocalISODate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 /**

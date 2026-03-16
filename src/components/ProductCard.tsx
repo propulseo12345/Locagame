@@ -15,20 +15,14 @@ interface ProductCardProps {
 
 function ProductCard({ product, viewMode }: ProductCardProps) {
   const { isFavorite, toggleFavorite } = useFavorites();
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [addedToCart, setAddedToCart] = useState(false);
   const [imageError, setImageError] = useState(false);
 
   const isLiked = isFavorite(product.id);
 
-  const handleAddToCart = async (e?: React.MouseEvent) => {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    setIsAddingToCart(true);
-    await new Promise(resolve => setTimeout(resolve, 600));
-    setIsAddingToCart(false);
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
+  const handleAddToCart = () => {
+    // Le clic propage vers le <Link> parent → navigation vers la page detail
+    // L'ajout au panier reel se fait sur la page produit (selection de dates obligatoire)
   };
 
   const handleLike = (e: React.MouseEvent) => {
@@ -76,7 +70,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
               )}
             </div>
             <ProductCardActions
-              isAddingToCart={isAddingToCart} addedToCart={addedToCart}
+              isAddingToCart={false} addedToCart={false}
               onAddToCart={handleAddToCart} productName={product.name} variant="list"
               canAddToCart={canAddToCart}
             />
@@ -121,7 +115,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
           )}
         </div>
         <ProductCardActions
-          isAddingToCart={isAddingToCart} addedToCart={addedToCart}
+          isAddingToCart={false} addedToCart={false}
           onAddToCart={handleAddToCart} productName={product.name} variant="grid"
           canAddToCart={canAddToCart}
         />

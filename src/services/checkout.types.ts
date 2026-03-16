@@ -32,6 +32,7 @@ export interface CheckoutPayload {
 
   // Pricing
   subtotal: number;
+  surcharges_total: number;
   delivery_fee: number;
   discount?: number;
   total: number;

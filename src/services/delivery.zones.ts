@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { DeliveryZone } from '../types';
+import { logger } from '../lib/logger';
 
 export class DeliveryZonesService {
   /**
@@ -12,7 +13,7 @@ export class DeliveryZonesService {
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('Error fetching delivery zones:', error);
+      logger.error('Error fetching delivery zones', error);
       throw error;
     }
 
@@ -34,7 +35,7 @@ export class DeliveryZonesService {
         // Aucune zone trouvee
         return null;
       }
-      console.error('Error finding zone by postal code:', error);
+      logger.error('Error finding zone by postal code', error);
       throw error;
     }
 
@@ -52,7 +53,7 @@ export class DeliveryZonesService {
       .single();
 
     if (error) {
-      console.error('Error creating delivery zone:', error);
+      logger.error('Error creating delivery zone', error);
       throw error;
     }
 
@@ -71,7 +72,7 @@ export class DeliveryZonesService {
       .single();
 
     if (error) {
-      console.error('Error updating delivery zone:', error);
+      logger.error('Error updating delivery zone', error);
       throw error;
     }
 
@@ -88,7 +89,7 @@ export class DeliveryZonesService {
       .eq('id', id);
 
     if (error) {
-      console.error('Error deleting delivery zone:', error);
+      logger.error('Error deleting delivery zone', error);
       throw error;
     }
   }

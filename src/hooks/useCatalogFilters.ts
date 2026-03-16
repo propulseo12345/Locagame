@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Product, Category, FilterOptions } from '../types';
-import { checkAvailability } from '../utils/availability';
 
 interface CatalogFiltersState {
   filters: FilterOptions;
@@ -62,11 +61,14 @@ export function useCatalogFilters({
     currentPage: 1
   });
 
-  // Categories with product count
+  // Categories with product count (multi-catégories supporté)
   const categoriesWithCount = useMemo(() => {
     return categories.map(category => ({
       ...category,
-      productCount: products.filter(p => p.category_id === category.id).length
+      productCount: products.filter(p =>
+        p.category_id === category.id ||
+        (p.categories || []).some(c => c.id === category.id)
+      ).length
     }));
   }, [categories, products]);
 
@@ -74,9 +76,12 @@ export function useCatalogFilters({
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
-    // Filter by selected category
+    // Filter by selected category (multi-catégories supporté)
     if (state.selectedCategory) {
-      filtered = filtered.filter(product => product.category_id === state.selectedCategory);
+      filtered = filtered.filter(product =>
+        product.category_id === state.selectedCategory ||
+        (product.categories || []).some(c => c.id === state.selectedCategory)
+      );
     }
 
     // Filter by search term
@@ -87,9 +92,12 @@ export function useCatalogFilters({
       );
     }
 
-    // Filter by category (from sidebar filters)
+    // Filter by category from sidebar filters (multi-catégories supporté)
     if (state.filters.category) {
-      filtered = filtered.filter(product => product.category_id === state.filters.category);
+      filtered = filtered.filter(product =>
+        product.category_id === state.filters.category ||
+        (product.categories || []).some(c => c.id === state.filters.category)
+      );
     }
 
     // Filter by price
@@ -108,14 +116,8 @@ export function useCatalogFilters({
       filtered = filtered.filter(product => product.specifications.players.min <= state.filters.players_max!);
     }
 
-    // Filter by availability dates
-    if (state.startDate) {
-      const endDateToUse = state.endDate || state.startDate;
-      filtered = filtered.filter(product => {
-        const availability = checkAvailability(product.id, state.startDate, endDateToUse, 1);
-        return availability.available;
-      });
-    }
+    // Note: availability filtering is handled asynchronously via unavailableProductIds
+    // which is passed from the parent component
 
     // Sort
     switch (state.filters.sort_by) {

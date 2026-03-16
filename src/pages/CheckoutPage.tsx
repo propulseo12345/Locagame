@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -10,9 +10,11 @@ import {
   CheckCircle,
   AlertCircle,
   CreditCard,
+  Lock,
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { ProductsService } from '../services';
 import {
   useCheckoutForm,
   useCheckoutPricing,
@@ -24,6 +26,8 @@ import { CheckoutCustomerStep } from '../components/checkout/CheckoutCustomerSte
 import { CheckoutRecipientStep } from '../components/checkout/CheckoutRecipientStep';
 import { CheckoutDeliveryStep } from '../components/checkout/CheckoutDeliveryStep';
 import { CheckoutSummaryStep } from '../components/checkout/CheckoutSummaryStep';
+import { AuthModal } from '../components/auth/AuthModal';
+import { isWeekendOrHoliday } from '../utils/dateHolidays';
 
 const steps = [
   { id: 'customer', label: 'Vos coordonnees', icon: User },
@@ -35,9 +39,80 @@ const steps = [
 export default function CheckoutPage() {
   const { items: cartItems = [], clearCart } = useCart();
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState<CheckoutStep>('customer');
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>(() => {
+    const redirect = sessionStorage.getItem('checkout_redirect');
+    if (redirect === 'payment') {
+      sessionStorage.removeItem('checkout_redirect');
+      return 'payment';
+    }
+    return 'customer';
+  });
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [unavailableProducts, setUnavailableProducts] = useState<string[]>([]);
+  const [checkingAvailability, setCheckingAvailability] = useState(true);
+
+  // Vérifier la disponibilité de tous les produits au chargement
+  useEffect(() => {
+    if (cartItems.length === 0) return;
+    let cancelled = false;
+
+    const checkAll = async () => {
+      setCheckingAvailability(true);
+      const unavailable: string[] = [];
+
+      for (const item of cartItems) {
+        if (!item.start_date || !item.end_date) continue;
+        try {
+          const available = await ProductsService.checkAvailability(
+            item.product.id,
+            item.start_date,
+            item.end_date,
+            item.quantity
+          );
+          if (!available) {
+            unavailable.push(item.product.name);
+          }
+        } catch {
+          // En cas d'erreur RPC, on laisse passer (le serveur validera)
+        }
+      }
+
+      if (!cancelled) {
+        setUnavailableProducts(unavailable);
+        setCheckingAvailability(false);
+      }
+    };
+
+    checkAll();
+    return () => { cancelled = true; };
+  }, [cartItems]);
 
   const form = useCheckoutForm();
+
+  // Pré-remplir les dates de livraison et flags de majoration dès le montage
+  // (pas seulement quand le step delivery s'affiche) pour que le pricing soit correct
+  const cartStartDate = cartItems[0]?.start_date || '';
+  const cartEndDate = cartItems[0]?.end_date || '';
+  useEffect(() => {
+    if (!cartStartDate || !cartEndDate) return;
+    if (form.delivery.date && form.delivery.pickupDate) return;
+
+    const updates: Partial<typeof form.delivery> = {};
+    if (!form.delivery.date) updates.date = cartStartDate;
+    if (!form.delivery.pickupDate) updates.pickupDate = cartEndDate;
+
+    if (Object.keys(updates).length > 0) {
+      form.setDelivery(prev => ({ ...prev, ...updates }));
+    }
+
+    if (isWeekendOrHoliday(cartStartDate) && !form.deliveryIsMandatory) {
+      form.setDeliveryIsMandatory(true);
+    }
+    if (isWeekendOrHoliday(cartEndDate) && !form.pickupIsMandatory) {
+      form.setPickupIsMandatory(true);
+    }
+  }, [cartStartDate, cartEndDate]);
+
   const pricing = useCheckoutPricing({
     cartItems,
     delivery: form.delivery,
@@ -57,7 +132,7 @@ export default function CheckoutPage() {
     payment: form.payment,
     isPickup: form.isPickup,
   });
-  const { handleSubmit, isProcessing, submitError } = useCheckoutSubmit({
+  const { handleSubmit, isProcessing, submitError, needsAuth, clearNeedsAuth } = useCheckoutSubmit({
     cartItems,
     user: user ? { id: user.id, email: user.email || '' } : null,
     customer: form.customer,
@@ -81,6 +156,41 @@ export default function CheckoutPage() {
     clearCart,
     validatePayment: () => validation.validateStep('payment'),
   });
+
+  // When auth error detected, show modal
+  useEffect(() => {
+    if (needsAuth) {
+      sessionStorage.setItem('checkout_redirect', 'payment');
+      setShowAuthModal(true);
+    }
+  }, [needsAuth]);
+
+  // When user authenticates while modal is open, close and clear
+  useEffect(() => {
+    if (user && needsAuth) {
+      setShowAuthModal(false);
+      clearNeedsAuth();
+    }
+  }, [user, needsAuth, clearNeedsAuth]);
+
+  // Pre-fill customer form from user profile (on login or mount)
+  // Only fills empty fields — never overwrites what the user already typed
+  useEffect(() => {
+    if (!user) return;
+    form.setCustomer(prev => ({
+      ...prev,
+      firstName: prev.firstName || user.firstName || '',
+      lastName: prev.lastName || user.lastName || '',
+      email: prev.email || user.email || '',
+      phone: prev.phone || user.phone || '',
+      companyName: prev.companyName || user.companyName || '',
+    }));
+  }, [user]);
+
+  const handleAuthModalClose = () => {
+    setShowAuthModal(false);
+    clearNeedsAuth();
+  };
 
   const getCurrentStepIndex = () => steps.findIndex(s => s.id === currentStep);
 
@@ -160,6 +270,38 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {/* Availability warning */}
+        {checkingAvailability && (
+          <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-[#33ffcc] border-t-transparent rounded-full animate-spin" />
+            <span className="text-white/60 text-sm">Verification de la disponibilite...</span>
+          </div>
+        )}
+
+        {unavailableProducts.length > 0 && (
+          <div className="mb-6 p-5 bg-red-500/10 rounded-xl border border-red-500/30">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="text-red-400 font-bold mb-1">Produit{unavailableProducts.length > 1 ? 's' : ''} indisponible{unavailableProducts.length > 1 ? 's' : ''}</h3>
+                <p className="text-red-300/80 text-sm mb-3">
+                  {unavailableProducts.length === 1
+                    ? `Le produit "${unavailableProducts[0]}" n'est plus disponible pour les dates selectionnees.`
+                    : `Les produits suivants ne sont plus disponibles : ${unavailableProducts.join(', ')}.`
+                  }
+                </p>
+                <Link
+                  to="/panier"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Modifier mon panier
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Content */}
         <div className="bg-white/5 rounded-2xl border border-white/10 p-4 md:p-6">
           {currentStep === 'customer' && (
@@ -197,7 +339,7 @@ export default function CheckoutPage() {
             Precedent
           </button>
           {currentStep === 'payment' ? (
-            <button onClick={handleSubmit} disabled={isProcessing} className="flex items-center gap-2 px-8 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
+            <button onClick={handleSubmit} disabled={isProcessing || unavailableProducts.length > 0} className="flex items-center gap-2 px-8 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
               {isProcessing ? (
                 <><div className="w-5 h-5 border-2 border-[#000033] border-t-transparent rounded-full animate-spin" />Redirection vers le paiement...</>
               ) : (
@@ -205,13 +347,27 @@ export default function CheckoutPage() {
               )}
             </button>
           ) : (
-            <button onClick={handleNext} className="flex items-center gap-2 px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-xl hover:bg-[#66cccc] transition-colors">
+            <button onClick={handleNext} disabled={unavailableProducts.length > 0} className="flex items-center gap-2 px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
               Continuer
               <ArrowRight className="w-5 h-5" />
             </button>
           )}
         </div>
       </div>
+
+      {/* Auth modal for checkout auth errors */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={handleAuthModalClose}
+        onAuthSuccess={() => {}}
+        title="Connexion requise"
+        subtitle="Pour finaliser votre commande, creez un compte ou connectez-vous."
+        headerIcon={
+          <div className="p-2.5 bg-[#33ffcc]/20 rounded-xl">
+            <Lock className="w-6 h-6 text-[#33ffcc]" />
+          </div>
+        }
+      />
     </div>
   );
 }

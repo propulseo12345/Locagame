@@ -12,13 +12,14 @@ interface RegisterData {
 }
 
 interface UseAuthModalProps {
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<unknown>;
   signUp: (email: string, password: string, metadata: { firstName: string; lastName: string; phone?: string }) => Promise<{ needsEmailConfirmation: boolean }>;
   onClose: () => void;
+  defaultTab?: Tab;
 }
 
-export function useAuthModal({ signIn, signUp, onClose }: UseAuthModalProps) {
-  const [tab, setTab] = useState<Tab>('login');
+export function useAuthModal({ signIn, signUp, onClose, defaultTab = 'login' }: UseAuthModalProps) {
+  const [tab, setTab] = useState<Tab>(defaultTab);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);

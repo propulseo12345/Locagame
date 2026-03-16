@@ -1,6 +1,6 @@
 import { Star, Quote, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ScrollReveal } from './ui';
 import { TestimonialsService, type Testimonial } from '../services';
@@ -36,7 +36,7 @@ export function Testimonials() {
     }
   };
 
-  const cardVariants = {
+  const cardVariants: Variants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
       opacity: 1,
@@ -87,15 +87,19 @@ export function Testimonials() {
               </h2>
             </ScrollReveal>
           </div>
+          {/* TODO: Activer quand l'URL Google Reviews sera configurée
           <ScrollReveal animation="fadeLeft" delay={0.2}>
-            <Link
-              to="/contact"
+            <a
+              href="https://g.page/r/VOTRE_ID_GOOGLE/review"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-[#33ffcc] font-semibold hover:gap-4 transition-all duration-300"
             >
               Laisser un avis
               <ArrowRight className="w-5 h-5" />
-            </Link>
+            </a>
           </ScrollReveal>
+          */}
         </div>
 
         {/* Témoignages */}

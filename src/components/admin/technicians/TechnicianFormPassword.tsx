@@ -33,7 +33,7 @@ export default function TechnicianFormPassword({
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
+              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-transparent"
               minLength={8}
               required
             />
@@ -68,7 +68,7 @@ export default function TechnicianFormPassword({
       <button
         type="button"
         onClick={() => setShowResetPassword(!showResetPassword)}
-        className="text-sm font-medium text-[#33ffcc] hover:text-[#66cccc]"
+        className="text-sm font-medium text-blue-600 hover:text-blue-700"
       >
         {showResetPassword ? 'Annuler le reset' : 'R\u00e9initialiser le mot de passe'}
       </button>
@@ -81,7 +81,7 @@ export default function TechnicianFormPassword({
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Nouveau mot de passe (min. 8 car.)"
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-transparent"
                 minLength={8}
               />
               <button

@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { Users, Award, Heart, MapPin, Calendar, Sparkles, ArrowRight } from 'lucide-react';
+import { Users, Award, Heart, MapPin, ArrowRight } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
 
 export default function AProposPage() {
   const breadcrumbItems = [
-    { name: 'Accueil', url: 'https://www.locagame.fr' },
-    { name: 'À propos', url: 'https://www.locagame.fr/a-propos' },
+    { name: 'Accueil', url: 'https://www.locagame.net' },
+    { name: 'À propos', url: 'https://www.locagame.net/a-propos' },
   ];
 
   return (
@@ -14,8 +14,8 @@ export default function AProposPage() {
       <SEO
         title="À propos de LOCAGAME | Location de jeux en PACA"
         description="Découvrez LOCAGAME, spécialiste de la location de jeux événementiels en région PACA : Marseille, Aix-en-Provence, Nice et Toulon. Plus de 2000 événements réussis depuis 2015."
-        canonical="https://www.locagame.fr/a-propos"
-        url="https://www.locagame.fr/a-propos"
+        canonical="https://www.locagame.net/a-propos"
+        url="https://www.locagame.net/a-propos"
         keywords="locagame, location jeux PACA, animation événement Marseille, à propos locagame"
       />
       <BreadcrumbSchema items={breadcrumbItems} />

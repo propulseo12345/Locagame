@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { ProductsService } from '../services/products.service';
+import { toLocalISODate } from './dateHolidays';
 
 /** Résultat de vérification de disponibilité */
 export interface AvailabilityResult {
@@ -71,7 +72,7 @@ export async function checkAvailability(
     const end = new Date(endDate);
     const dates: string[] = [];
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      dates.push(d.toISOString().split('T')[0]);
+      dates.push(toLocalISODate(d));
     }
 
     let minAvailableQuantity = totalStock;
@@ -144,8 +145,8 @@ export async function generateAvailabilityCalendar(
     // Calculer les dates de début et fin du mois
     const startOfMonth = new Date(year, month - 1, 1);
     const endOfMonth = new Date(year, month, 0);
-    const startDateStr = startOfMonth.toISOString().split('T')[0];
-    const endDateStr = endOfMonth.toISOString().split('T')[0];
+    const startDateStr = toLocalISODate(startOfMonth);
+    const endDateStr = toLocalISODate(endOfMonth);
 
     // Récupérer toutes les disponibilités pour ce mois
     // Chevauchement : start_date <= endDateStr AND end_date >= startDateStr
@@ -165,7 +166,7 @@ export async function generateAvailabilityCalendar(
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
-      const dateString = date.toISOString().split('T')[0];
+      const dateString = toLocalISODate(date);
       const dateObj = new Date(dateString);
 
       // Calculer la quantité réservée pour cette date
@@ -206,7 +207,7 @@ export async function generateAvailabilityCalendar(
     return Array.from({ length: daysInMonth }, (_, i) => {
       const date = new Date(year, month - 1, i + 1);
       return {
-        date: date.toISOString().split('T')[0],
+        date: toLocalISODate(date),
         available: false,
         availableQuantity: 0,
         isMaintenance: false,

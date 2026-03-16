@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, Trash2, Edit2, Plus, HelpCircle } from 'lucide-react';
+import { X, Trash2, Edit2, Plus, HelpCircle, Search, MessageSquare, CheckCircle, XCircle, Tag } from 'lucide-react';
 import { FaqsService, type FAQ } from '../../services';
+
+type StatusFilter = 'all' | 'active' | 'inactive';
 
 export default function AdminFaqs() {
   const [items, setItems] = useState<FAQ[]>([]);
@@ -8,6 +10,9 @@ export default function AdminFaqs() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<FAQ | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [formData, setFormData] = useState({
     question: '',
     answer: '',
@@ -74,99 +79,340 @@ export default function AdminFaqs() {
 
   const categories = ['general', 'reservation', 'livraison', 'paiement', 'produits'];
 
+  const uniqueCategories = Array.from(new Set(items.map(i => i.category)));
+
+  const filteredItems = items.filter(item => {
+    const matchSearch =
+      searchTerm === '' ||
+      item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.answer.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCategory = categoryFilter === 'all' || item.category === categoryFilter;
+    const matchStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && item.is_active) ||
+      (statusFilter === 'inactive' && !item.is_active);
+    return matchSearch && matchCategory && matchStatus;
+  });
+
+  const totalActive = items.filter(i => i.is_active).length;
+  const totalInactive = items.filter(i => !i.is_active).length;
+  const totalCategories = new Set(items.map(i => i.category)).size;
+
+  // Skeleton loading
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-gray-600">Chargement...</div>
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-40 bg-gray-200 rounded-lg animate-pulse" />
+        </div>
+
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
+              <div className="h-4 w-20 bg-gray-200 rounded mb-3" />
+              <div className="h-8 w-12 bg-gray-200 rounded mb-1" />
+              <div className="h-3 w-24 bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Filters skeleton */}
+        <div className="flex gap-3">
+          <div className="h-11 flex-1 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-11 w-44 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-11 w-52 bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+
+        {/* Table skeleton */}
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="h-10 bg-gray-50 border-b border-gray-200 animate-pulse" />
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0">
+              <div className="h-4 w-6 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 flex-1 bg-gray-200 rounded animate-pulse" />
+              <div className="h-5 w-20 bg-gray-100 rounded animate-pulse" />
+              <div className="h-5 w-16 bg-gray-100 rounded animate-pulse" />
+              <div className="h-4 w-8 bg-gray-100 rounded animate-pulse" />
+              <div className="h-6 w-16 bg-gray-100 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">FAQ</h1>
-          <p className="text-gray-600 mt-1">{items.length} question(s)</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            FAQ <span className="text-gray-400 font-normal">{items.length}</span>
+          </h1>
+          <p className="text-gray-600 mt-0.5 text-sm">Gérez les questions fréquentes du site</p>
         </div>
-        <button onClick={() => handleOpenModal()} className="flex items-center gap-2 px-4 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-semibold hover:bg-[#66cccc] transition-colors">
-          <Plus className="w-5 h-5" />Nouvelle question
+        <button
+          onClick={() => handleOpenModal()}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Nouvelle question
         </button>
       </div>
 
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <HelpCircle className="w-4 h-4 text-[#33ffcc]" />
-                  <span className="text-gray-900 font-medium">{item.question}</span>
-                  {!item.is_active && <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs">Inactif</span>}
-                </div>
-                <p className="text-gray-600 text-sm ml-6">{item.answer}</p>
-                <div className="mt-2 ml-6">
-                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">{item.category}</span>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                <button onClick={() => handleOpenModal(item)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"><Edit2 className="w-4 h-4" /></button>
-                <button onClick={() => setShowDeleteConfirm(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* Stats bar */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all relative overflow-hidden">
+          <MessageSquare className="absolute top-3 right-3 w-8 h-8 text-gray-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Total</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{items.length}</p>
+          <p className="text-sm text-gray-500 mt-0.5">questions</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all relative overflow-hidden">
+          <CheckCircle className="absolute top-3 right-3 w-8 h-8 text-green-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Actifs</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalActive}</p>
+          <p className="text-sm text-gray-500 mt-0.5">visibles sur le site</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-red-400 hover:shadow-md transition-all relative overflow-hidden">
+          <XCircle className="absolute top-3 right-3 w-8 h-8 text-red-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Inactifs</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalInactive}</p>
+          <p className="text-sm text-gray-500 mt-0.5">masqués</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-blue-500 hover:shadow-md transition-all relative overflow-hidden">
+          <Tag className="absolute top-3 right-3 w-8 h-8 text-blue-400 opacity-50" />
+          <p className="text-sm text-gray-500 mb-1">Catégories</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalCategories}</p>
+          <p className="text-sm text-gray-500 mt-0.5">thèmes distincts</p>
+        </div>
       </div>
 
+      {/* Filters bar */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Rechercher une question..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full h-11 pl-9 pr-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+          />
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          className="h-11 w-44 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 bg-white"
+        >
+          <option value="all">Toutes catégories</option>
+          {uniqueCategories.map(c => (
+            <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+          ))}
+        </select>
+        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+          {(['all', 'active', 'inactive'] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`h-11 px-4 text-sm font-medium transition-colors ${
+                statusFilter === s
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {s === 'all' ? 'Tous' : s === 'active' ? 'Actifs' : 'Inactifs'}
+            </button>
+          ))}
+        </div>
+        <span className="text-sm text-gray-500 whitespace-nowrap">
+          {filteredItems.length} · {items.length} questions
+        </span>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-10">#</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Question</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Catégorie</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Statut</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-16">Ordre</th>
+              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filteredItems.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-16 text-center">
+                  <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">Aucune question trouvée</p>
+                  <button
+                    onClick={() => { setSearchTerm(''); setCategoryFilter('all'); setStatusFilter('all'); }}
+                    className="mt-3 text-sm text-gray-900 underline hover:no-underline"
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                </td>
+              </tr>
+            ) : (
+              filteredItems.map((item, index) => (
+                <tr
+                  key={item.id}
+                  className={`hover:bg-gray-100/60 transition-colors ${index % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}
+                >
+                  <td className="px-4 py-3 text-gray-400 text-sm tabular-nums">{item.display_order}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-start gap-2">
+                      <HelpCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-gray-900 font-medium text-sm leading-snug">{item.question}</p>
+                        <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{item.answer}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center ring-1 ring-blue-200 bg-blue-50 text-blue-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                      {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {item.is_active ? (
+                      <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Actif
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        Inactif
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-sm tabular-nums">{item.display_order}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => handleOpenModal(item)}
+                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(item.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Form modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-bold text-gray-900">{editingItem ? 'Modifier' : 'Nouvelle question'}</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Question *</label>
-                <input type="text" value={formData.question} onChange={(e) => setFormData({...formData, question: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" required />
+                <input
+                  type="text"
+                  value={formData.question}
+                  onChange={e => setFormData({ ...formData, question: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Réponse *</label>
-                <textarea value={formData.answer} onChange={(e) => setFormData({...formData, answer: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent resize-none" rows={3} required />
+                <textarea
+                  value={formData.answer}
+                  onChange={e => setFormData({ ...formData, answer: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 resize-none"
+                  rows={3}
+                  required
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                  <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent">
-                    {categories.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                  <select
+                    value={formData.category}
+                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                  >
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ordre d'affichage</label>
-                  <input type="number" value={formData.display_order} onChange={(e) => setFormData({...formData, display_order: Number(e.target.value)})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" min="0" />
+                  <input
+                    type="number"
+                    value={formData.display_order}
+                    onChange={e => setFormData({ ...formData, display_order: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
+                    min="0"
+                  />
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" id="is_active" checked={formData.is_active} onChange={(e) => setFormData({...formData, is_active: e.target.checked})} className="rounded border-gray-300 text-[#33ffcc] focus:ring-[#33ffcc]" />
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={e => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
                 <label htmlFor="is_active" className="text-gray-700">Actif</label>
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-                <button type="submit" className="px-4 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-semibold hover:bg-[#66cccc]">{editingItem ? 'Enregistrer' : 'Créer'}</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                  Annuler
+                </button>
+                <button type="submit" className="px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800">
+                  {editingItem ? 'Enregistrer' : 'Créer'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* Delete confirm modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer cette question ?</h3>
             <p className="text-gray-600 mb-4">Cette action est irréversible.</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">Annuler</button>
-              <button onClick={() => handleDelete(showDeleteConfirm)} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Supprimer</button>
+              <button onClick={() => setShowDeleteConfirm(null)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDelete(showDeleteConfirm)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Supprimer
+              </button>
             </div>
           </div>
         </div>

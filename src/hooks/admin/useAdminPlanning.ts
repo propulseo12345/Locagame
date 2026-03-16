@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { DeliveryService, TechniciansService, ReservationsService } from '../../services';
 import { useToast } from '../../contexts/ToastContext';
 import type { DeliveryTask } from '../../types';
@@ -9,9 +9,13 @@ import type {
   VehicleFormData,
 } from '../../components/admin/planning/planning.types';
 import { DEFAULT_VEHICLE_FORM } from '../../components/admin/planning/planning.types';
+import { logger } from '../../lib/logger';
+import { toLocalISODate } from '../../utils/dateHolidays';
 
 export function useAdminPlanning() {
   const toast = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [reservations, setReservations] = useState<UnassignedReservation[]>([]);
@@ -19,7 +23,7 @@ export function useAdminPlanning() {
   const [loading, setLoading] = useState(true);
   const [operationInProgress, setOperationInProgress] = useState<string | null>(null);
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(toLocalISODate(new Date()));
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
   const [assignFilter, setAssignFilter] = useState<AssignFilter>('all');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -45,12 +49,12 @@ export function useAdminPlanning() {
       setTasksState(tasksData);
       setReservations(unassignedRes as unknown as UnassignedReservation[]);
     } catch (err) {
-      console.error('Erreur chargement donn\u00e9es:', err);
-      toast.error('Erreur lors du chargement des donn\u00e9es');
+      logger.error('Erreur chargement donn\u00e9es', err);
+      toastRef.current.error('Erreur lors du chargement des donn\u00e9es');
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, toast]);
+  }, [selectedDate]);
 
   useEffect(() => {
     loadData();
@@ -66,7 +70,7 @@ export function useAdminPlanning() {
       setTasksState(tasksData);
       setReservations(unassignedRes as unknown as UnassignedReservation[]);
     } catch (err) {
-      console.error('Erreur rafra\u00eechissement:', err);
+      logger.error('Erreur rafra\u00eechissement', err);
     }
   }, [selectedDate]);
 
@@ -102,12 +106,12 @@ export function useAdminPlanning() {
   }, [filteredTasks]);
 
   // Reservations non encore assignees pour cette date
+  // Le service getUnassignedReservations() est la source de verite unique :
+  // seules les reservations SANS delivery_task assignee y figurent.
+  // On filtre par date pour la vue planning.
   const unassignedReservations = useMemo(() => {
-    const assignedReservationIds = new Set(existingTasks.map(t => t.reservationId));
-    return reservations.filter(res => {
-      return res.start_date === selectedDate && !assignedReservationIds.has(res.id);
-    });
-  }, [reservations, selectedDate, existingTasks]);
+    return reservations.filter(res => res.start_date === selectedDate);
+  }, [reservations, selectedDate]);
 
   // Grouper toutes les taches par date pour la vue mois
   const allTasksByDate = useMemo(() => {
@@ -131,7 +135,7 @@ export function useAdminPlanning() {
     }
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentYear, currentMonth, day);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalISODate(date);
       days.push({ date, tasks: allTasksByDate[dateStr] || [] });
     }
     return days;
@@ -140,11 +144,11 @@ export function useAdminPlanning() {
   const navigateDate = (days: number) => {
     const date = new Date(selectedDate);
     date.setDate(date.getDate() + days);
-    setSelectedDate(date.toISOString().split('T')[0]);
+    setSelectedDate(toLocalISODate(date));
   };
 
   const goToToday = () => {
-    setSelectedDate(new Date().toISOString().split('T')[0]);
+    setSelectedDate(toLocalISODate(new Date()));
   };
 
   const navigateMonth = (direction: number) => {

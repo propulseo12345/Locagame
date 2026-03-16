@@ -1,9 +1,51 @@
 import { useEffect, useState } from 'react';
+import { Euro, Package, Gamepad2, Users, TrendingUp, Truck } from 'lucide-react';
 import { StatsService, ReservationsService } from '../../services';
 import { DashboardStats } from '../../services/stats.service';
 import { Order } from '../../types';
 import RevenueChart from '../../components/admin/RevenueChart';
 import RecentReservationsTable from '../../components/admin/RecentReservationsTable';
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header skeleton */}
+      <div className="space-y-2">
+        <div className="h-7 w-40 bg-gray-200 rounded" />
+        <div className="h-4 w-64 bg-gray-100 rounded" />
+      </div>
+      {/* Stats cards skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+            <div className="h-3 w-24 bg-gray-200 rounded" />
+            <div className="h-8 w-20 bg-gray-200 rounded" />
+            <div className="h-3 w-32 bg-gray-100 rounded" />
+          </div>
+        ))}
+      </div>
+      {/* Chart skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <div className="h-4 w-32 bg-gray-200 rounded" />
+          <div className="h-48 bg-gray-100 rounded" />
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <div className="h-4 w-28 bg-gray-200 rounded" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="h-8 w-8 bg-gray-200 rounded-full shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3 w-full bg-gray-200 rounded" />
+                <div className="h-3 w-16 bg-gray-100 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -21,15 +63,12 @@ export default function AdminDashboard() {
       const dashboardStats = await StatsService.getDashboardStats();
       setStats(dashboardStats);
     } catch (error) {
-      console.error('Error loading stats:', error);
-      // Mettre des valeurs par défaut pour éviter le blocage
       const defaultByMonth = Array.from({ length: 12 }, (_, i) => {
         const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
         const date = new Date();
         date.setMonth(date.getMonth() - (11 - i));
         return { month: monthNames[date.getMonth()], amount: 0 };
       });
-
       setStats({
         revenue: { today: 0, week: 0, month: 0, byMonth: defaultByMonth },
         reservations: { total: 0, pending: 0, confirmed: 0, delivered: 0 },
@@ -46,117 +85,143 @@ export default function AdminDashboard() {
       const reservations = await ReservationsService.getAllReservations();
       setRecentReservations(reservations.slice(0, 5));
     } catch (error) {
-      console.error('Error loading recent reservations:', error);
       setRecentReservations([]);
     }
   };
 
   if (loading || !stats) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-gray-600">Chargement des statistiques...</div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
-  // Réservations du jour (vide pour l'instant, à charger depuis l'API si nécessaire)
   const todayReservations: any[] = [];
+
+  const rankColors = [
+    'bg-yellow-400 text-yellow-900',
+    'bg-gray-300 text-gray-700',
+    'bg-orange-400 text-orange-900',
+  ];
 
   return (
     <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm text-gray-600 mt-0.5">Vue d'ensemble de l'activité Locagame</p>
+      </div>
+
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">CA du mois</h3>
-            <span className="text-2xl">💰</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* CA du mois */}
+        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-green-500 p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-sm font-medium text-gray-600">CA du mois</p>
+            <Euro className="w-4 h-4 text-green-400 shrink-0" />
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.revenue.month.toLocaleString()}€</p>
-          <p className="text-sm text-gray-500 mt-1">{stats.revenue.today.toLocaleString()}€ aujourd'hui</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">
+            {stats.revenue.month.toLocaleString('fr-FR')} €
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {stats.revenue.today.toLocaleString('fr-FR')} € aujourd'hui
+          </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Réservations</h3>
-            <span className="text-2xl">📦</span>
+        {/* Réservations */}
+        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-blue-500 p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-sm font-medium text-gray-600">Réservations</p>
+            <Package className="w-4 h-4 text-blue-400 shrink-0" />
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.reservations.total}</p>
-          <p className="text-sm text-gray-500 mt-1">{stats.reservations.pending} en attente</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">
+            {stats.reservations.total}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {stats.reservations.pending} en attente
+          </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Produits</h3>
-            <span className="text-2xl">🎮</span>
+        {/* Produits */}
+        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-violet-500 p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-sm font-medium text-gray-600">Produits</p>
+            <Gamepad2 className="w-4 h-4 text-violet-400 shrink-0" />
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.products.total}</p>
-          <p className="text-sm text-gray-500 mt-1">{stats.products.available} disponibles</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">
+            {stats.products.total}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {stats.products.available} disponibles
+          </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-600">Clients</h3>
-            <span className="text-2xl">👥</span>
+        {/* Clients */}
+        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-orange-500 p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-3">
+            <p className="text-sm font-medium text-gray-600">Clients</p>
+            <Users className="w-4 h-4 text-orange-400 shrink-0" />
           </div>
-          <p className="text-3xl font-bold text-gray-900">{stats.customers.total}</p>
-          <p className="text-sm text-gray-500 mt-1">{stats.customers.new_this_month} nouveaux ce mois</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">
+            {stats.customers.total}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            {stats.customers.new_this_month} nouveaux ce mois
+          </p>
         </div>
       </div>
 
+      {/* Chart + Top produits */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Graphique CA */}
         <RevenueChart byMonth={stats.revenue.byMonth} />
 
-        {/* Produits les plus loués */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top produits</h3>
-          <div className="space-y-4">
+        {/* Top produits */}
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-gray-500" />
+            <h3 className="text-sm font-semibold text-gray-900">Top produits</h3>
+          </div>
+          <div className="space-y-3">
             {stats.products.mostRented && stats.products.mostRented.length > 0 ? (
               stats.products.mostRented.map((product, index) => (
-                <div key={product.id} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                      index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-orange-600'
-                    }`}>
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{product.name}</p>
-                      <p className="text-sm text-gray-500">{product.rentals} locations</p>
-                    </div>
+                <div key={product.id} className="flex items-center gap-3">
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${rankColors[index] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                    <p className="text-xs text-gray-500">{product.rentals} locations</p>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500 text-center py-4">Aucun produit loué pour le moment</p>
+              <p className="text-sm text-gray-500 text-center py-6">Aucun produit loué pour le moment</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Livraisons du jour */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Livraisons aujourd'hui ({todayReservations.length})
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Truck className="w-4 h-4 text-gray-500" />
+          <h3 className="text-sm font-semibold text-gray-900">
+            Livraisons aujourd'hui
+            <span className="ml-2 text-gray-400 font-normal">({todayReservations.length})</span>
           </h3>
-          <span className="text-2xl">🚚</span>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {todayReservations.length === 0 ? (
-            <p className="text-gray-500 text-sm">Aucune livraison prévue aujourd'hui</p>
+            <p className="text-sm text-gray-500">Aucune livraison prévue aujourd'hui</p>
           ) : (
             todayReservations.map((reservation) => (
               <div key={reservation.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900">
                     {reservation.customer.firstName} {reservation.customer.lastName}
                   </p>
-                  <p className="text-sm text-gray-500">
-                    {reservation.products.length} produit(s) - {reservation.dates.deliveryTime}
+                  <p className="text-xs text-gray-500">
+                    {reservation.products.length} produit(s) — {reservation.dates.deliveryTime}
                   </p>
                 </div>
-                <button className="px-3 py-1 text-sm bg-[#33ffcc] text-[#000033] rounded-lg hover:bg-[#66cccc] transition-colors">
+                <button className="px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-md hover:bg-gray-700 transition-colors">
                   Détails
                 </button>
               </div>

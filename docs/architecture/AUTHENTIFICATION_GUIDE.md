@@ -18,8 +18,8 @@ Système d'authentification complet avec 3 interfaces protégées par rôle.
 
 | Compte | Email | Mot de passe |
 |--------|-------|--------------|
-| **Sophie Martin** | `admin@locagame.fr` | `admin123` |
-| **Thomas Dubois** | `manager@locagame.fr` | `manager123` |
+| **Sophie Martin** | `admin@locagame.net` | `admin123` |
+| **Thomas Dubois** | `manager@locagame.net` | `manager123` |
 
 **Fonctionnalités**:
 - Dashboard avec statistiques
@@ -62,8 +62,8 @@ Système d'authentification complet avec 3 interfaces protégées par rôle.
 
 | Compte | Email | Mot de passe |
 |--------|-------|--------------|
-| **Lucas Moreau** | `technicien@locagame.fr` | `tech123` |
-| **Pierre Roux** | `pierre.tech@locagame.fr` | `tech123` |
+| **Lucas Moreau** | `technicien@locagame.net` | `tech123` |
+| **Pierre Roux** | `pierre.tech@locagame.net` | `tech123` |
 
 **Fonctionnalités**:
 - Dashboard des tâches
@@ -260,7 +260,7 @@ if (isAuthenticated) { ... }
 if (hasRole('admin')) { ... }
 
 // Se connecter
-await signIn('admin@locagame.fr', 'admin123');
+await signIn('admin@locagame.net', 'admin123');
 
 // Se déconnecter
 signOut();
@@ -317,9 +317,9 @@ Pour tester les 3 interfaces, créer les utilisateurs dans Supabase :
 
 | Rôle | Email | Password | Auto Confirm |
 |------|-------|----------|--------------|
-| **Admin** | `admin@locagame.fr` | `admin123` | ✅ |
+| **Admin** | `admin@locagame.net` | `admin123` | ✅ |
 | **Client** | `client@exemple.fr` | `client123` | ✅ |
-| **Technicien** | `technicien@locagame.fr` | `tech123` | ✅ |
+| **Technicien** | `technicien@locagame.net` | `tech123` | ✅ |
 
 **2. Créer les profils** :
 - Exécuter le script SQL : `supabase/create_demo_users.sql`

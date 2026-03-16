@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { CustomersService } from '../../services';
+import { logger } from '../../lib/logger';
 
 interface ProfileFormData {
   firstName: string;
@@ -83,7 +84,7 @@ export function useClientProfile() {
         company: customerData?.company_name || '',
       });
     } catch (error) {
-      console.error('Error loading profile:', error);
+      logger.error('Error loading profile', error);
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -109,7 +110,7 @@ export function useClientProfile() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
-      console.error('Error saving profile:', error);
+      logger.error('Error saving profile', error);
     } finally {
       setSaving(false);
     }

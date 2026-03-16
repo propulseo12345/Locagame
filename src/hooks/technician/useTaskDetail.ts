@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { DeliveryTask, Vehicle, Order } from '../../types';
 import { DeliveryService, TechniciansService, ReservationsService } from '../../services';
 import { Technician } from '../../services/technicians.service';
+import { logger } from '../../lib/logger';
 
 interface UseTaskDetailResult {
   task: DeliveryTask | null;
@@ -41,11 +42,11 @@ export function useTaskDetail(id: string | undefined): UseTaskDetailResult {
           taskData.technicianId ? TechniciansService.getTechnicianById(taskData.technicianId) : null,
           taskData.reservationId ? ReservationsService.getReservationById(taskData.reservationId) : null,
         ]);
-        setVehicle(vehicleData);
+        setVehicle(vehicleData as Vehicle | null);
         setTechnician(technicianData);
         setReservation(reservationData);
       } catch (err) {
-        console.error('Erreur chargement tâche:', err);
+        logger.error('Erreur chargement tâche', err);
         setError('Erreur lors du chargement');
       } finally {
         setLoading(false);
@@ -61,7 +62,7 @@ export function useTaskDetail(id: string | undefined): UseTaskDetailResult {
       await DeliveryService.updateTaskStatus(task.id, 'en_route');
       setTask({ ...task, status: 'en_route', startedAt: new Date().toISOString() });
     } catch (err) {
-      console.error('Erreur d\u00e9marrage livraison:', err);
+      logger.error('Erreur d\u00e9marrage livraison', err);
       alert('Erreur lors du d\u00e9marrage de la livraison');
     }
   }, [task]);
@@ -72,7 +73,7 @@ export function useTaskDetail(id: string | undefined): UseTaskDetailResult {
       await DeliveryService.updateTaskStatus(task.id, 'delivered');
       setTask({ ...task, status: 'delivered', completedAt: new Date().toISOString() });
     } catch (err) {
-      console.error('Erreur marquage livr\u00e9:', err);
+      logger.error('Erreur marquage livr\u00e9', err);
       alert('Erreur lors du marquage comme livr\u00e9');
     }
   }, [task]);

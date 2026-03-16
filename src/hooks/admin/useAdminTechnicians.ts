@@ -3,6 +3,7 @@ import { TechniciansService } from '../../services/technicians.service';
 import type { Technician, Vehicle } from '../../services/technicians.service';
 import { useToast } from '../../contexts/ToastContext';
 import type { TechnicianFormData } from '../../components/admin/technicians/TechnicianFormModal';
+import { logger } from '../../lib/logger';
 
 export function useAdminTechnicians() {
   const [technicians, setTechnicians] = useState<Technician[]>([]);
@@ -18,7 +19,7 @@ export function useAdminTechnicians() {
   const [deleteConfirm, setDeleteConfirm] = useState<Technician | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { addToast } = useToast();
+  const { showToast } = useToast();
 
   const loadData = useCallback(async () => {
     setError(null);
@@ -31,7 +32,7 @@ export function useAdminTechnicians() {
       setTechnicians(techs);
       setVehicles(vehs);
     } catch (err) {
-      console.error('Erreur chargement techniciens:', err);
+      logger.error('Erreur chargement techniciens', err);
       setError('Impossible de charger les techniciens.');
     } finally {
       setLoading(false);
@@ -85,7 +86,7 @@ export function useAdminTechnicians() {
       if (data.password) {
         await TechniciansService.resetPassword(editingTechnician.id, data.password);
       }
-      addToast('Technicien mis à jour', 'success');
+      showToast('success', 'Technicien mis à jour');
     } else {
       // Create technician
       await TechniciansService.createTechnician({
@@ -96,7 +97,7 @@ export function useAdminTechnicians() {
         phone: data.phone || undefined,
         vehicleId: data.vehicleId || undefined,
       });
-      addToast('Technicien créé avec succès', 'success');
+      showToast('success', 'Technicien créé avec succès');
     }
     setShowModal(false);
     setEditingTechnician(null);
@@ -109,16 +110,16 @@ export function useAdminTechnicians() {
       setDeleting(true);
       const result = await TechniciansService.deleteTechnician(deleteConfirm.id);
       if (result.mode === 'deactivated') {
-        addToast('Technicien désactivé (tâches existantes)', 'info');
+        showToast('info', 'Technicien désactivé (tâches existantes)');
       } else {
-        addToast('Technicien supprimé', 'success');
+        showToast('success', 'Technicien supprimé');
       }
       setDeleteConfirm(null);
       await loadData();
     } catch (err) {
-      addToast(
-        err instanceof Error ? err.message : 'Erreur lors de la suppression',
-        'error'
+      showToast(
+        'error',
+        err instanceof Error ? err.message : 'Erreur lors de la suppression'
       );
     } finally {
       setDeleting(false);

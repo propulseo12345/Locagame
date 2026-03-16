@@ -160,7 +160,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Optionnels
 VITE_APP_NAME=LOCAGAME
-VITE_APP_URL=https://www.locagame.fr
+VITE_APP_URL=https://www.locagame.net
 VITE_GOOGLE_ANALYTICS_ID=
 VITE_STRIPE_PUBLIC_KEY=
 ```

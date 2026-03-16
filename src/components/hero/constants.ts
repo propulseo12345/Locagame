@@ -1,5 +1,7 @@
+import type { Variants } from 'framer-motion';
+
 // Animations orchestrées
-export const animations = {
+export const animations: Record<string, Variants> = {
   container: {
     hidden: { opacity: 0 },
     visible: {

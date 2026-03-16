@@ -22,6 +22,7 @@ export default function LoginPage() {
     isVisible,
     handleSubmit,
     handleDemoLogin,
+    demoCredentials,
   } = useLoginAuth();
 
   return (
@@ -55,6 +56,7 @@ export default function LoginPage() {
           <DemoSection
             loading={loading}
             onDemoLogin={handleDemoLogin}
+            demoCredentials={demoCredentials}
           />
         </div>
       </div>

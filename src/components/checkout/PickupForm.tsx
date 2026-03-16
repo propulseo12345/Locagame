@@ -29,7 +29,7 @@ const WAREHOUSE_ADDRESS = {
 
 function getAvailableSlots(dateStr: string): string[] {
   if (!dateStr) return [];
-  const date = new Date(dateStr);
+  const date = new Date(dateStr + 'T00:00:00');
   const dayOfWeek = date.getDay();
 
   if (dayOfWeek === 0) return []; // Dimanche
@@ -39,7 +39,7 @@ function getAvailableSlots(dateStr: string): string[] {
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString('fr-FR', {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -69,7 +69,7 @@ export default function PickupForm({
 
   const isSunday = (dateStr: string) => {
     if (!dateStr) return false;
-    return new Date(dateStr).getDay() === 0;
+    return new Date(dateStr + 'T00:00:00').getDay() === 0;
   };
 
   return (

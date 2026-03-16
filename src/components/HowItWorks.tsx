@@ -1,6 +1,6 @@
 import { Search, Calendar, Truck, PartyPopper, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, type Variants } from 'framer-motion';
 import { useRef } from 'react';
 import { ScrollReveal } from './ui';
 
@@ -45,7 +45,7 @@ export function HowItWorks() {
     }
   };
 
-  const stepVariants = {
+  const stepVariants: Variants = {
     hidden: { opacity: 0, y: 50, scale: 0.9 },
     visible: {
       opacity: 1,
@@ -58,7 +58,7 @@ export function HowItWorks() {
     }
   };
 
-  const lineVariants = {
+  const lineVariants: Variants = {
     hidden: { scaleX: 0 },
     visible: {
       scaleX: 1,

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export interface DashboardStats {
   revenue: {
@@ -37,7 +38,7 @@ export class StatsService {
         .select('status, total, created_at');
 
       if (reservationsError) {
-        console.error('Error loading reservations:', reservationsError);
+        logger.error('Error loading reservations', reservationsError);
       }
 
       // Récupérer les produits
@@ -46,7 +47,7 @@ export class StatsService {
         .select('id, is_active');
 
       if (productsError) {
-        console.error('Error loading products:', productsError);
+        logger.error('Error loading products', productsError);
       }
 
       // Récupérer les clients
@@ -55,7 +56,7 @@ export class StatsService {
         .select('id, created_at');
 
       if (customersError) {
-        console.error('Error loading customers:', customersError);
+        logger.error('Error loading customers', customersError);
       }
 
       // Calculer les dates
@@ -68,15 +69,15 @@ export class StatsService {
 
       // Calculer le revenu
       const revenueToday = (reservationsData || [])
-        .filter((r) => new Date(r.created_at) >= startOfDay)
+        .filter((r) => r.created_at && new Date(r.created_at) >= startOfDay)
         .reduce((sum, r) => sum + (r.total || 0), 0);
 
       const revenueWeek = (reservationsData || [])
-        .filter((r) => new Date(r.created_at) >= startOfWeek)
+        .filter((r) => r.created_at && new Date(r.created_at) >= startOfWeek)
         .reduce((sum, r) => sum + (r.total || 0), 0);
 
       const revenueMonth = (reservationsData || [])
-        .filter((r) => new Date(r.created_at) >= startOfMonth)
+        .filter((r) => r.created_at && new Date(r.created_at) >= startOfMonth)
         .reduce((sum, r) => sum + (r.total || 0), 0);
 
       // Compter les réservations par statut
@@ -92,7 +93,7 @@ export class StatsService {
       // Compter les clients
       const customersTotal = customersData?.length || 0;
       const customersNewThisMonth = customersData?.filter(
-        (c) => new Date(c.created_at) >= startOfMonth
+        (c) => c.created_at && new Date(c.created_at) >= startOfMonth
       ).length || 0;
 
       // Calculer le revenu par mois (12 derniers mois)
@@ -106,6 +107,7 @@ export class StatsService {
         
         const monthRevenue = (reservationsData || [])
           .filter((r) => {
+            if (!r.created_at) return false;
             const rDate = new Date(r.created_at);
             return rDate >= monthStart && rDate <= monthEnd;
           })
@@ -142,7 +144,7 @@ export class StatsService {
         },
       };
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      logger.error('Error fetching dashboard stats', error);
       throw error;
     }
   }
@@ -173,7 +175,7 @@ export class StatsService {
       // Récupérer les favoris pour déterminer les catégories préférées
       const { data: favoritesData } = await supabase
         .from('customer_favorites')
-        .select('product:products(category:categories(name))')
+        .select('product:products(category:categories!products_category_id_fkey(name))')
         .eq('customer_id', customerId);
 
       const totalReservations = reservationsData?.length || 0;
@@ -201,7 +203,7 @@ export class StatsService {
         favorite_categories: favoriteCategories,
       };
     } catch (error) {
-      console.error('Error fetching customer stats:', error);
+      logger.error('Error fetching customer stats', error);
       throw error;
     }
   }
@@ -233,7 +235,7 @@ export class StatsService {
         completion_rate: Math.round(completionRate),
       };
     } catch (error) {
-      console.error('Error fetching technician stats:', error);
+      logger.error('Error fetching technician stats', error);
       throw error;
     }
   }

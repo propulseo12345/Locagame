@@ -1,21 +1,28 @@
 import { Link } from 'react-router-dom';
 import { UserCog, Users, Truck, Sparkles, ArrowRight } from 'lucide-react';
 import { DemoCard } from './DemoCard';
-import { DEMO_MODE_ENABLED, DEMO_CREDENTIALS, type DemoType } from '../../hooks/useLoginAuth';
+import { DEMO_MODE_ENABLED, type DemoType } from '../../hooks/useLoginAuth';
+
+interface DemoCredentialsMap {
+  admin: { email: string; password: string; description: string };
+  client: { email: string; password: string; description: string };
+  technician: { email: string; password: string; description: string };
+}
 
 interface DemoSectionProps {
   loading: boolean;
   onDemoLogin: (demoType: DemoType) => void;
+  demoCredentials: DemoCredentialsMap | null;
 }
 
 /**
  * Right column of the login page.
  * Shows demo account cards in demo mode, or branding section in production.
  */
-export function DemoSection({ loading, onDemoLogin }: DemoSectionProps) {
+export function DemoSection({ loading, onDemoLogin, demoCredentials }: DemoSectionProps) {
   return (
     <div className="order-1 lg:order-2 flex flex-col">
-      {DEMO_MODE_ENABLED && DEMO_CREDENTIALS ? (
+      {DEMO_MODE_ENABLED && demoCredentials ? (
         <>
           {/* Demo accounts header */}
           <div className="mb-6">
@@ -36,9 +43,9 @@ export function DemoSection({ loading, onDemoLogin }: DemoSectionProps) {
               type="admin"
               icon={UserCog}
               title="Administrateur"
-              description={DEMO_CREDENTIALS.admin.description}
-              email={DEMO_CREDENTIALS.admin.email}
-              password={DEMO_CREDENTIALS.admin.password}
+              description={demoCredentials.admin.description}
+              email={demoCredentials.admin.email}
+              password={demoCredentials.admin.password}
               gradient="bg-gradient-to-br from-[#33ffcc] to-[#00aa88]"
               accentColor="#33ffcc"
               onClick={() => onDemoLogin('admin')}
@@ -49,9 +56,9 @@ export function DemoSection({ loading, onDemoLogin }: DemoSectionProps) {
               type="client"
               icon={Users}
               title="Client"
-              description={DEMO_CREDENTIALS.client.description}
-              email={DEMO_CREDENTIALS.client.email}
-              password={DEMO_CREDENTIALS.client.password}
+              description={demoCredentials.client.description}
+              email={demoCredentials.client.email}
+              password={demoCredentials.client.password}
               gradient="bg-gradient-to-br from-[#66cccc] to-[#33aaaa]"
               accentColor="#66cccc"
               onClick={() => onDemoLogin('client')}
@@ -62,9 +69,9 @@ export function DemoSection({ loading, onDemoLogin }: DemoSectionProps) {
               type="technician"
               icon={Truck}
               title="Technicien"
-              description={DEMO_CREDENTIALS.technician.description}
-              email={DEMO_CREDENTIALS.technician.email}
-              password={DEMO_CREDENTIALS.technician.password}
+              description={demoCredentials.technician.description}
+              email={demoCredentials.technician.email}
+              password={demoCredentials.technician.password}
               gradient="bg-gradient-to-br from-[#fe1979] to-[#cc1166]"
               accentColor="#fe1979"
               onClick={() => onDemoLogin('technician')}

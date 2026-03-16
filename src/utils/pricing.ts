@@ -52,68 +52,87 @@ export function findDeliveryZone(postalCode: string): DeliveryZone | null {
 }
 
 /**
- * Calcule le prix total d'un produit pour une durée donnée
- * Le coefficient multi-jours ne s'applique que pour les locations semaine (lun-ven)
+ * Arrondi à 2 décimales (centimes)
  */
-export function calculateProductPrice(product: Product, durationDays: number, applyCoefficient: boolean = true): number {
-  const { pricing } = product;
-  let basePrice: number;
-
-  // 1 jour
-  if (durationDays === 1) {
-    return pricing.oneDay;
-  }
-
-  // 2-3 jours (weekend)
-  if (durationDays >= 2 && durationDays <= 3) {
-    basePrice = pricing.weekend;
-  }
-  // 4-7 jours (semaine)
-  else if (durationDays >= 4 && durationDays <= 7) {
-    basePrice = pricing.week;
-  }
-  // Plus de 7 jours : vérifier les durées custom
-  else if (pricing.customDurations && pricing.customDurations.length > 0) {
-    // Trouver la durée custom qui correspond le mieux
-    const matchingDuration = pricing.customDurations.find(
-      (cd: any) => durationDays >= cd.minDays && durationDays <= cd.maxDays
-    );
-
-    if (matchingDuration) {
-      basePrice = matchingDuration.price;
-    } else {
-      // Fallback : calculer au prorata du tarif semaine
-      const weekPrice = pricing.week;
-      const pricePerDay = weekPrice / 7;
-      basePrice = Math.ceil(pricePerDay * durationDays);
-    }
-  } else {
-    // Fallback : calculer au prorata du tarif semaine
-    const weekPrice = pricing.week;
-    const pricePerDay = weekPrice / 7;
-    basePrice = Math.ceil(pricePerDay * durationDays);
-  }
-
-  // Coefficient multi-jours : uniquement pour les locations semaine (lun-ven)
-  if (applyCoefficient) {
-    const coefficient = product.multi_day_coefficient ?? 1.00;
-    const finalPrice = basePrice * coefficient;
-    return Math.round(finalPrice * 100) / 100;
-  }
-
-  return basePrice;
+export function ROUND2(n: number): number {
+  return Math.round(n * 100) / 100;
 }
 
 /**
- * Calcule le prix total avec livraison
+ * Calcule le nombre de "jours LOCAGAME" entre deux dates.
+ * Règle : seuls samedi et dimanche sont offerts (ne comptent pas).
+ * Tous les jours ouvrés (lun-ven) sont des jours payants.
+ * Minimum 1 jour (cas weekend-only).
+ */
+export function calculateLocagameDays(startDate: string | Date, endDate: string | Date): number {
+  const start = typeof startDate === 'string' ? parseLocalDate(startDate) : new Date(startDate);
+  const end = typeof endDate === 'string' ? parseLocalDate(endDate) : new Date(endDate);
+
+  const current = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endMidnight = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+  let days = 0;
+  while (current <= endMidnight) {
+    const dow = current.getDay(); // 0=dim, 6=sam
+    if (dow !== 0 && dow !== 6) {
+      days++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return Math.max(1, days);
+}
+
+/**
+ * Calcule le prix LOCAGAME pour un tarif journalier et un nombre de jours LOCAGAME.
+ *
+ * Formule :
+ *   1j  = P
+ *   2j  = P + P×50%
+ *   3-5j = P + (P×0.5 × nSup) × (1 − remise)
+ *          où nSup = n−1, remise = min(nSup×10%, 40%)
+ *   >5j  = semainePrice + extraDays × (semainePrice / 6)
+ *
+ * Exemples pour P=100 :
+ *   1j=100, 2j=150, 3j=180, 4j=205, 5j=220,
+ *   6j=256.67, 8j=330, 10j=403.33
+ */
+export function calculateLocagamePrice(pricePerDay: number, locagameDays: number): number {
+  if (locagameDays <= 0) return 0;
+  if (locagameDays === 1) return ROUND2(pricePerDay);
+  if (locagameDays === 2) return ROUND2(pricePerDay + pricePerDay * 0.5);
+
+  // Tarif semaine de référence (5 jours)
+  const semainePrice = ROUND2(
+    pricePerDay + (pricePerDay * 0.5 * 4) * (1 - 0.40)
+  );
+
+  // Au-delà de 5 jours : semaine + jours sup à tarif_semaine/6
+  if (locagameDays > 5) {
+    const extraDays = locagameDays - 5;
+    const pricePerExtraDay = ROUND2(semainePrice / 6);
+    return ROUND2(semainePrice + extraDays * pricePerExtraDay);
+  }
+
+  // 3 à 5 jours
+  const nSup = locagameDays - 1;
+  const remise = Math.min(nSup * 0.10, 0.40);
+  return ROUND2(pricePerDay + (pricePerDay * 0.5 * nSup) * (1 - remise));
+}
+
+/**
+ * Calcule le prix total avec livraison (utilise la tarification LOCAGAME)
  */
 export function calculateTotalPrice(
   product: Product,
-  durationDays: number,
+  startDate: string | Date,
+  endDate: string | Date,
   postalCode?: string,
   quantity: number = 1
 ): PriceCalculation {
-  const productPrice = calculateProductPrice(product, durationDays) * quantity;
+  const locagameDays = calculateLocagameDays(startDate, endDate);
+  const durationDays = calculateDurationDays(startDate, endDate);
+  const unitPrice = calculateLocagamePrice(product.pricing.oneDay, locagameDays);
+  const productPrice = unitPrice * quantity;
   const zone = postalCode ? findDeliveryZone(postalCode) : null;
   
   let deliveryFee = 0;
@@ -130,7 +149,7 @@ export function calculateTotalPrice(
     delivery_fee: deliveryFee,
     total: productPrice + deliveryFee,
     duration_days: durationDays,
-    zone
+    zone: zone ?? undefined
   };
 }
 
@@ -149,9 +168,14 @@ export function formatPrice(price: number): string {
  * Pour la location: du 15 au 17 = 3 jours (15, 16, 17)
  * C'est la SOURCE DE VÉRITÉ pour le calcul de durée
  */
+/** Parse a YYYY-MM-DD date string as local midnight (avoids UTC timezone shift) */
+export function parseLocalDate(dateStr: string): Date {
+  return new Date(dateStr + 'T00:00:00');
+}
+
 export function calculateDurationDays(startDate: string | Date, endDate: string | Date): number {
-  const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
-  const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+  const start = typeof startDate === 'string' ? parseLocalDate(startDate) : startDate;
+  const end = typeof endDate === 'string' ? parseLocalDate(endDate) : endDate;
 
   // Reset to midnight for accurate day calculation
   const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
@@ -166,6 +190,7 @@ export function calculateDurationDays(startDate: string | Date, endDate: string 
 
 /**
  * Calcule le prix d'un item de panier (produit + dates + quantité)
+ * Utilise la tarification LOCAGAME (jours ouvrés, week-end offert)
  */
 export function calculateCartItemPrice(
   product: Product,
@@ -173,8 +198,8 @@ export function calculateCartItemPrice(
   endDate: string | Date,
   quantity: number = 1
 ): number {
-  const durationDays = calculateDurationDays(startDate, endDate);
-  const unitPrice = calculateProductPrice(product, durationDays);
+  const locagameDays = calculateLocagameDays(startDate, endDate);
+  const unitPrice = calculateLocagamePrice(product.pricing.oneDay, locagameDays);
   return unitPrice * quantity;
 }
 
@@ -182,7 +207,7 @@ export function calculateCartItemPrice(
  * Formate une date pour l'affichage
  */
 export function formatDate(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === 'string' ? parseLocalDate(date) : date;
   return d.toLocaleDateString('fr-FR', {
     weekday: 'long',
     year: 'numeric',

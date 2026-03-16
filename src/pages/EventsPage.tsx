@@ -7,16 +7,6 @@ import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/ui/ScrollReveal';
 import { PortfolioEventsService, EventTypesService, type PortfolioEvent, type EventType } from '../services';
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 60, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }
-  }
-};
-
 export default function EventsPage() {
   const [events, setEvents] = useState<PortfolioEvent[]>([]);
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
@@ -67,8 +57,8 @@ export default function EventsPage() {
   }, [events]);
 
   const breadcrumbItems = [
-    { name: 'Accueil', url: 'https://www.locagame.fr' },
-    { name: 'Événements', url: 'https://www.locagame.fr/evenements' }
+    { name: 'Accueil', url: 'https://www.locagame.net' },
+    { name: 'Événements', url: 'https://www.locagame.net/evenements' }
   ];
 
   // Emojis par type d'événement
@@ -88,7 +78,7 @@ export default function EventsPage() {
         title="Nos Réalisations"
         description="Découvrez les événements animés par LOCAGAME : anniversaires, team building, festivals. Plus de 2000 événements réussis en région PACA."
         keywords="événements locagame, team building Marseille, location jeux fête, événement entreprise PACA"
-        url="https://www.locagame.fr/evenements"
+        url="https://www.locagame.net/evenements"
       />
       <BreadcrumbSchema items={breadcrumbItems} />
 
@@ -273,7 +263,7 @@ export default function EventsPage() {
                           {featuredEvent.event_date && (
                             <div className="flex items-center gap-1.5">
                               <Calendar className="w-4 h-4 text-[#33ffcc]" />
-                              {new Date(featuredEvent.event_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              {new Date(featuredEvent.event_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                           )}
                           {featuredEvent.guest_count && (
@@ -356,7 +346,7 @@ export default function EventsPage() {
                           {event.event_date && (
                             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-lg">
                               <Calendar className="w-3.5 h-3.5 text-[#33ffcc]" />
-                              {new Date(event.event_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {new Date(event.event_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </div>
                           )}
                           {event.guest_count && (

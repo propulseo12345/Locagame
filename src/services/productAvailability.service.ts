@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export class ProductAvailabilityService {
   static async checkAvailability(
@@ -7,6 +8,7 @@ export class ProductAvailabilityService {
     endDate: string,
     quantity: number
   ): Promise<boolean> {
+    // @ts-expect-error — RPC check_product_availability_for_dates not in database.types.ts
     const { data, error } = await supabase.rpc('check_product_availability_for_dates', {
       p_product_id: productId,
       p_quantity: quantity,
@@ -15,7 +17,7 @@ export class ProductAvailabilityService {
     });
 
     if (error) {
-      console.error('Error checking availability:', error);
+      logger.error('Error checking availability', error);
       throw error;
     }
 
@@ -23,27 +25,29 @@ export class ProductAvailabilityService {
   }
 
   static async getAvailableStock(productId: string): Promise<number> {
+    // @ts-expect-error — RPC get_available_stock not in database.types.ts
     const { data, error } = await supabase.rpc('get_available_stock', {
       p_product_id: productId,
     });
 
     if (error) {
-      console.error('Error getting available stock:', error);
+      logger.error('Error getting available stock', error);
       throw error;
     }
 
     return data as number;
   }
 
-  static async getProductsWithStock(): Promise<any[]> {
+  static async getProductsWithStock(): Promise<unknown[]> {
     const { data, error } = await supabase
+      // @ts-expect-error — view products_with_available_stock not in database.types.ts
       .from('products_with_available_stock')
       .select('*')
       .eq('is_active', true)
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('Error fetching products with stock:', error);
+      logger.error('Error fetching products with stock', error);
       throw error;
     }
 
@@ -58,7 +62,7 @@ export class ProductAvailabilityService {
       .order('start_date', { ascending: true });
 
     if (error) {
-      console.error('Error fetching product availability:', error);
+      logger.error('Error fetching product availability', error);
       throw error;
     }
 
@@ -88,7 +92,7 @@ export class ProductAvailabilityService {
       .single();
 
     if (error) {
-      console.error('Error creating availability:', error);
+      logger.error('Error creating availability', error);
       throw error;
     }
 
@@ -102,7 +106,7 @@ export class ProductAvailabilityService {
       .eq('id', availabilityId);
 
     if (error) {
-      console.error('Error deleting availability:', error);
+      logger.error('Error deleting availability', error);
       throw error;
     }
   }
@@ -119,7 +123,7 @@ export class ProductAvailabilityService {
       .single();
 
     if (productError || !product) {
-      console.error('Error fetching product:', productError);
+      logger.error('Error fetching product', productError);
       throw new Error('Produit non trouvé');
     }
 
@@ -134,7 +138,7 @@ export class ProductAvailabilityService {
       .in('status', ['reserved', 'blocked', 'maintenance']);
 
     if (availError) {
-      console.error('Error fetching availabilities:', availError);
+      logger.error('Error fetching availabilities', availError);
       throw availError;
     }
 
@@ -166,7 +170,7 @@ export class ProductAvailabilityService {
       });
 
     if (error) {
-      console.error('Error creating reservation availability:', error);
+      logger.error('Error creating reservation availability', error);
       throw error;
     }
   }
@@ -178,7 +182,7 @@ export class ProductAvailabilityService {
       .eq('reservation_id', reservationId);
 
     if (error) {
-      console.error('Error releasing reservation availability:', error);
+      logger.error('Error releasing reservation availability', error);
       throw error;
     }
   }

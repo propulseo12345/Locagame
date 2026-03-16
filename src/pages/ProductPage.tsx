@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { Users, Clock, Package } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { ProductSchema } from '../components/ProductSchema';
@@ -38,22 +39,22 @@ export default function ProductPage() {
   if (!product) return <ProductNotFound />;
 
   const breadcrumbItems = [
-    { name: 'Accueil', url: 'https://www.locagame.fr' },
-    { name: 'Catalogue', url: 'https://www.locagame.fr/catalogue' },
-    { name: product.name, url: `https://www.locagame.fr/produit/${product.id}` },
+    { name: 'Accueil', url: 'https://www.locagame.net' },
+    { name: 'Catalogue', url: 'https://www.locagame.net/catalogue' },
+    { name: product.name, url: `https://www.locagame.net/produit/${product.id}` },
   ];
 
   return (
     <>
       <SEO
         title={`Location ${product.name} à Marseille`}
-        description={product.shortDescription || `Louez ${product.name} pour vos événements en région PACA. Livraison rapide à Marseille, Aix, Nice et Toulon.`}
-        url={`https://www.locagame.fr/produit/${product.id}`}
-        canonical={`https://www.locagame.fr/produit/${product.id}`}
+        description={product.description || `Louez ${product.name} pour vos événements en région PACA. Livraison rapide à Marseille, Aix, Nice et Toulon.`}
+        url={`https://www.locagame.net/produit/${product.id}`}
+        canonical={`https://www.locagame.net/produit/${product.id}`}
         type="product"
         keywords={`location ${product.name}, ${product.category?.name || 'jeux'} événement, location jeux PACA, animation Marseille`}
       />
-      <ProductSchema product={product} url={`https://www.locagame.fr/produit/${product.id}`} />
+      <ProductSchema product={product} url={`https://www.locagame.net/produit/${product.id}`} />
       <BreadcrumbSchema items={breadcrumbItems} />
 
       <div className="min-h-screen bg-gradient-to-b from-[#000033] via-[#001144] to-[#000033] pt-header">
@@ -73,7 +74,7 @@ export default function ProductPage() {
                 productName={product.name}
                 category={category}
                 totalStock={product.total_stock}
-                shortDescription={product.shortDescription}
+                shortDescription={product.description}
               />
 
               {/* Title and Description */}
@@ -100,7 +101,7 @@ export default function ProductPage() {
                   </div>
                 </div>
 
-                <div className="text-lg text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1" dangerouslySetInnerHTML={{ __html: product.description }} />
+                <div className="text-lg text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }} />
               </div>
 
               <ProductInfoTabs product={product} />

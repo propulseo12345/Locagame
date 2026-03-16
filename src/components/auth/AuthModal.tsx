@@ -10,16 +10,20 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAuthSuccess: (userId: string) => void;
+  defaultTab?: 'login' | 'register';
+  title?: string;
+  subtitle?: string;
+  headerIcon?: React.ReactNode;
 }
 
-export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, onAuthSuccess: _onAuthSuccess, defaultTab, title, subtitle, headerIcon }: AuthModalProps) {
   const { signIn, signUp } = useAuth();
   const {
     tab, error, loading, showPassword, setShowPassword, registerSuccess,
     loginEmail, setLoginEmail, loginPassword, setLoginPassword,
     registerData, handleClose, handleTabChange,
     handleLogin, handleRegister, handleRegisterChange,
-  } = useAuthModal({ signIn, signUp, onClose });
+  } = useAuthModal({ signIn, signUp, onClose, defaultTab });
 
   if (!isOpen) return null;
 
@@ -58,12 +62,14 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
             <X className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 bg-[#fe1979]/20 rounded-xl">
-              <Heart className="w-6 h-6 text-[#fe1979] fill-[#fe1979]" />
-            </div>
+            {headerIcon || (
+              <div className="p-2.5 bg-[#fe1979]/20 rounded-xl">
+                <Heart className="w-6 h-6 text-[#fe1979] fill-[#fe1979]" />
+              </div>
+            )}
             <div>
-              <h2 className="text-xl font-black text-white">Sauvegardez vos coups de coeur</h2>
-              <p className="text-sm text-gray-400">Créez un compte pour retrouver vos favoris</p>
+              <h2 className="text-xl font-black text-white">{title || 'Sauvegardez vos coups de coeur'}</h2>
+              <p className="text-sm text-gray-400">{subtitle || 'Créez un compte pour retrouver vos favoris'}</p>
             </div>
           </div>
         </div>

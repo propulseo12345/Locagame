@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Customer } from '../types';
+import { logger } from '../lib/logger';
 
 export class CustomersService {
   /**
@@ -17,7 +18,7 @@ export class CustomersService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error fetching customer:', error);
+      logger.error('Error fetching customer', error);
       throw error;
     }
 
@@ -38,7 +39,7 @@ export class CustomersService {
       if (error.code === 'PGRST116') {
         return null;
       }
-      console.error('Error fetching customer by email:', error);
+      logger.error('Error fetching customer by email', error);
       throw error;
     }
 
@@ -75,7 +76,7 @@ export class CustomersService {
       .single();
 
     if (error) {
-      console.error('Error creating customer:', error);
+      logger.error('Error creating customer', error);
       throw error;
     }
 
@@ -97,7 +98,7 @@ export class CustomersService {
       .single();
 
     if (error) {
-      console.error('Error updating customer:', error);
+      logger.error('Error updating customer', error);
       throw error;
     }
 
@@ -114,7 +115,7 @@ export class CustomersService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching all customers:', error);
+      logger.error('Error fetching all customers', error);
       throw error;
     }
 
@@ -132,7 +133,7 @@ export class CustomersService {
       .single();
 
     if (error) {
-      console.error('Error fetching customer points:', error);
+      logger.error('Error fetching customer points', error);
       throw error;
     }
 
@@ -149,7 +150,7 @@ export class CustomersService {
     const { error } = await supabase.from('customers').delete().eq('id', id);
 
     if (error) {
-      console.error('Error deleting customer:', error);
+      logger.error('Error deleting customer', error);
       throw error;
     }
   }
@@ -190,7 +191,7 @@ export class CustomersService {
     const { error } = await supabase.from('customers').delete().eq('id', id);
 
     if (error) {
-      console.error('Error force deleting customer:', error);
+      logger.error('Error force deleting customer', error);
       throw error;
     }
   }
