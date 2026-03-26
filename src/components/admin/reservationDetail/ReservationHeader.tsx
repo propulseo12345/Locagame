@@ -23,7 +23,7 @@ export default function ReservationHeader({ reservation, updating, onStatusChang
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Details de la reservation</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Détails de la réservation</h1>
             <p className="text-gray-600 mt-1">Commande #{reservation.id.substring(0, 8).toUpperCase()}</p>
           </div>
         </div>

@@ -55,7 +55,13 @@
 
   @media (min-width: 768px) {
     :root {
-      --header-height: 152px; /* Desktop: 2 niveaux optimisés */
+      --header-height: 56px; /* Tablet: nav bar only */
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --header-height: 152px; /* Desktop: top bar + nav bar */
     }
   }
 

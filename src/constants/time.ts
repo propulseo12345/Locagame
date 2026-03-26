@@ -88,7 +88,7 @@ export function formatRelativeToReference(date: Date | string): string {
  */
 export type DateMode = 'reference' | 'system';
 
-let currentDateMode: DateMode = 'reference';
+let currentDateMode: DateMode = 'system';
 
 /**
  * Définit le mode de date utilisé par getNow()

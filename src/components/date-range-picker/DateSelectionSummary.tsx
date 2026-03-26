@@ -30,7 +30,7 @@ export function DateSelectionSummary({
           </div>
           <div className="pt-3 border-t border-white/20">
             <div className="flex justify-between items-center">
-              <span className="text-white font-medium">Duree de location</span>
+              <span className="text-white font-medium">Durée de location</span>
               <span className="text-xl font-bold text-[#33ffcc]">
                 {durationDays} jour{durationDays > 1 ? 's' : ''}
               </span>
@@ -38,7 +38,7 @@ export function DateSelectionSummary({
           </div>
           {quantity > 1 && (
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-300">Quantite</span>
+              <span className="text-gray-300">Quantité</span>
               <span className="text-white font-semibold">{quantity}</span>
             </div>
           )}

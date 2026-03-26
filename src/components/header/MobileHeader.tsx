@@ -14,10 +14,10 @@ export function MobileHeader({ isScrolled, cartItemsCount, mobileMenuOpen, setMo
     <div className="md:hidden border-b border-white/10">
       <div className="px-4 h-14 flex items-center justify-between">
         {/* Logo mobile */}
-        <Link to="/" className="flex-shrink-0" aria-label="Retour a l'accueil">
+        <Link to="/" className="flex-shrink-0" aria-label="Retour à l'accueil">
           <img
             src={isScrolled ? LOGO_SCROLLED : LOGO_DEFAULT}
-            alt="LOCAGAME - Logo de location de jeux et animations pour evenements en region PACA"
+            alt="LOCAGAME - Logo de location de jeux et animations pour événements en région PACA"
             className={`w-auto transition-all duration-300 ${isScrolled ? 'h-10' : 'h-12'}`}
             width={isScrolled ? "80" : "48"}
             height={isScrolled ? "40" : "48"}

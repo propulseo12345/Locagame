@@ -109,7 +109,7 @@ export function CalendarGrid({
               className={`
                 relative aspect-square p-2 text-sm font-medium rounded-lg transition-all duration-200
                 ${!isCurrentMonth ? 'text-gray-600' : 'text-white'}
-                ${isDisabled ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'}
+                ${isDisabled ? 'cursor-not-allowed opacity-40 pointer-events-none' : 'cursor-pointer'}
                 ${selected === 'start' ? 'bg-[#33ffcc] text-[#000033] font-bold ring-2 ring-[#33ffcc] ring-offset-2 ring-offset-[#000033] scale-110 z-10' : ''}
                 ${selected === 'end' ? 'bg-[#66cccc] text-[#000033] font-bold ring-2 ring-[#66cccc] ring-offset-2 ring-offset-[#000033] scale-110 z-10' : ''}
                 ${inRange && !isDisabled ? 'bg-[#33ffcc]/20 text-white' : ''}

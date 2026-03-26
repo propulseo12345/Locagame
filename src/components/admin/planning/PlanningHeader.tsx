@@ -114,8 +114,8 @@ export default function PlanningHeader({
             <div className="flex bg-gray-100 rounded-lg p-1">
               {([
                 { key: 'all' as const, label: 'Toutes' },
-                { key: 'unassigned' as const, label: 'Non assign\u00e9es' },
-                { key: 'assigned' as const, label: 'Assign\u00e9es' },
+                { key: 'unassigned' as const, label: 'Non assignées' },
+                { key: 'assigned' as const, label: 'Assignées' },
               ]).map(f => (
                 <button
                   key={f.key}

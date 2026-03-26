@@ -21,7 +21,7 @@ export function CatalogCategoriesBar({
 }: CatalogCategoriesBarProps) {
   return (
     <div className="relative z-10 py-3 border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {/* Bouton "Tous" */}
           <button

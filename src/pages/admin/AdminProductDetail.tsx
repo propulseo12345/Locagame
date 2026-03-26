@@ -47,7 +47,7 @@ export default function AdminProductDetail() {
       <div className="text-center py-12">
         <p className="text-gray-500 mb-4">Produit introuvable</p>
         <Link to="/admin/products" className="text-gray-900 hover:underline font-medium">
-          Retour a la liste
+          Retour à la liste
         </Link>
       </div>
     );

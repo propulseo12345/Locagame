@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CategoriesService } from '../services';
+import { ProductsQueries } from '../services/products.queries';
 import { Category } from '../types';
 import { useCart } from '../contexts/CartContext';
 import { toLocalISODate } from '../utils/dateHolidays';
@@ -46,10 +47,15 @@ export function useHero() {
     return () => clearInterval(interval);
   }, []);
 
-  // Chargement catégories
+  // Chargement catégories (masquer celles sans produits actifs en stock)
   useEffect(() => {
-    CategoriesService.getCategories()
-      .then(setCategories)
+    Promise.all([
+      CategoriesService.getCategories(),
+      ProductsQueries.getProductCountsByCategory(),
+    ])
+      .then(([allCategories, counts]) => {
+        setCategories(allCategories.filter(c => (counts[c.id] || 0) > 0));
+      })
       .catch((error) => logger.error('Error loading categories', error));
   }, []);
 

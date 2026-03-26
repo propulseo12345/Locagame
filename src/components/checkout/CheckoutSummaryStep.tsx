@@ -47,7 +47,7 @@ export function CheckoutSummaryStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white mb-1">Recapitulatif de votre commande</h2>
+        <h2 className="text-xl font-bold text-white mb-1">Récapitulatif de votre commande</h2>
         <p className="text-gray-400 text-sm">Verifiez les details avant de proceder au paiement</p>
       </div>
 

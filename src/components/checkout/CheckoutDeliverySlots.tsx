@@ -109,7 +109,7 @@ export function CheckoutDeliverySlots({
       <div className="pt-4 border-t border-white/10">
         <h3 className="text-white font-medium mb-4 flex items-center gap-2">
           <Truck className="w-5 h-5 text-[#33ffcc]" />
-          Creneau de livraison
+          Créneau de livraison
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -134,7 +134,7 @@ export function CheckoutDeliverySlots({
             {errors.date && <p className={errorClass}>{errors.date}</p>}
           </div>
           <div>
-            <label className={labelClass}>Creneau horaire *</label>
+            <label className={labelClass}>Créneau horaire *</label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <select
@@ -178,7 +178,7 @@ export function CheckoutDeliverySlots({
       <div className="pt-4 border-t border-white/10">
         <h3 className="text-white font-medium mb-4 flex items-center gap-2">
           <Truck className="w-5 h-5 text-[#33ffcc] rotate-180" />
-          Creneau de recuperation
+          Créneau de récupération
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -199,7 +199,7 @@ export function CheckoutDeliverySlots({
             )}
           </div>
           <div>
-            <label className={labelClass}>Creneau horaire</label>
+            <label className={labelClass}>Créneau horaire</label>
             <select
               value={delivery.pickupTimeSlot}
               onChange={(e) => setDelivery({ ...delivery, pickupTimeSlot: e.target.value })}

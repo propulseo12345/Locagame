@@ -20,7 +20,7 @@ export function GuestAccountBanner() {
           <div className="flex-1 min-w-0">
             <h3 className="text-white font-semibold text-sm mb-1">Creez un compte pour aller plus vite</h3>
             <p className="text-gray-400 text-xs mb-3">
-              Coordonnees pre-remplies, suivi de commande en temps reel et historique de vos reservations.
+              Coordonnées pré-remplies, suivi de commande en temps réel et historique de vos reservations.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <button

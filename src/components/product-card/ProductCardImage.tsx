@@ -1,6 +1,7 @@
 import { Heart, Star } from 'lucide-react';
 import { Product } from '../../types';
 import { formatPrice } from '../../utils/pricing';
+import { stripHtml } from '../../utils/html';
 
 interface ProductCardImageProps {
   product: Product;
@@ -21,7 +22,7 @@ export function ProductCardImage({
 
   return (
     <div className={`relative overflow-hidden bg-gradient-to-br from-[#000033] to-[#001144] ${
-      isGrid ? 'h-56' : 'w-full md:w-64 h-48 flex-shrink-0 rounded-xl'
+      isGrid ? 'aspect-[4/3]' : 'w-full md:w-64 h-48 flex-shrink-0 rounded-xl'
     }`}>
       {!imageLoaded && !imageError && (
         <div className="absolute inset-0 bg-gradient-to-br from-[#33ffcc]/20 to-[#66cccc]/20 animate-pulse"></div>
@@ -37,8 +38,8 @@ export function ProductCardImage({
         <img
           src={product.images?.[0] || '/placeholder-product.svg'}
           alt={isGrid
-            ? `${product.name} - Location de jeu pour ${product.specifications.players.min}-${product.specifications.players.max} joueurs en region PACA. ${product.description ? product.description.substring(0, 100) : 'Disponible a la location avec livraison et installation.'}`
-            : `${product.name} - Location de jeu pour ${product.specifications.players.min}-${product.specifications.players.max} joueurs`
+            ? `${product.name} - Location de jeu${product.specifications?.players?.min ? ` pour ${product.specifications.players.min}-${product.specifications.players.max} joueurs` : ''} en region PACA. ${product.description ? stripHtml(product.description).substring(0, 100) : 'Disponible a la location avec livraison et installation.'}`
+            : `${product.name} - Location de jeu${product.specifications?.players?.min ? ` pour ${product.specifications.players.min}-${product.specifications.players.max} joueurs` : ''}`
           }
           onLoad={onImageLoad}
           onError={onImageError}
@@ -55,12 +56,20 @@ export function ProductCardImage({
 
       {/* Badge Prix */}
       <div className={`absolute top-3 left-3 ${isGrid ? 'z-10' : ''}`}>
-        <div className={`px-4 py-2 text-[#000033] rounded-full shadow-lg ${
-          isGrid ? 'bg-[#33ffcc]/95 backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform duration-300' : 'bg-[#33ffcc]'
-        }`}>
-          <span className="friendly-badge text-2xl">{formatPrice(product.pricing.oneDay)}</span>
-          <span className={`font-${isGrid ? 'bold' : 'semibold'} text-sm`}>/j{!isGrid && 'our'}</span>
-        </div>
+        {product.pricing?.oneDay > 0 ? (
+          <div className={`px-4 py-2 text-[#000033] rounded-full shadow-lg ${
+            isGrid ? 'bg-[#33ffcc]/95 backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform duration-300' : 'bg-[#33ffcc]'
+          }`}>
+            <span className="friendly-badge text-2xl">{formatPrice(product.pricing.oneDay)}</span>
+            <span className={`font-${isGrid ? 'bold' : 'semibold'} text-sm`}>/j{!isGrid && 'our'}</span>
+          </div>
+        ) : (
+          <div className={`px-4 py-2 rounded-full shadow-lg ${
+            isGrid ? 'bg-amber-500/90 backdrop-blur-sm border border-amber-400/30 group-hover:scale-110 transition-transform duration-300' : 'bg-amber-500/90'
+          }`}>
+            <span className="font-bold text-sm text-white">Sur devis</span>
+          </div>
+        )}
       </div>
 
       {/* Heart button */}
@@ -73,12 +82,12 @@ export function ProductCardImage({
         <Heart className={`w-${isGrid ? '4' : '5'} h-${isGrid ? '4' : '5'} ${isLiked ? 'fill-current' : ''}`} />
       </button>
 
-      {/* Badge populaire (grid only) */}
-      {isGrid && product.total_stock < 5 && (
+      {/* Badge populaire (grid only, controlé par l'admin via featured) */}
+      {isGrid && product.featured && (
         <div className="absolute bottom-3 left-3 z-10">
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#fe1979]/90 backdrop-blur-sm text-white rounded-full shadow-lg animate-pulse">
             <Star className="w-3.5 h-3.5 fill-current" />
-            <span className="text-xs font-bold">Tres demande</span>
+            <span className="text-xs font-bold">Très demandé</span>
           </div>
         </div>
       )}

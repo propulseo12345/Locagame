@@ -112,11 +112,7 @@ export function useAuthModal({ signIn, signUp, onClose, defaultTab = 'login' }: 
         handleClose();
       }
     } catch (err: any) {
-      if (err.message?.includes('already registered')) {
-        setError('Cette adresse email est déjà utilisée. Connectez-vous !');
-      } else {
-        setError(err.message || 'Erreur lors de la création du compte');
-      }
+      setError(err.message || 'Erreur lors de la création du compte');
     } finally {
       setLoading(false);
     }

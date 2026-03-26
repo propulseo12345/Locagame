@@ -18,7 +18,7 @@ export interface DashboardStats {
     total: number;
     available: number;
     reserved: number;
-    mostRented: Array<{ id: string; name: string; rentals: number }>;
+    mostRented: Array<{ id: string; name: string; image?: string; rentals: number }>;
   };
   customers: {
     total: number;
@@ -90,6 +90,35 @@ export class StatsService {
       const productsTotal = productsData?.length || 0;
       const productsAvailable = productsData?.filter((p) => p.is_active).length || 0;
 
+      // Top produits loués (depuis reservation_items)
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('reservation_items')
+        .select('product_id, quantity, products(name, images)');
+
+      if (itemsError) {
+        logger.error('Error loading reservation items', itemsError);
+      }
+
+      const productRentals: Record<string, { id: string; name: string; image?: string; rentals: number }> = {};
+      for (const item of itemsData || []) {
+        const pid = item.product_id;
+        if (!pid) continue;
+        if (!productRentals[pid]) {
+          const prod = item.products as any;
+          productRentals[pid] = {
+            id: pid,
+            name: prod?.name || 'Produit inconnu',
+            image: Array.isArray(prod?.images) ? prod.images[0] : undefined,
+            rentals: 0,
+          };
+        }
+        productRentals[pid].rentals += item.quantity || 1;
+      }
+
+      const mostRented = Object.values(productRentals)
+        .sort((a, b) => b.rentals - a.rentals)
+        .slice(0, 5);
+
       // Compter les clients
       const customersTotal = customersData?.length || 0;
       const customersNewThisMonth = customersData?.filter(
@@ -135,8 +164,8 @@ export class StatsService {
         products: {
           total: productsTotal,
           available: productsAvailable,
-          reserved: 0, // TODO: calculer depuis product_availability
-          mostRented: [], // TODO: calculer depuis les réservations
+          reserved: 0,
+          mostRented,
         },
         customers: {
           total: customersTotal,

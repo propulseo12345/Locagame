@@ -24,10 +24,10 @@ export function TaskSidebar({
     <div className="space-y-6">
       {/* Informations vehicule et technicien */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{"\u00c9quipe"}</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{"Équipe"}</h2>
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-gray-600 mb-1">{"V\u00e9hicule"}</p>
+            <p className="text-sm text-gray-600 mb-1">{"Véhicule"}</p>
             <p className="text-base font-semibold text-gray-900">
               {vehicle?.name || 'N/A'}
             </p>
@@ -56,7 +56,7 @@ export function TaskSidebar({
               onClick={onStartTask}
               className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
             >
-              {"\uD83D\uDE9A D\u00e9marrer la livraison"}
+              {"🚚 Démarrer la livraison"}
             </button>
           )}
           {task.status === 'en_route' && (
@@ -64,11 +64,11 @@ export function TaskSidebar({
               onClick={onCompleteTask}
               className="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
             >
-              {"\u2705 Marquer comme livr\u00e9"}
+              {"✅ Marquer comme livré"}
             </button>
           )}
           <button className="w-full px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors">
-            {"Signaler un probl\u00e8me"}
+            {"Signaler un problème"}
           </button>
           <a
             href={mapsUrl}
@@ -87,14 +87,14 @@ export function TaskSidebar({
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Timeline</h2>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-600">{"Planifi\u00e9"}</p>
+              <p className="text-sm text-gray-600">{"Planifié"}</p>
               <p className="text-sm font-semibold text-gray-900">
-                {new Date(task.scheduledDate).toLocaleDateString('fr-FR')} {"\u00e0 "}{task.scheduledTime}
+                {new Date(task.scheduledDate).toLocaleDateString('fr-FR')} {"à "}{task.scheduledTime}
               </p>
             </div>
             {task.startedAt && (
               <div>
-                <p className="text-sm text-gray-600">{"D\u00e9marr\u00e9"}</p>
+                <p className="text-sm text-gray-600">{"Démarré"}</p>
                 <p className="text-sm font-semibold text-gray-900">
                   {new Date(task.startedAt).toLocaleString('fr-FR')}
                 </p>
@@ -102,7 +102,7 @@ export function TaskSidebar({
             )}
             {task.completedAt && (
               <div>
-                <p className="text-sm text-gray-600">{"Termin\u00e9"}</p>
+                <p className="text-sm text-gray-600">{"Terminé"}</p>
                 <p className="text-sm font-semibold text-gray-900">
                   {new Date(task.completedAt).toLocaleString('fr-FR')}
                 </p>

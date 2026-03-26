@@ -44,7 +44,7 @@ export default function ConfirmationNextSteps({ paymentState }: ConfirmationNext
           </div>
           <div>
             <p className="text-white font-medium text-sm">Livraison / Retrait</p>
-            <p className="text-gray-400 text-xs">Nous installons tout pour votre evenement !</p>
+            <p className="text-gray-400 text-xs">Nous installons tout pour votre événement !</p>
           </div>
         </div>
       </div>

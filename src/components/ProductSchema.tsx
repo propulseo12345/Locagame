@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { Product } from '../types';
 import { toLocalISODate } from '../utils/dateHolidays';
+import { stripHtml } from '../utils/html';
 
 interface ProductSchemaProps {
   product: Product;
@@ -16,7 +17,7 @@ export function ProductSchema({ product, url }: ProductSchemaProps) {
       "@context": "https://schema.org",
       "@type": "Product",
       "name": product.name,
-      "description": product.description || product.description || `Location de ${product.name} pour événements en région PACA`,
+      "description": stripHtml(product.description) || `Location de ${product.name} pour événements en région PACA`,
       "image": product.images.length > 0 ? product.images : ["https://www.locagame.net/logo-client.png"],
       "brand": {
         "@type": "Brand",

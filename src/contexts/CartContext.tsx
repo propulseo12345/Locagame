@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, Re
 import { CartItem } from '../types';
 import { calculateDurationDays } from '../utils/pricing';
 import { ProductsService } from '../services';
+import { supabase } from '../lib/supabase';
 
 type DeliveryType = 'delivery' | 'pickup';
 
@@ -73,6 +74,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const setRentalDateRange = useCallback((range: RentalDateRange | null) => {
     setRentalDateRangeState(range);
   }, []);
+
+  // Vider le panier au logout pour éviter qu'il persiste entre comptes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        clearCart();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [clearCart]);
 
   // Valider les produits du panier au montage : retirer les inactifs/supprimés
   const hasValidated = useRef(false);
@@ -149,9 +160,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setItems([]);
-  };
+    localStorage.removeItem('locagame_cart');
+    localStorage.removeItem('locagame_delivery_type');
+    localStorage.removeItem('locagame_rental_dates');
+    setDeliveryType('delivery');
+    setRentalDateRangeState(null);
+  }, []);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + item.total_price, 0);

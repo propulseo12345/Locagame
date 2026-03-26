@@ -21,7 +21,7 @@ export function MobileBottomNav() {
     const role = (user as any).role;
     if (role === 'admin') return ROUTES.ADMIN.DASHBOARD;
     if (role === 'technician') return ROUTES.TECHNICIAN.DASHBOARD;
-    return ROUTES.CLIENT.DASHBOARD;
+    return '/mon-compte';
   };
 
   const isActive = (path: string) => {

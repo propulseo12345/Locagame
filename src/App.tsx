@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useParams, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -53,6 +53,7 @@ const AdminReservations = lazy(() => import('./pages/admin/AdminReservations'));
 const AdminReservationDetail = lazy(() => import('./pages/admin/AdminReservationDetail'));
 const AdminPlanning = lazy(() => import('./pages/admin/AdminPlanning'));
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
+const AdminClientDetail = lazy(() => import('./pages/admin/AdminClientDetail'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const AdminEventTypes = lazy(() => import('./pages/admin/AdminEventTypes'));
 const AdminTimeSlots = lazy(() => import('./pages/admin/AdminTimeSlots'));
@@ -103,13 +104,20 @@ function HomePage() {
   );
 }
 
+function ReservationRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/client/reservations/${id}`} replace />;
+}
+
 function AppContent() {
   const location = useLocation();
   const isAuthPage = location.pathname === ROUTES.LOGIN || location.pathname === '/inscription';
   const isAdminOrClientOrTechnician =
     location.pathname.startsWith(ROUTES.ADMIN.BASE) ||
     location.pathname.startsWith(ROUTES.CLIENT.BASE) ||
-    location.pathname.startsWith(ROUTES.TECHNICIAN.BASE);
+    location.pathname.startsWith(ROUTES.TECHNICIAN.BASE) ||
+    location.pathname.startsWith('/mon-compte') ||
+    location.pathname.startsWith('/mes-reservations');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -141,6 +149,11 @@ function AppContent() {
             <Route path="/confirmation/:reservationId" element={<ConfirmationPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
+            {/* Redirects user-facing → client routes */}
+            <Route path="/mon-compte" element={<Navigate to="/client/dashboard" replace />} />
+            <Route path="/mes-reservations" element={<Navigate to="/client/reservations" replace />} />
+            <Route path="/mes-reservations/:id" element={<ReservationRedirect />} />
+
           {/* Admin Routes - Protégées */}
           <Route path={`${ROUTES.ADMIN.BASE}/*`} element={
             <ProtectedRoute requiredRole="admin">
@@ -153,6 +166,7 @@ function AppContent() {
                   <Route path="reservations/:id" element={<AdminReservationDetail />} />
                   <Route path="livraisons" element={<AdminPlanning />} />
                   <Route path="customers" element={<AdminCustomers />} />
+                  <Route path="customers/:id" element={<AdminClientDetail />} />
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="event-types" element={<AdminEventTypes />} />
                   <Route path="time-slots" element={<AdminTimeSlots />} />

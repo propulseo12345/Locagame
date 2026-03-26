@@ -17,6 +17,10 @@ export const ROUTES = {
   CONTACT: '/contact',
   DEMO: '/demo', // Gated by VITE_ENABLE_DEMO_MODE in App.tsx - redirects to / in prod
 
+  // User-facing redirects
+  MON_COMPTE: '/mon-compte',
+  MES_RESERVATIONS: '/mes-reservations',
+
   // Legal pages
   CGV: '/cgv',
   MENTIONS_LEGALES: '/mentions-legales',
@@ -31,6 +35,7 @@ export const ROUTES = {
     RESERVATIONS: '/admin/reservations',
     LIVRAISONS: '/admin/livraisons',
     CUSTOMERS: '/admin/customers',
+    CUSTOMER_DETAIL: (id: string) => `/admin/customers/${id}`,
     TECHNICIANS: '/admin/technicians',
     SETTINGS: '/admin/settings',
   },

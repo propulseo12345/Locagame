@@ -97,11 +97,11 @@ export default function PickupForm({
         </div>
       </div>
 
-      {/* Retrait du materiel */}
+      {/* Retrait du matériel */}
       <div className="space-y-4">
         <h3 className="text-white font-medium flex items-center gap-2">
           <Clock className="w-5 h-5 text-[#33ffcc]" />
-          Retrait du materiel
+          Retrait du matériel
         </h3>
 
         <div className="bg-white/5 rounded-xl p-4 border border-white/10">
@@ -118,7 +118,7 @@ export default function PickupForm({
           </div>
         ) : (
           <div>
-            <p className="text-gray-400 text-sm mb-3">Choisissez votre creneau de retrait *</p>
+            <p className="text-gray-400 text-sm mb-3">Choisissez votre créneau de retrait *</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {pickupSlots.map((slot) => (
                 <button
@@ -142,11 +142,11 @@ export default function PickupForm({
         )}
       </div>
 
-      {/* Retour du materiel */}
+      {/* Retour du matériel */}
       <div className="space-y-4 pt-6 border-t border-white/10">
         <h3 className="text-white font-medium flex items-center gap-2">
           <Clock className="w-5 h-5 text-[#fe1979]" />
-          Retour du materiel
+          Retour du matériel
         </h3>
 
         <div className="bg-white/5 rounded-xl p-4 border border-white/10">
@@ -163,7 +163,7 @@ export default function PickupForm({
           </div>
         ) : (
           <div>
-            <p className="text-gray-400 text-sm mb-3">Choisissez votre creneau de retour *</p>
+            <p className="text-gray-400 text-sm mb-3">Choisissez votre créneau de retour *</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {returnSlots.map((slot) => (
                 <button
@@ -193,7 +193,7 @@ export default function PickupForm({
           <Info className="w-5 h-5 shrink-0 mt-0.5" />
           <span>
             <strong>Rappel :</strong> Presentez-vous avec une piece d'identite et le numero de reservation.
-            Le materiel devra etre rendu a la meme adresse dans l'etat initial.
+            Le matériel devra être rendu à la même adresse dans l'état initial.
           </span>
         </p>
       </div>

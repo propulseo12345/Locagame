@@ -29,7 +29,7 @@ export default function PersonalInfoForm({
         </div>
         <div>
           <h2 className="text-lg font-bold text-white">Informations personnelles</h2>
-          <p className="text-sm text-white/50">Gerez vos coordonnees</p>
+          <p className="text-sm text-white/50">Gérez vos coordonnées</p>
         </div>
       </div>
 

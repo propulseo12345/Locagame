@@ -41,7 +41,7 @@ export function CatalogHeroSearch({
           Notre <span className="gradient-text">Catalogue</span>
         </h1>
         <p className="text-gray-400 mb-6 max-w-xl mx-auto">
-          {productsCount}+ jeux disponibles pour vos evenements
+          {productsCount}+ jeux disponibles pour vos événements
         </p>
 
         <div className="max-w-4xl mx-auto">

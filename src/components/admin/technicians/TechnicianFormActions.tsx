@@ -23,7 +23,7 @@ export default function TechnicianFormActions({
         disabled={submitting}
         className="px-6 py-2 bg-gray-900 text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
       >
-        {submitting ? 'En cours...' : isEdit ? 'Enregistrer' : 'Cr\u00e9er le technicien'}
+        {submitting ? 'En cours...' : isEdit ? 'Enregistrer' : 'Créer le technicien'}
       </button>
     </div>
   );

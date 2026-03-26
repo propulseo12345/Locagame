@@ -1,4 +1,5 @@
 
+import { Link } from 'react-router-dom';
 import { Package, Truck, Calendar } from 'lucide-react';
 import { Order } from '../../../types';
 import { TaskTypeBadge } from './reservationBadges';
@@ -24,20 +25,28 @@ export default function ReservationItemsList({
 }: ReservationItemsListProps) {
   return (
     <>
-      {/* Produits reserves */}
+      {/* Produits réservés */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Package className="w-5 h-5 text-[#33ffcc]" />
-          Produits reserves
+          Produits réservés
         </h2>
         <div className="space-y-3">
           {(reservation.reservation_items || []).map((item: any, index: number) => (
             <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{item.product?.name || 'Produit'}</h3>
+                <h3 className="font-semibold text-gray-900">
+                  {item.product_id ? (
+                    <Link to={`/admin/products/${item.product_id}`} className="hover:text-blue-600 hover:underline">
+                      {item.product?.name || 'Produit'}
+                    </Link>
+                  ) : (
+                    item.product?.name || 'Produit'
+                  )}
+                </h3>
                 <div className="mt-1 flex items-center gap-4 text-sm text-gray-600">
-                  <span>Quantite: <strong>{item.quantity}</strong></span>
-                  <span>Duree: <strong>{item.duration_days || 1} jour(s)</strong></span>
+                  <span>Quantité : <strong>{item.quantity}</strong></span>
+                  <span>Durée : <strong>{item.duration_days || 1} jour(s)</strong></span>
                   <span>Prix unitaire: <strong>{item.unit_price}€</strong></span>
                 </div>
               </div>
@@ -69,10 +78,10 @@ export default function ReservationItemsList({
                         task.status === 'assigned' ? 'bg-yellow-100 text-yellow-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {task.status === 'delivered' ? 'Livr\u00e9' :
+                        {task.status === 'delivered' ? 'Livré' :
                          task.status === 'en_route' ? 'En route' :
-                         task.status === 'assigned' ? 'Assign\u00e9' :
-                         'Planifi\u00e9'}
+                         task.status === 'assigned' ? 'Assigné' :
+                         'Planifié'}
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">
@@ -89,7 +98,13 @@ export default function ReservationItemsList({
                     {task.technician && (
                       <div className="mt-2 text-sm">
                         <span className="text-gray-500">Technicien: </span>
-                        <span className="font-medium text-gray-900">{task.technician.name}</span>
+                        {task.technician_id ? (
+                          <Link to={`/admin/technicians`} className="font-medium text-gray-900 hover:text-blue-600 hover:underline">
+                            {task.technician.name}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-gray-900">{task.technician.name}</span>
+                        )}
                       </div>
                     )}
                   </div>

@@ -85,16 +85,20 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
 
         {activeTab === 'specs' && (
           <div className="grid grid-cols-2 gap-4">
+            {product.specifications?.players?.min != null && product.specifications?.players?.max != null && (
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <Users className="w-5 h-5 text-[#33ffcc] mb-2" />
               <div className="text-2xl font-black text-white">{product.specifications.players.min}-{product.specifications.players.max}</div>
               <div className="text-xs text-white/50 uppercase tracking-wider">Joueurs</div>
             </div>
+            )}
+            {product.specifications?.setup_time != null && (
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <Clock className="w-5 h-5 text-[#66cccc] mb-2" />
               <div className="text-2xl font-black text-white">{product.specifications.setup_time}</div>
               <div className="text-xs text-white/50 uppercase tracking-wider">Min installation</div>
             </div>
+            )}
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <Ruler className="w-5 h-5 text-[#33ffcc] mb-2" />
               <div className="text-lg font-black text-white leading-snug">

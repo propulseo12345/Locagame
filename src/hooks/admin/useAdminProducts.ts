@@ -5,8 +5,12 @@ import { Product } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 
+const PAGE_SIZE = 20;
+
 export function useAdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(0);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,41 +22,66 @@ export function useAdminProducts() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const { data: productsData, error: productsError } = await supabase
+
+      let query = supabase
         .from('products')
-        .select('*, category:categories!products_category_id_fkey(*), product_categories(category_id, categories(id, name, slug))')
+        .select('*, category:categories!products_category_id_fkey(*), product_categories(category_id, categories(id, name, slug))', { count: 'exact' })
         .order('name', { ascending: true });
+
+      // Filtres côté serveur
+      if (statusFilter === 'active') query = query.eq('is_active', true);
+      else if (statusFilter === 'inactive') query = query.eq('is_active', false);
+
+      if (categoryFilter !== 'all') {
+        query = query.eq('category_id', categoryFilter);
+      }
+
+      if (searchTerm.trim()) {
+        query = query.ilike('name', `%${searchTerm.trim()}%`);
+      }
+
+      // Pagination
+      query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      const { data: productsData, error: productsError, count } = await query;
 
       if (productsError) throw productsError;
 
       const categoriesData = await CategoriesService.getCategories();
       setProducts(productsData as Product[]);
+      setTotalCount(count || 0);
       setCategories(categoriesData);
     } catch (error) {
       logger.error('Error loading data', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, statusFilter, categoryFilter, searchTerm]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.description || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const productStatus = product.is_active ? 'active' : 'inactive';
-    const matchesStatus = statusFilter === 'all' || productStatus === statusFilter;
-    const rawPc = (product as any).product_categories as Array<{ category_id: string }> | undefined;
-    const matchesCategory =
-      categoryFilter === 'all' ||
-      (rawPc && rawPc.length > 0
-        ? rawPc.some(pc => pc.category_id === categoryFilter)
-        : product.category_id === categoryFilter);
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+  // Reset page when filters change
+  const setSearchTermAndReset = useCallback((value: string) => {
+    setSearchTerm(value);
+    setPage(0);
+  }, []);
+
+  const setStatusFilterAndReset = useCallback((value: string) => {
+    setStatusFilter(value);
+    setPage(0);
+  }, []);
+
+  const setCategoryFilterAndReset = useCallback((value: string) => {
+    setCategoryFilter(value);
+    setPage(0);
+  }, []);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  // With server-side filtering, filteredProducts = products (already filtered by query)
+  const filteredProducts = products;
 
   const handleDelete = async (productId: string) => {
     try {
@@ -106,11 +135,11 @@ export function useAdminProducts() {
     categories,
     loading,
     searchTerm,
-    setSearchTerm,
+    setSearchTerm: setSearchTermAndReset,
     statusFilter,
-    setStatusFilter,
+    setStatusFilter: setStatusFilterAndReset,
     categoryFilter,
-    setCategoryFilter,
+    setCategoryFilter: setCategoryFilterAndReset,
     filteredProducts,
     handleDelete,
     handleExport,
@@ -118,5 +147,10 @@ export function useAdminProducts() {
     loadData,
     showDeleteConfirm,
     setShowDeleteConfirm,
+    // Pagination
+    page,
+    setPage,
+    totalPages,
+    totalCount,
   };
 }

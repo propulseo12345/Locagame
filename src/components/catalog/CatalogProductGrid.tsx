@@ -210,7 +210,7 @@ function Pagination({
         disabled={currentPage === 1}
         className="px-3 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
-        &larr; Precedent
+        &larr; Précédent
       </button>
 
       <div className="flex items-center gap-1 mx-2">

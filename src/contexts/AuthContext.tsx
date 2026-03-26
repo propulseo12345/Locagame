@@ -7,6 +7,29 @@ import { buildWelcomeHtml } from './authContext.utils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function translateAuthError(message: string): string {
+  switch (message) {
+    case 'Invalid login credentials':
+      return 'Email ou mot de passe incorrect.';
+    case 'Email not confirmed':
+      return 'Veuillez confirmer votre adresse email avant de vous connecter.';
+    case 'Too many requests':
+      return 'Trop de tentatives. Veuillez réessayer dans quelques minutes.';
+    case 'User not found':
+      return 'Aucun compte associé à cet email.';
+    case 'Network request failed':
+      return 'Problème de connexion. Vérifiez votre internet.';
+    case 'User already registered':
+      return 'Cette adresse email est déjà utilisée. Connectez-vous !';
+    case 'Password should be at least 6 characters':
+      return 'Le mot de passe doit contenir au moins 6 caractères.';
+    case 'Unable to validate email address: invalid format':
+      return 'Format d\'adresse email invalide.';
+    default:
+      return 'Une erreur est survenue. Veuillez réessayer.';
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       logger.error('[Auth] Erreur signIn', error);
-      throw new Error(error.message || 'Email ou mot de passe incorrect');
+      throw new Error(translateAuthError(error.message));
     }
 
     if (!data.user) {
@@ -106,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      throw new Error(error.message || 'Erreur lors de la création du compte');
+      throw new Error(translateAuthError(error.message));
     }
 
     if (!data.user) {

@@ -187,9 +187,9 @@ export default function ReservationTableRow({
         </div>
         {durationDays !== null && (
           <span className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded mt-0.5 ${
-            isUrgentDelivery ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'
+            durationDays <= 0 ? 'bg-gray-100 text-gray-500' : isUrgentDelivery ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'
           }`}>
-            {durationDays}j
+            {durationDays <= 0 ? 'Terminée' : `${durationDays}j`}
           </span>
         )}
       </td>

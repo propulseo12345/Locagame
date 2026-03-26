@@ -158,7 +158,7 @@ export default function ProductAvailabilitySection({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Quantite bloquee</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Quantité bloquée</label>
                 <input
                   type="number"
                   min="1"

@@ -39,7 +39,7 @@ export function UploadStep({ fileInputRef, onFileUpload }: UploadStepProps) {
           <p><strong>category_id</strong> (requis) - Slug de la categorie (ex: "casino-poker")</p>
           <p><strong>description</strong> - Description du produit</p>
           <p><strong>price_one_day</strong> / <strong>price_weekend</strong> / <strong>price_week</strong> - Tarifs en euros</p>
-          <p><strong>total_stock</strong> - Quantite en stock</p>
+          <p><strong>total_stock</strong> - Quantité en stock</p>
         </div>
       </div>
     </div>

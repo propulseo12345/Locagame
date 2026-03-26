@@ -3,6 +3,7 @@ import { Product, Category, FilterOptions } from '../../types';
 import ProductCard from '../ProductCard';
 import { CatalogResultsBar } from './CatalogResultsBar';
 import { CatalogPagination } from './CatalogPagination';
+import { CatalogFilterSidebar } from './CatalogFilterSidebar';
 
 interface CategoryWithCount extends Category {
   productCount: number;
@@ -30,6 +31,7 @@ interface CatalogProductsGridProps {
   currentPage: number;
   setCurrentPage: (page: number) => void;
   productsRef: React.RefObject<HTMLDivElement | null> | React.LegacyRef<HTMLDivElement>;
+  onCategoryClick?: (id: string) => void;
 }
 
 export function CatalogProductsGrid({
@@ -37,14 +39,31 @@ export function CatalogProductsGrid({
   categoriesWithCount, viewMode, setViewMode, selectedCategory,
   searchTerm, startDate, endDate, filters, unavailableProductIds,
   activeFiltersCount, handleFilterChange, clearAllFilters,
-  totalPages, currentPage, setCurrentPage, productsRef,
+  totalPages, currentPage, setCurrentPage, productsRef, onCategoryClick,
 }: CatalogProductsGridProps) {
-  const gridClass = `grid gap-3 sm:gap-5 ${viewMode === 'grid' ? 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`;
+  const gridClass = `grid gap-3 sm:gap-4 ${viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'}`;
   const showCategoryView = !selectedCategory && !searchTerm && Object.keys(filters).length === 0 && !startDate;
 
   return (
     <div ref={productsRef as React.LegacyRef<HTMLDivElement>} className="relative z-10 py-8 bg-gradient-to-b from-transparent to-[#000033]/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="flex gap-6">
+          {/* Sidebar filters — tablet+ */}
+          {onCategoryClick && (
+            <aside className="hidden md:block w-56 lg:w-64 shrink-0">
+              <CatalogFilterSidebar
+                categoriesWithCount={categoriesWithCount}
+                selectedCategory={selectedCategory}
+                onCategoryClick={onCategoryClick}
+                filters={filters}
+                handleFilterChange={handleFilterChange}
+                clearAllFilters={clearAllFilters}
+                activeFiltersCount={activeFiltersCount}
+              />
+            </aside>
+          )}
+
+          <div className="flex-1 min-w-0">
         <CatalogResultsBar
           filteredCount={filteredProducts.length}
           startDate={startDate} endDate={endDate} searchTerm={searchTerm}
@@ -132,6 +151,8 @@ VITE_SUPABASE_ANON_KEY=votre-cle-anon`}
             </button>
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

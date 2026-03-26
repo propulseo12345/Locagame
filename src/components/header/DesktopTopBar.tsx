@@ -8,16 +8,16 @@ interface DesktopTopBarProps {
 
 export function DesktopTopBar({ isScrolled }: DesktopTopBarProps) {
   return (
-    <div className={`hidden md:block relative transition-all duration-300 ${isScrolled ? 'h-16' : 'h-28'}`}>
+    <div className={`hidden lg:block relative transition-all duration-300 ${isScrolled ? 'h-16' : 'h-28'}`}>
       {/* Ligne centrale uniquement */}
       {!isScrolled && (
         <div className="absolute bottom-0 left-[46%] -translate-x-1/2 w-[45%] h-px bg-white/10"></div>
       )}
       {/* Logo */}
-      <Link to="/" className={`absolute left-12 transition-all duration-300 ${isScrolled ? 'left-6 bottom-0 translate-y-5' : 'top-1/2 -translate-y-1/3'}`} aria-label="Retour a l'accueil">
+      <Link to="/" className={`absolute left-12 transition-all duration-300 ${isScrolled ? 'left-6 bottom-0 translate-y-5' : 'top-1/2 -translate-y-1/3'}`} aria-label="Retour à l'accueil">
         <img
           src={isScrolled ? LOGO_SCROLLED : LOGO_DEFAULT}
-          alt="LOCAGAME - Logo de location de jeux et animations pour evenements en region PACA"
+          alt="LOCAGAME - Logo de location de jeux et animations pour événements en région PACA"
           className={`w-auto transition-all duration-300 ${isScrolled ? 'h-16' : 'h-32'}`}
           width={isScrolled ? "200" : "128"}
           height={isScrolled ? "64" : "128"}

@@ -2,7 +2,7 @@
 export const NAV_LINKS = [
   { path: '/', label: 'Accueil' },
   { path: '/catalogue', label: 'Catalogue' },
-  { path: '/evenements', label: 'Evenements' },
+  { path: '/evenements', label: 'Événements' },
   { path: '/contact', label: 'Contact' },
 ] as const;
 
@@ -16,7 +16,7 @@ export function getDashboardLink(user: { role: string } | null): string {
     case 'admin': return '/admin/dashboard';
     case 'technician': return '/technician/dashboard';
     case 'client':
-    default: return '/client/dashboard';
+    default: return '/mon-compte';
   }
 }
 

@@ -1,4 +1,5 @@
 
+import { Link } from 'react-router-dom';
 import { User, Mail, Phone, Building2, Users } from 'lucide-react';
 import { Order } from '../../../types';
 
@@ -23,7 +24,13 @@ export default function CustomerInfoCard({ reservation }: CustomerInfoCardProps)
             <div>
               <div className="text-sm text-gray-500">Nom complet</div>
               <div className="font-medium text-gray-900">
-                {customer?.first_name} {customer?.last_name}
+                {reservation.customer_id ? (
+                  <Link to={`/admin/customers/${reservation.customer_id}`} className="hover:text-blue-600 hover:underline">
+                    {customer?.first_name} {customer?.last_name}
+                  </Link>
+                ) : (
+                  <>{customer?.first_name} {customer?.last_name}</>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -64,12 +71,12 @@ export default function CustomerInfoCard({ reservation }: CustomerInfoCardProps)
         </div>
       </div>
 
-      {/* Receptionnaire (si different) */}
+      {/* Réceptionnaire (si different) */}
       {recipientData && !recipientData.sameAsCustomer && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-orange-500" />
-            Receptionnaire sur place
+            Réceptionnaire sur place
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

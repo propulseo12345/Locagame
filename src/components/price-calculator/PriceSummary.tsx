@@ -42,7 +42,7 @@ export function PriceSummary({
         </div>
       )}
 
-      {/* Recapitulatif prix */}
+      {/* Récapitulatif prix */}
       <div className="pt-4 border-t border-white/10 space-y-3">
         {/* Ligne produit : label du palier + prix */}
         <div className="flex items-center justify-between">

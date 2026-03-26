@@ -13,7 +13,7 @@ export function TaskProductsList({ products }: TaskProductsListProps) {
           <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div>
               <p className="font-semibold text-gray-900">{product.productName}</p>
-              <p className="text-sm text-gray-600">{"Quantit\u00e9: "}{product.quantity}</p>
+              <p className="text-sm text-gray-600">{"Quantité : "}{product.quantity}</p>
             </div>
           </div>
         ))}

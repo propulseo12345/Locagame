@@ -53,20 +53,20 @@ export default function DeliveryInfoCard({ reservation }: DeliveryInfoCardProps)
           </div>
         </div>
 
-        {/* Creneaux */}
+        {/* Créneaux */}
         {reservation.delivery_type === 'pickup' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
               <Clock className="w-4 h-4 text-gray-400" />
               <div>
-                <span className="text-sm text-gray-500">Creneau retrait: </span>
+                <span className="text-sm text-gray-500">Créneau retrait: </span>
                 <span className="font-medium">{reservation.pickup_time || reservation.pickup_slot || 'Non specifie'}</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Clock className="w-4 h-4 text-gray-400" />
               <div>
-                <span className="text-sm text-gray-500">Creneau retour: </span>
+                <span className="text-sm text-gray-500">Créneau retour: </span>
                 <span className="font-medium">{reservation.return_time || 'Non specifie'}</span>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default function DeliveryInfoCard({ reservation }: DeliveryInfoCardProps)
           <div className="flex items-center gap-3">
             <Clock className="w-4 h-4 text-gray-400" />
             <div>
-              <span className="text-sm text-gray-500">Creneau livraison: </span>
+              <span className="text-sm text-gray-500">Créneau livraison: </span>
               <span className="font-medium">{reservation.delivery_time || 'Non specifie'}</span>
             </div>
           </div>

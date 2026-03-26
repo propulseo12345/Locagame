@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAdminProducts } from '../../hooks/admin/useAdminProducts';
 import { useProductForm } from '../../hooks/admin/useProductForm';
@@ -33,6 +33,10 @@ export default function AdminProducts() {
     loadData,
     showDeleteConfirm,
     setShowDeleteConfirm,
+    page,
+    setPage,
+    totalPages,
+    totalCount,
   } = useAdminProducts();
 
   const {
@@ -58,7 +62,7 @@ export default function AdminProducts() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Produits
-            {!loading && <span className="text-gray-400 font-normal ml-2 text-lg">{products.length}</span>}
+            {!loading && <span className="text-gray-400 font-normal ml-2 text-lg">{totalCount}</span>}
           </h1>
           <p className="text-sm text-gray-600 mt-0.5">Gérez votre catalogue de jeux et activités</p>
         </div>
@@ -101,8 +105,8 @@ export default function AdminProducts() {
         categoryFilter={categoryFilter}
         onCategoryChange={setCategoryFilter}
         categories={categories}
-        totalCount={products.length}
-        filteredCount={filteredProducts.length}
+        totalCount={totalCount}
+        filteredCount={totalCount}
       />
 
       <AdminProductsTable
@@ -111,6 +115,36 @@ export default function AdminProducts() {
         onDelete={setShowDeleteConfirm}
         loading={loading}
       />
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            {page * 20 + 1}–{Math.min((page + 1) * 20, totalCount)} sur {totalCount} produits
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 0}
+              className="h-9 px-3 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Précédent
+            </button>
+            <span className="text-sm font-medium text-gray-700 px-2">
+              Page {page + 1} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page >= totalPages - 1}
+              className="h-9 px-3 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Suivant
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {showModal && (

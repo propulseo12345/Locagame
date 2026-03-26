@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit2, MoreVertical, Trash2, Package } from 'lucide-react';
 import { Product } from '../../../types';
+import { stripHtml } from '../../../utils/html';
 
 interface AdminProductsTableProps {
   products: Product[];
@@ -84,12 +85,12 @@ export default function AdminProductsTable({ products, categories, onDelete, loa
                 return (
                   <tr
                     key={product.id}
-                    className={`border-l-4 ${product.is_active ? 'border-l-green-400' : 'border-l-gray-300'} ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'} hover:bg-gray-100/60 transition-colors`}
+                    className={`border-l-4 ${product.is_active && (!product.pricing?.oneDay || product.pricing.oneDay <= 0) ? 'border-l-red-400' : product.is_active ? 'border-l-green-400' : 'border-l-gray-300'} ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'} hover:bg-gray-100/60 transition-colors`}
                   >
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{product.name}</div>
                       <div className="text-xs text-gray-400 line-clamp-1">
-                        {product.description ? product.description.substring(0, 50) + '...' : 'Aucune description'}
+                        {product.description ? stripHtml(product.description).substring(0, 50) + '...' : 'Aucune description'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -102,7 +103,13 @@ export default function AdminProductsTable({ products, categories, onDelete, loa
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-bold tabular-nums text-gray-900">{product.pricing?.oneDay || 0}€</span>
+                      {product.is_active && (!product.pricing?.oneDay || product.pricing.oneDay <= 0) ? (
+                        <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-md ring-1 ring-red-200 bg-red-50 text-red-700">
+                          Prix manquant
+                        </span>
+                      ) : (
+                        <span className="text-sm font-bold tabular-nums text-gray-900">{product.pricing?.oneDay || 0}€</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md ${STATUS_BADGE[productStatus] || 'ring-1 ring-gray-200 bg-gray-50 text-gray-600'}`}>

@@ -25,7 +25,7 @@ export default function ConfirmationPage() {
       <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] pt-header flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-400 text-xl mb-4">{error}</div>
-          <Link to="/" className="text-[#33ffcc] hover:underline">Retour a l'accueil</Link>
+          <Link to="/" className="text-[#33ffcc] hover:underline">Retour à l'accueil</Link>
         </div>
       </div>
     );

@@ -12,12 +12,12 @@ const STATUS_STYLES: Record<string, string> = {
 
 const STATUS_LABELS: Record<string, string> = {
   pending: 'En attente',
-  confirmed: 'Confirmee',
+  confirmed: 'Confirmée',
   preparing: 'En preparation',
-  delivered: 'Livree',
-  completed: 'Terminee',
+  delivered: 'Livrée',
+  completed: 'Terminée',
   returned: 'Retournee',
-  cancelled: 'Annulee',
+  cancelled: 'Annulée',
 };
 
 export function StatusBadge({ status }: { status: string }) {

@@ -8,3 +8,4 @@ export { CatalogCategoriesBar } from './CatalogCategoriesBar';
 export { CatalogProductsGrid } from './CatalogProductsGrid';
 export { CatalogPagination } from './CatalogPagination';
 export { CatalogResultsBar } from './CatalogResultsBar';
+export { CatalogFilterSidebar } from './CatalogFilterSidebar';

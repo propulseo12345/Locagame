@@ -46,7 +46,7 @@ export default function TechnicianDashboard() {
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-medium hover:bg-[#2ee6b8] transition-colors"
           >
-            R\u00e9essayer
+            Réessayer
           </button>
         </div>
       </div>

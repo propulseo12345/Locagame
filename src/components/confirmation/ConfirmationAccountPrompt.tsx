@@ -15,7 +15,7 @@ export default function ConfirmationAccountPrompt({ guestEmail: _guestEmail }: C
 
   const advantages = [
     { icon: ClipboardList, text: 'Suivez votre reservation en temps reel' },
-    { icon: UserPlus, text: 'Coordonnees pre-remplies pour vos prochaines commandes' },
+    { icon: UserPlus, text: 'Coordonnées pré-remplies pour vos prochaines commandes' },
     { icon: Heart, text: 'Retrouvez vos favoris et votre historique' },
   ];
 

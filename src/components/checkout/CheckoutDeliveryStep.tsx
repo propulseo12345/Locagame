@@ -95,7 +95,7 @@ export function CheckoutDeliveryStep({
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-white mb-1">Mode de recuperation</h2>
-        <p className="text-gray-400 text-sm">Comment souhaitez-vous recuperer le materiel ?</p>
+        <p className="text-gray-400 text-sm">Comment souhaitez-vous récupérer le matériel ?</p>
       </div>
 
       {/* Toggle Pickup / Delivery */}
@@ -115,7 +115,7 @@ export function CheckoutDeliveryStep({
               Retrait a l'entrepot
             </span>
           </div>
-          <p className="text-gray-500 text-sm">Gratuit - Venez chercher le materiel</p>
+          <p className="text-gray-500 text-sm">Gratuit - Venez chercher le matériel</p>
         </button>
 
         <button
@@ -133,7 +133,7 @@ export function CheckoutDeliveryStep({
               Livraison
             </span>
           </div>
-          <p className="text-gray-500 text-sm">Nous livrons sur le lieu de l'evenement</p>
+          <p className="text-gray-500 text-sm">Nous livrons sur le lieu de l'événement</p>
         </button>
       </div>
 

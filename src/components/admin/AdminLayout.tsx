@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -35,6 +35,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  // Auto-collapse sidebar on tablet, expand on desktop
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handler = (e: MediaQueryListEvent) => setSidebarOpen(e.matches);
+    setSidebarOpen(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
 
   const menuItems: MenuItem[] = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
@@ -164,7 +173,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="flex-1 overflow-auto min-w-0">
         {/* Top bar */}
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-          <div className="flex items-center justify-between px-8 py-4">
+          <div className="flex items-center justify-between px-4 md:px-6 lg:px-8 py-4">
             <div>
               <h2 className="text-2xl font-bold text-gray-800">
                 {menuItems.find(item => item.href === location.pathname)?.label || 'Admin'}
@@ -211,7 +220,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-8">
+        <main className="p-4 md:p-6 lg:p-8">
           {children}
         </main>
       </div>

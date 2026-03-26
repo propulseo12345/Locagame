@@ -11,9 +11,9 @@ interface ReservationSidebarProps {
 export default function ReservationSidebar({ reservation, updating, onStatusChange }: ReservationSidebarProps) {
   return (
     <div className="space-y-6">
-      {/* Recapitulatif financier */}
+      {/* Récapitulatif financier */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Recapitulatif</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Récapitulatif</h2>
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Sous-total</span>
@@ -41,7 +41,7 @@ export default function ReservationSidebar({ reservation, updating, onStatusChan
       {/* Statut paiement */}
       <PaymentStatusCard reservation={reservation} />
 
-      {/* Regles tarifaires appliquees */}
+      {/* Règles tarifaires appliquees */}
       <PricingRulesCard reservation={reservation} />
 
       {/* Statut et Actions */}
@@ -56,12 +56,12 @@ export default function ReservationSidebar({ reservation, updating, onStatusChan
           >
             <option value="pending_payment">Paiement en attente</option>
             <option value="pending">En attente validation</option>
-            <option value="confirmed">Confirmee</option>
+            <option value="confirmed">Confirmée</option>
             <option value="preparing">En preparation</option>
-            <option value="delivered">Livree</option>
+            <option value="delivered">Livrée</option>
             <option value="returned">Retournee</option>
-            <option value="completed">Terminee</option>
-            <option value="cancelled">Annulee</option>
+            <option value="completed">Terminée</option>
+            <option value="cancelled">Annulée</option>
           </select>
         </div>
       </div>
@@ -183,7 +183,7 @@ function PricingRulesCard({ reservation }: { reservation: Order }) {
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <Receipt className="w-5 h-5 text-purple-500" />
-        Regles tarifaires
+        Règles tarifaires
       </h2>
       <div className="space-y-3 text-sm">
         {/* Forfait week-end */}
@@ -207,10 +207,10 @@ function PricingRulesCard({ reservation }: { reservation: Order }) {
         {/* Livraison/reprise imperative */}
         <div className="pt-3 border-t border-gray-200 space-y-2">
           <div className="flex items-center gap-2 text-gray-600">
-            <span>Creneau debut:</span>
+            <span>Créneau debut:</span>
             <span className="font-medium">{reservation.start_slot || 'AM'}</span>
             <span className="mx-2">{'\u2192'}</span>
-            <span>Creneau fin:</span>
+            <span>Créneau fin:</span>
             <span className="font-medium">{reservation.end_slot || 'AM'}</span>
           </div>
           {reservation.delivery_is_mandatory && (

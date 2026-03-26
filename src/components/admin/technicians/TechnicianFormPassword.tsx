@@ -70,7 +70,7 @@ export default function TechnicianFormPassword({
         onClick={() => setShowResetPassword(!showResetPassword)}
         className="text-sm font-medium text-blue-600 hover:text-blue-700"
       >
-        {showResetPassword ? 'Annuler le reset' : 'R\u00e9initialiser le mot de passe'}
+        {showResetPassword ? 'Annuler le reset' : 'Réinitialiser le mot de passe'}
       </button>
       {showResetPassword && (
         <div className="mt-3">

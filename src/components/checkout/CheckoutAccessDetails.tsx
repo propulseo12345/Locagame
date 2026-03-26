@@ -31,7 +31,7 @@ export function CheckoutAccessDetails({
             <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span>
               Veillez a verifier que les dimensions de vos acces (portes, couloirs, escaliers)
-              permettent le passage du materiel commande afin d'assurer une livraison sans encombre.
+              permettent le passage du matériel commandé afin d'assurer une livraison sans encombre.
             </span>
           </p>
         </div>
@@ -106,7 +106,7 @@ export function CheckoutAccessDetails({
               onChange={(e) => setEventDetails({ ...eventDetails, electricityAvailable: e.target.checked })}
               className="w-4 h-4 rounded border-white/20 text-[#33ffcc] focus:ring-[#33ffcc] bg-white/5"
             />
-            <span className="text-gray-300">Electricite disponible sur place</span>
+            <span className="text-gray-300">Électricité disponible sur place</span>
           </label>
         </div>
       </div>

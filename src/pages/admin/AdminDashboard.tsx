@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Euro, Package, Gamepad2, Users, TrendingUp, Truck } from 'lucide-react';
-import { StatsService, ReservationsService } from '../../services';
+import { StatsService, ReservationsService, DeliveryService } from '../../services';
 import { DashboardStats } from '../../services/stats.service';
-import { Order } from '../../types';
+import { Order, DeliveryTask } from '../../types';
+import { toLocalISODate } from '../../utils/dateHolidays';
 import RevenueChart from '../../components/admin/RevenueChart';
 import RecentReservationsTable from '../../components/admin/RecentReservationsTable';
 
@@ -15,7 +17,7 @@ function DashboardSkeleton() {
         <div className="h-4 w-64 bg-gray-100 rounded" />
       </div>
       {/* Stats cards skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
             <div className="h-3 w-24 bg-gray-200 rounded" />
@@ -50,11 +52,13 @@ function DashboardSkeleton() {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentReservations, setRecentReservations] = useState<Order[]>([]);
+  const [todayTasks, setTodayTasks] = useState<DeliveryTask[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadStats();
     loadRecentReservations();
+    loadTodayDeliveries();
   }, []);
 
   const loadStats = async () => {
@@ -89,11 +93,19 @@ export default function AdminDashboard() {
     }
   };
 
+  const loadTodayDeliveries = async () => {
+    try {
+      const today = toLocalISODate(new Date());
+      const tasks = await DeliveryService.getTasksByDate(today);
+      setTodayTasks(tasks);
+    } catch {
+      setTodayTasks([]);
+    }
+  };
+
   if (loading || !stats) {
     return <DashboardSkeleton />;
   }
-
-  const todayReservations: any[] = [];
 
   const rankColors = [
     'bg-yellow-400 text-yellow-900',
@@ -110,7 +122,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* CA du mois */}
         <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-green-500 p-5 hover:shadow-md transition-shadow">
           <div className="flex items-start justify-between mb-3">
@@ -204,26 +216,43 @@ export default function AdminDashboard() {
           <Truck className="w-4 h-4 text-gray-500" />
           <h3 className="text-sm font-semibold text-gray-900">
             Livraisons aujourd'hui
-            <span className="ml-2 text-gray-400 font-normal">({todayReservations.length})</span>
+            <span className="ml-2 text-gray-400 font-normal">({todayTasks.length})</span>
           </h3>
         </div>
         <div className="space-y-2">
-          {todayReservations.length === 0 ? (
+          {todayTasks.length === 0 ? (
             <p className="text-sm text-gray-500">Aucune livraison prévue aujourd'hui</p>
           ) : (
-            todayReservations.map((reservation) => (
-              <div key={reservation.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            todayTasks.map((task) => (
+              <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="text-sm font-medium text-gray-900">
-                    {reservation.customer.firstName} {reservation.customer.lastName}
+                    {task.customer.firstName} {task.customer.lastName}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {reservation.products.length} produit(s) — {reservation.dates.deliveryTime}
+                    {task.products.length} produit(s) — {task.scheduledTime || 'Horaire non défini'}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {task.address.city} {task.address.postalCode}
                   </p>
                 </div>
-                <button className="px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-md hover:bg-gray-700 transition-colors">
-                  Détails
-                </button>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-md ring-1 ${
+                    task.type === 'delivery'
+                      ? 'ring-blue-200 bg-blue-50 text-blue-700'
+                      : 'ring-orange-200 bg-orange-50 text-orange-700'
+                  }`}>
+                    {task.type === 'delivery' ? 'Livraison' : 'Retrait'}
+                  </span>
+                  {task.reservationId && (
+                    <Link
+                      to={`/admin/reservations/${task.reservationId}`}
+                      className="px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-md hover:bg-gray-700 transition-colors"
+                    >
+                      Détails
+                    </Link>
+                  )}
+                </div>
               </div>
             ))
           )}

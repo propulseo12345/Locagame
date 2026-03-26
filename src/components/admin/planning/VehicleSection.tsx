@@ -214,7 +214,7 @@ export default function VehicleSection(props: VehicleSectionProps) {
                   type="submit"
                   className="px-4 py-2 bg-[#33ffcc] text-[#000033] font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
                 >
-                  {editingVehicle ? 'Enregistrer' : 'Cr\u00e9er'}
+                  {editingVehicle ? 'Enregistrer' : 'Créer'}
                 </button>
               </div>
             </form>

@@ -11,7 +11,7 @@ export default function ConfirmationSummary({ reservation }: ConfirmationSummary
       <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
         <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Package className="w-5 h-5 text-[#33ffcc]" />
-          Recapitulatif
+          Récapitulatif
         </h2>
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="p-3 bg-white/5 rounded-xl">

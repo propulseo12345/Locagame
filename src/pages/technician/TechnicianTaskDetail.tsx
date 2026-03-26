@@ -52,7 +52,7 @@ export default function TechnicianTaskDetail() {
 
   return (
     <div className="space-y-6">
-      {/* En-t\u00eate */}
+      {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
           <Link
@@ -62,7 +62,7 @@ export default function TechnicianTaskDetail() {
             {"\u2190 Retour au planning"}
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">
-            {"D\u00e9tails de l'intervention"}
+            {"Détails de l'intervention"}
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -104,7 +104,7 @@ export default function TechnicianTaskDetail() {
           )}
         </div>
 
-        {/* Colonne lat\u00e9rale */}
+        {/* Colonne latérale */}
         <TaskSidebar
           task={task}
           vehicle={vehicle}

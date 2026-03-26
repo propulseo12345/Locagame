@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Trash2, Search, Users, User, Building2, Star, UserCheck, X } from 'lucide-react';
 import { CustomersService } from '../../services';
 import { Customer } from '../../types';
@@ -239,9 +240,9 @@ export default function AdminCustomers() {
                     } ${idx % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}
                   >
                     <td className="px-4 py-3.5">
-                      <div className="text-sm font-medium text-gray-900">
+                      <Link to={`/admin/customers/${customer.id}`} className="text-sm font-medium text-gray-900 hover:text-blue-600 hover:underline">
                         {customer.first_name} {customer.last_name}
-                      </div>
+                      </Link>
                       <div className="text-xs text-gray-500">{customer.email}</div>
                       <div className="text-xs text-gray-400">{customer.phone || 'N/A'}</div>
                       {customer.company_name && (
@@ -260,13 +261,29 @@ export default function AdminCustomers() {
                       )}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">-</div>
+                      {(() => {
+                        const res = (customer as any).reservations || [];
+                        const valid = res.filter((r: any) => r.status !== 'cancelled');
+                        return <div className="text-sm font-medium text-gray-900">{valid.length || '-'}</div>;
+                      })()}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      <div className="text-sm font-bold text-gray-900 tabular-nums">-</div>
+                      {(() => {
+                        const res = (customer as any).reservations || [];
+                        const total = res
+                          .filter((r: any) => r.status !== 'cancelled')
+                          .reduce((sum: number, r: any) => sum + (r.total || 0), 0);
+                        return <div className="text-sm font-bold text-gray-900 tabular-nums">{total > 0 ? `${total.toFixed(0)} €` : '-'}</div>;
+                      })()}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900 tabular-nums">-</div>
+                      {(() => {
+                        const res = (customer as any).reservations || [];
+                        const valid = res.filter((r: any) => r.status !== 'cancelled');
+                        const total = valid.reduce((sum: number, r: any) => sum + (r.total || 0), 0);
+                        const avg = valid.length > 0 ? total / valid.length : 0;
+                        return <div className="text-sm font-semibold text-gray-900 tabular-nums">{avg > 0 ? `${avg.toFixed(0)} €` : '-'}</div>;
+                      })()}
                     </td>
                     <td className="px-4 py-3.5 whitespace-nowrap">
                       <div className="text-sm text-gray-600">

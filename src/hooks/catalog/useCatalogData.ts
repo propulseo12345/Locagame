@@ -46,6 +46,7 @@ export function useCatalogData(): UseCatalogDataReturn {
           .from('products')
           .select('*, category:categories!products_category_id_fkey(*)')
           .eq('is_active', true)
+          .gt('total_stock', 0)
           .order('name', { ascending: true });
 
         if (productsError) {
@@ -157,10 +158,12 @@ export function useCatalogData(): UseCatalogDataReturn {
 
   // Grouper les produits par categorie avec compteurs
   const categoriesWithCount = useMemo(() => {
-    return categories.map(category => ({
-      ...category,
-      productCount: products.filter(p => p.category_id === category.id).length
-    }));
+    return categories
+      .map(category => ({
+        ...category,
+        productCount: products.filter(p => p.category_id === category.id).length
+      }))
+      .filter(c => c.productCount > 0);
   }, [categories, products]);
 
   return {

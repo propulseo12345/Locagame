@@ -43,6 +43,28 @@ export function ProductReservationCard({
   onAddToCart,
   getSelectedDays,
 }: ProductReservationCardProps) {
+  const pricePerDay = product.pricing?.oneDay ?? 0;
+  const isQuoteOnly = pricePerDay <= 0;
+
+  if (isQuoteOnly) {
+    return (
+      <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/20 overflow-hidden shadow-2xl">
+        <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/10 p-6 border-b border-white/10">
+          <span className="text-white/60 text-sm">Tarification</span>
+          <div className="text-3xl font-black text-amber-400 mt-1">Sur devis</div>
+        </div>
+        <div className="p-6 space-y-4">
+          <p className="text-white/70 text-sm">Ce produit nécessite un devis personnalisé. Contactez-nous pour obtenir un tarif adapté à votre événement.</p>
+          <a href="/contact" className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#33ffcc] text-[#000033] rounded-2xl hover:bg-[#66cccc] font-black text-lg transition-all">
+            <MessageCircle className="w-5 h-5" />
+            Demander un devis
+          </a>
+          <TrustBadges />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl border border-white/20 overflow-hidden shadow-2xl">
       {/* Header avec prix */}
@@ -132,7 +154,7 @@ export function ProductReservationCard({
           ) : (
             <>
               <ShoppingCart className="w-5 h-5" />
-              {priceCalculation ? `R\u00e9server \u2022 ${formatPrice(priceCalculation.total)}` : 'Ajouter au panier'}
+              {priceCalculation ? `Réserver • ${formatPrice(priceCalculation.total)}` : 'Ajouter au panier'}
             </>
           )}
         </button>

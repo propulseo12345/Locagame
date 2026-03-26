@@ -30,10 +30,10 @@ import { AuthModal } from '../components/auth/AuthModal';
 import { isWeekendOrHoliday } from '../utils/dateHolidays';
 
 const steps = [
-  { id: 'customer', label: 'Vos coordonnees', icon: User },
-  { id: 'recipient', label: 'Reception', icon: UserCheck },
+  { id: 'customer', label: 'Vos coordonnées', icon: User },
+  { id: 'recipient', label: 'Réception', icon: UserCheck },
   { id: 'delivery', label: 'Livraison', icon: MapPin },
-  { id: 'payment', label: 'Recapitulatif', icon: ClipboardList },
+  { id: 'payment', label: 'Récapitulatif', icon: ClipboardList },
 ];
 
 export default function CheckoutPage() {
@@ -316,58 +316,97 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        {/* Content */}
-        <div className="bg-white/5 rounded-2xl border border-white/10 p-4 md:p-6">
-          {currentStep === 'customer' && (
-            <CheckoutCustomerStep customer={form.customer} setCustomer={form.setCustomer} billingAddress={form.billingAddress} setBillingAddress={form.setBillingAddress} errors={validation.errors} />
-          )}
-          {currentStep === 'recipient' && (
-            <CheckoutRecipientStep customer={form.customer} recipient={form.recipient} setRecipient={form.setRecipient} errors={validation.errors} />
-          )}
-          {currentStep === 'delivery' && (
-            <CheckoutDeliveryStep
-              isPickup={form.isPickup} selectedDeliveryMode={form.selectedDeliveryMode} setSelectedDeliveryMode={form.setSelectedDeliveryMode}
-              delivery={form.delivery} setDelivery={form.setDelivery} pickup={form.pickup} setPickup={form.setPickup}
-              eventDetails={form.eventDetails} setEventDetails={form.setEventDetails} errors={validation.errors} cartItems={cartItems}
-              isCalculatingFee={pricing.isCalculatingFee} deliveryDistance={pricing.deliveryDistance} calculatedDeliveryFee={pricing.calculatedDeliveryFee}
-              timeSlots={form.timeSlots} eventTypes={form.eventTypes} accessDifficulties={form.accessDifficulties}
-              deliveryDateIsWeekendOrHoliday={pricing.deliveryDateIsWeekendOrHoliday} pickupDateIsWeekendOrHoliday={pricing.pickupDateIsWeekendOrHoliday}
-              deliveryIsMandatory={form.deliveryIsMandatory} setDeliveryIsMandatory={form.setDeliveryIsMandatory}
-              pickupIsMandatory={form.pickupIsMandatory} setPickupIsMandatory={form.setPickupIsMandatory}
-            />
-          )}
-          {currentStep === 'payment' && (
-            <CheckoutSummaryStep
-              cartItems={cartItems} pricingBreakdowns={pricing.pricingBreakdowns} productsSubtotal={pricing.productsSubtotal}
-              surchargesTotal={pricing.surchargesTotal} finalTotal={pricing.finalTotal} calculatedDeliveryFee={pricing.calculatedDeliveryFee}
-              deliveryDistance={pricing.deliveryDistance} isPickup={form.isPickup} pricingInfoMessage={pricing.pricingInfoMessage}
-              payment={form.payment} setPayment={form.setPayment} errors={validation.errors} submitError={submitError}
-            />
-          )}
-        </div>
+        {/* Main layout: form + sidebar recap on tablet+ */}
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-1 min-w-0">
+            {/* Content */}
+            <div className="bg-white/5 rounded-2xl border border-white/10 p-4 md:p-6">
+              {currentStep === 'customer' && (
+                <CheckoutCustomerStep customer={form.customer} setCustomer={form.setCustomer} billingAddress={form.billingAddress} setBillingAddress={form.setBillingAddress} errors={validation.errors} />
+              )}
+              {currentStep === 'recipient' && (
+                <CheckoutRecipientStep customer={form.customer} recipient={form.recipient} setRecipient={form.setRecipient} errors={validation.errors} />
+              )}
+              {currentStep === 'delivery' && (
+                <CheckoutDeliveryStep
+                  isPickup={form.isPickup} selectedDeliveryMode={form.selectedDeliveryMode} setSelectedDeliveryMode={form.setSelectedDeliveryMode}
+                  delivery={form.delivery} setDelivery={form.setDelivery} pickup={form.pickup} setPickup={form.setPickup}
+                  eventDetails={form.eventDetails} setEventDetails={form.setEventDetails} errors={validation.errors} cartItems={cartItems}
+                  isCalculatingFee={pricing.isCalculatingFee} deliveryDistance={pricing.deliveryDistance} calculatedDeliveryFee={pricing.calculatedDeliveryFee}
+                  timeSlots={form.timeSlots} eventTypes={form.eventTypes} accessDifficulties={form.accessDifficulties}
+                  deliveryDateIsWeekendOrHoliday={pricing.deliveryDateIsWeekendOrHoliday} pickupDateIsWeekendOrHoliday={pricing.pickupDateIsWeekendOrHoliday}
+                  deliveryIsMandatory={form.deliveryIsMandatory} setDeliveryIsMandatory={form.setDeliveryIsMandatory}
+                  pickupIsMandatory={form.pickupIsMandatory} setPickupIsMandatory={form.setPickupIsMandatory}
+                />
+              )}
+              {currentStep === 'payment' && (
+                <CheckoutSummaryStep
+                  cartItems={cartItems} pricingBreakdowns={pricing.pricingBreakdowns} productsSubtotal={pricing.productsSubtotal}
+                  surchargesTotal={pricing.surchargesTotal} finalTotal={pricing.finalTotal} calculatedDeliveryFee={pricing.calculatedDeliveryFee}
+                  deliveryDistance={pricing.deliveryDistance} isPickup={form.isPickup} pricingInfoMessage={pricing.pricingInfoMessage}
+                  payment={form.payment} setPayment={form.setPayment} errors={validation.errors} submitError={submitError}
+                />
+              )}
+            </div>
 
-        {/* Navigation */}
-        <div className="sticky bottom-0 z-30 bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 -mx-4 px-4 py-4 mt-6 md:static md:bg-transparent md:border-0 md:mx-0 md:px-0 md:py-0 md:mt-6">
-          <div className="flex justify-between">
-            <button onClick={handlePrevious} disabled={getCurrentStepIndex() === 0} className="flex items-center gap-2 px-4 py-3 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              <span className="hidden sm:inline">Precedent</span>
-            </button>
-            {currentStep === 'payment' ? (
-              <button onClick={handleSubmit} disabled={isProcessing || unavailableProducts.length > 0} className="flex-1 sm:flex-none flex items-center justify-center gap-2 ml-3 px-8 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
-                {isProcessing ? (
-                  <><div className="w-5 h-5 border-2 border-[#000033] border-t-transparent rounded-full animate-spin" />Redirection...</>
+            {/* Navigation */}
+            <div className="sticky bottom-0 z-30 bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 -mx-4 px-4 py-4 mt-6 md:static md:bg-transparent md:border-0 md:mx-0 md:px-0 md:py-0 md:mt-6">
+              <div className="flex justify-between">
+                <button onClick={handlePrevious} disabled={getCurrentStepIndex() === 0} className="flex items-center gap-2 px-4 py-3 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                  <ArrowLeft className="w-5 h-5" />
+                  <span className="hidden sm:inline">Précédent</span>
+                </button>
+                {currentStep === 'payment' ? (
+                  <button onClick={handleSubmit} disabled={isProcessing || unavailableProducts.length > 0} className="flex-1 sm:flex-none flex items-center justify-center gap-2 ml-3 px-8 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
+                    {isProcessing ? (
+                      <><div className="w-5 h-5 border-2 border-[#000033] border-t-transparent rounded-full animate-spin" />Redirection...</>
+                    ) : (
+                      <><CreditCard className="w-5 h-5" />Proceder au paiement</>
+                    )}
+                  </button>
                 ) : (
-                  <><CreditCard className="w-5 h-5" />Proceder au paiement</>
+                  <button onClick={handleNext} disabled={unavailableProducts.length > 0} className="flex-1 sm:flex-none flex items-center justify-center gap-2 ml-3 px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
+                    Continuer
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
                 )}
-              </button>
-            ) : (
-              <button onClick={handleNext} disabled={unavailableProducts.length > 0} className="flex-1 sm:flex-none flex items-center justify-center gap-2 ml-3 px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors">
-                Continuer
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            )}
+              </div>
+            </div>
           </div>
+
+          {/* Sidebar recap — tablet+ */}
+          <aside className="hidden md:block md:w-72 lg:w-80 shrink-0">
+            <div className="md:sticky md:top-[calc(var(--header-height)+1rem)] space-y-4">
+              <div className="bg-white/5 rounded-2xl border border-white/10 p-4">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Récapitulatif</h3>
+                <div className="space-y-3">
+                  {cartItems.map((item, idx) => (
+                    <div key={idx} className="flex gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-white/5 overflow-hidden shrink-0">
+                        {item.product.images?.[0] && (
+                          <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-white font-medium truncate">{item.product.name}</p>
+                        <p className="text-xs text-gray-400">
+                          {item.quantity > 1 && `x${item.quantity} · `}
+                          {item.start_date && new Date(item.start_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                          {item.end_date && ` → ${new Date(item.end_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-400">Total</span>
+                    <span className="text-lg font-bold text-[#33ffcc]">{pricing.finalTotal.toFixed(2)} €</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
 

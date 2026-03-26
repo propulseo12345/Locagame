@@ -111,7 +111,7 @@ export class CustomersService {
   static async getAllCustomers(): Promise<Customer[]> {
     const { data, error } = await supabase
       .from('customers')
-      .select('*')
+      .select('*, reservations(id, total, status)')
       .order('created_at', { ascending: false });
 
     if (error) {

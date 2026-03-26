@@ -20,13 +20,13 @@ export function CheckoutEventDetails({
     <div className="pt-4 border-t border-white/10">
       <h3 className="text-white font-medium mb-4 flex items-center gap-2">
         <ClipboardList className="w-5 h-5 text-[#33ffcc]" />
-        Details de l'evenement
+        Détails de l'événement
       </h3>
 
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Type d'evenement *</label>
+            <label className={labelClass}>Type d'événement *</label>
             <select
               value={eventDetails.eventType}
               onChange={(e) => setEventDetails({ ...eventDetails, eventType: e.target.value })}

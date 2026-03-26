@@ -72,6 +72,7 @@ export class ProductsQueries {
       .select(PRODUCT_SELECT)
       .eq('is_active', true)
       .eq('featured', true)
+      .gt('total_stock', 0)
       .order('created_at', { ascending: false })
       .limit(limit);
 
@@ -92,7 +93,8 @@ export class ProductsQueries {
       .from('products')
       .select(PRODUCT_SELECT)
       .eq('is_active', true)
-      .gt('pricing->oneDay', 0);
+      .gt('pricing->oneDay', 0)
+      .gt('total_stock', 0);
 
     if (excludeIds.length > 0) {
       query = query.not('id', 'in', `(${excludeIds.join(',')})`);
@@ -120,6 +122,7 @@ export class ProductsQueries {
       .from('products')
       .select('id, name, images, pricing, category:categories!products_category_id_fkey(name), product_categories(category_id, categories(id, name, slug))')
       .eq('is_active', true)
+      .gt('total_stock', 0)
       .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
       .limit(limit);
 
@@ -176,8 +179,9 @@ export class ProductsQueries {
   static async getProductCountsByCategory(): Promise<Record<string, number>> {
     const { data, error } = await supabase
       .from('products')
-      .select('id, is_active, product_categories(category_id)')
-      .eq('is_active', true);
+      .select('id, is_active, total_stock, product_categories(category_id)')
+      .eq('is_active', true)
+      .gt('total_stock', 0);
 
     if (error) {
       logger.error('Error fetching product counts', error);

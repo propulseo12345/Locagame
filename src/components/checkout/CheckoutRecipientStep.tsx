@@ -18,7 +18,7 @@ export function CheckoutRecipientStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white mb-1">Qui receptionne le materiel ?</h2>
+        <h2 className="text-xl font-bold text-white mb-1">Qui réceptionne le matériel ?</h2>
         <p className="text-gray-400 text-sm">Personne presente lors de la livraison</p>
       </div>
 
@@ -39,7 +39,7 @@ export function CheckoutRecipientStep({
         <div className="space-y-4 p-4 bg-[#33ffcc]/5 rounded-xl border border-[#33ffcc]/20">
           <p className="text-[#33ffcc] text-sm font-medium flex items-center gap-2">
             <Info className="w-4 h-4" />
-            Coordonnees de la personne qui receptionnera le materiel
+            Coordonnées de la personne qui réceptionnera le matériel
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

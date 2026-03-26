@@ -11,17 +11,17 @@ export default function EventDetailsCard({ reservation }: EventDetailsCardProps)
 
   return (
     <>
-      {/* Details de l'evenement */}
+      {/* Détails de l'événement */}
       {eventDetails && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <FileText className="w-5 h-5 text-purple-500" />
-            Details de l'evenement
+            Détails de l'événement
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {reservation.event_type && (
               <div>
-                <div className="text-sm text-gray-500">Type d'evenement</div>
+                <div className="text-sm text-gray-500">Type d'événement</div>
                 <div className="font-medium text-gray-900">{reservation.event_type}</div>
               </div>
             )}
@@ -53,7 +53,7 @@ export default function EventDetailsCard({ reservation }: EventDetailsCardProps)
               </div>
               <div className={`flex items-center gap-2 p-2 rounded-lg ${eventDetails.electricityAvailable ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
                 <Zap className="w-4 h-4" />
-                <span className="text-sm">Electricite {eventDetails.electricityAvailable ? '\u2713' : '\u2717'}</span>
+                <span className="text-sm">Électricité {eventDetails.electricityAvailable ? '\u2713' : '\u2717'}</span>
               </div>
               {eventDetails.floorNumber && (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 text-blue-700">

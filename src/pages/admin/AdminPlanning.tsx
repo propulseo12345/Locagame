@@ -61,7 +61,7 @@ export default function AdminPlanning() {
         <div className="fixed inset-0 bg-black/10 flex items-center justify-center z-40 pointer-events-none">
           <div className="bg-white rounded-lg shadow-lg px-6 py-4 flex items-center gap-3 pointer-events-auto">
             <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-            <span className="text-gray-700 text-sm">Op\u00e9ration en cours...</span>
+            <span className="text-gray-700 text-sm">Opération en cours...</span>
           </div>
         </div>
       )}

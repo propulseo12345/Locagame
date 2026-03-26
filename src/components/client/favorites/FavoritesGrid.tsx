@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Heart, Users, Clock, ShoppingCart, Sparkles, ArrowRight } from 'lucide-react';
 import { Product } from '../../../types';
+import { stripHtml } from '../../../utils/html';
 
 interface FavoritesGridProps {
   products: Product[];
@@ -69,23 +70,27 @@ export default function FavoritesGrid({ products, onRemoveFavorite }: FavoritesG
               </div>
 
               <p className="text-sm text-gray-400 mb-4 line-clamp-2 flex-1">
-                {product.description}
+                {stripHtml(product.description)}
               </p>
 
               {/* Specs */}
               <div className="flex items-center gap-4 mb-4 pb-4 border-b border-white/10">
+                {product.specifications?.players?.min != null && product.specifications?.players?.max != null && (
                 <div className="flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-[#33ffcc]" />
                   <span className="text-xs text-gray-300 font-medium">
-                    {product.specifications?.players?.min || 2}-{product.specifications?.players?.max || 10}
+                    {product.specifications.players.min}-{product.specifications.players.max}
                   </span>
                 </div>
+                )}
+                {product.specifications?.setup_time != null && (
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-[#66cccc]" />
                   <span className="text-xs text-gray-300 font-medium">
-                    {product.specifications?.setup_time || 30}min
+                    {product.specifications.setup_time}min
                   </span>
                 </div>
+                )}
               </div>
 
               {/* Actions */}

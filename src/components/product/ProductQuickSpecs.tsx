@@ -13,6 +13,7 @@ export function ProductQuickSpecs({ product }: ProductQuickSpecsProps) {
         En un coup d'oeil
       </h4>
       <div className="grid grid-cols-2 gap-3">
+        {product.specifications?.players?.min != null && product.specifications?.players?.max != null && (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#33ffcc]/20 flex items-center justify-center">
             <Users className="w-5 h-5 text-[#33ffcc]" />
@@ -22,6 +23,8 @@ export function ProductQuickSpecs({ product }: ProductQuickSpecsProps) {
             <div className="text-xs text-white/50">Joueurs</div>
           </div>
         </div>
+        )}
+        {product.specifications?.setup_time != null && (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#66cccc]/20 flex items-center justify-center">
             <Clock className="w-5 h-5 text-[#66cccc]" />
@@ -31,6 +34,7 @@ export function ProductQuickSpecs({ product }: ProductQuickSpecsProps) {
             <div className="text-xs text-white/50">Min setup</div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

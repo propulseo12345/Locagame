@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Search, X, ShoppingCart, LogIn, User, LogOut } from 'lucide-react';
-import { NAV_LINKS, getDashboardLink, getDashboardLabel } from './constants';
+import { NAV_LINKS, getDashboardLink, getDashboardLabel, LOGO_SCROLLED } from './constants';
 
 interface DesktopNavProps {
   isScrolled: boolean;
@@ -37,7 +37,13 @@ export function DesktopNav({
     <div className="hidden md:block border-b border-white/10 bg-gradient-to-b from-[#000033] to-[#000028]">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className={`grid grid-cols-[1fr_auto_1fr] items-center transition-all duration-300 ${isScrolled ? 'py-0.5' : 'py-2.5'}`}>
-          <div></div>
+          {/* Logo visible on tablet only (md-lg), hidden on lg+ (shown in TopBar) */}
+          <div className="hidden md:flex lg:hidden items-center">
+            <Link to="/" aria-label="Retour à l'accueil">
+              <img src={LOGO_SCROLLED} alt="LOCAGAME" className="h-10 w-auto" />
+            </Link>
+          </div>
+          <div className="hidden lg:block" />
 
           {/* Navigation principale centree */}
           <nav className="flex items-center justify-center gap-1" aria-label="Navigation principale">
@@ -83,7 +89,7 @@ export function DesktopNav({
             ) : (
               <button
                 onClick={() => setSearchOpen(true)}
-                className="p-2 text-white hover:text-[#33ffcc] transition-all duration-300"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-white hover:text-[#33ffcc] transition-all duration-300"
                 aria-label="Ouvrir la recherche"
               >
                 <Search className="w-5 h-5" />
@@ -132,7 +138,7 @@ export function DesktopNav({
                           className="w-full flex items-center gap-2 px-4 py-2 mt-1 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
-                          Deconnexion
+                          Déconnexion
                         </button>
                       </div>
                     </div>
@@ -142,21 +148,23 @@ export function DesktopNav({
             ) : (
               <Link
                 to="/login"
-                className="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition-all duration-300 text-white text-sm font-medium"
+                className="flex items-center gap-2 min-w-[44px] min-h-[44px] px-3 lg:px-4 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition-all duration-300 text-white text-sm font-medium justify-center"
                 aria-label="Se connecter"
               >
                 <LogIn className="w-4 h-4" />
-                <span>Se connecter / Créer un compte</span>
+                <span className="hidden lg:inline">Se connecter / Créer un compte</span>
+                <span className="hidden md:inline lg:hidden">Compte</span>
               </Link>
             )}
 
             {/* Panier */}
             <Link
               to="/panier"
-              className="relative p-2 text-white hover:text-[#33ffcc] transition-all duration-300 group"
+              className="relative min-w-[44px] min-h-[44px] flex items-center justify-center gap-1.5 p-2 text-white hover:text-[#33ffcc] transition-all duration-300 group"
               aria-label={`Panier (${cartItemsCount} article${cartItemsCount > 1 ? 's' : ''})`}
             >
               <ShoppingCart className="w-5 h-5" />
+              <span className="hidden md:inline lg:hidden text-sm font-medium">Panier</span>
               {cartItemsCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-[#33ffcc] text-[#000033] text-xs font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center group-hover:scale-110 transition-transform" aria-hidden="true">
                   {cartItemsCount}

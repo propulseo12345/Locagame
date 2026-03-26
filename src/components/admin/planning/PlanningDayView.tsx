@@ -57,7 +57,7 @@ export default function PlanningDayView({
     setOperationInProgress(`assign-task-${taskId}`);
     try {
       await DeliveryService.assignTask(taskId, techId, vehicleId);
-      toast.success('T\u00e2che assign\u00e9e');
+      toast.success('Tâche assignée');
       await refreshTasksAndReservations();
     } catch (err) {
       console.error('Erreur assignation:', err);

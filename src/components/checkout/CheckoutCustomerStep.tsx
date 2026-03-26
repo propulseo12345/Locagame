@@ -23,7 +23,7 @@ export function CheckoutCustomerStep({
       <GuestAccountBanner />
 
       <div>
-        <h2 className="text-xl font-bold text-white mb-1">Vos coordonnees</h2>
+        <h2 className="text-xl font-bold text-white mb-1">Vos coordonnées</h2>
         <p className="text-gray-400 text-sm">Informations de facturation</p>
       </div>
 
