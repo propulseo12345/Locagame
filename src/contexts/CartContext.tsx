@@ -75,6 +75,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setRentalDateRangeState(range);
   }, []);
 
+  const clearCart = useCallback(() => {
+    setItems([]);
+    localStorage.removeItem('locagame_cart');
+    localStorage.removeItem('locagame_delivery_type');
+    localStorage.removeItem('locagame_rental_dates');
+    setDeliveryType('delivery');
+    setRentalDateRangeState(null);
+  }, []);
+
   // Vider le panier au logout pour éviter qu'il persiste entre comptes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -132,9 +141,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = (productId: string, startDate?: string) => {
-    setItems((prev) => 
-      prev.filter((item) => 
-        startDate 
+    setItems((prev) =>
+      prev.filter((item) =>
+        startDate
           ? !(item.product.id === productId && item.start_date === startDate)
           : item.product.id !== productId
       )
@@ -159,15 +168,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       })
     );
   };
-
-  const clearCart = useCallback(() => {
-    setItems([]);
-    localStorage.removeItem('locagame_cart');
-    localStorage.removeItem('locagame_delivery_type');
-    localStorage.removeItem('locagame_rental_dates');
-    setDeliveryType('delivery');
-    setRentalDateRangeState(null);
-  }, []);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + item.total_price, 0);
