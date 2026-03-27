@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Clock, CheckCircle, ArrowLeft } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
+import { SwipeCarousel } from '../components/mobile';
 import { FaqsService, type FAQ } from '../services';
 import ContactForm from '../components/contact/ContactForm';
 import ContactSidebar from '../components/contact/ContactSidebar';
@@ -88,8 +89,34 @@ export default function ContactPage() {
           </p>
         </div>
 
-        {/* Contact rapide - 4 colonnes */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
+        {/* Contact rapide — Mobile: SwipeCarousel */}
+        <div className="md:hidden mb-14">
+          <SwipeCarousel itemsPerView={1.3} gap={12} showArrows={false} showDots={false}>
+            <a href="tel:0430220383" className="flex flex-col items-center p-5 bg-white/5 rounded-xl border border-white/10 text-center h-full">
+              <Phone className="w-6 h-6 text-[#33ffcc] mb-3" />
+              <p className="text-white font-semibold">04 30 22 03 83</p>
+              <p className="text-xs text-gray-500 mt-1">Appel direct</p>
+            </a>
+            <a href="mailto:contact@locagame.net" className="flex flex-col items-center p-5 bg-white/5 rounded-xl border border-white/10 text-center h-full">
+              <Mail className="w-6 h-6 text-[#33ffcc] mb-3" />
+              <p className="text-white font-semibold text-sm">contact@locagame.net</p>
+              <p className="text-xs text-gray-500 mt-1">Réponse sous 24h</p>
+            </a>
+            <a href="https://www.google.com/maps/search/?api=1&query=553+rue+Saint+Pierre+13012+Marseille" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center p-5 bg-white/5 rounded-xl border border-white/10 text-center h-full">
+              <MapPin className="w-6 h-6 text-[#33ffcc] mb-3" />
+              <p className="text-white font-semibold">553 rue St Pierre</p>
+              <p className="text-xs text-gray-500 mt-1">13012 Marseille</p>
+            </a>
+            <div className="flex flex-col items-center p-5 bg-white/5 rounded-xl border border-white/10 text-center h-full">
+              <Clock className="w-6 h-6 text-[#33ffcc] mb-3" />
+              <p className="text-white font-semibold">Lun-Ven 9h-18h</p>
+              <p className="text-xs text-gray-500 mt-1">Sam-Dim Fermé</p>
+            </div>
+          </SwipeCarousel>
+        </div>
+
+        {/* Contact rapide — Desktop: Grid 4 cols */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
           <a
             href="tel:0430220383"
             className="flex flex-col items-center p-5 bg-white/5 rounded-xl border border-white/10 hover:border-[#33ffcc]/50 hover:bg-white/10 transition-all text-center"

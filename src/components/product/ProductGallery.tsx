@@ -64,6 +64,13 @@ export function ProductGallery({
           {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
+          {/* Image counter — mobile */}
+          {images.length > 1 && (
+            <div className="absolute top-4 right-4 md:hidden px-2.5 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-semibold z-10">
+              {currentImageIndex + 1}/{images.length}
+            </div>
+          )}
+
           {/* Badges */}
           <div className="absolute top-4 left-4 flex flex-col gap-2">
             {totalStock < 5 && (

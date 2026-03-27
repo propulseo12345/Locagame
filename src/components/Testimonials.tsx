@@ -3,7 +3,28 @@ import { Link } from 'react-router-dom';
 import { motion, type Variants } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ScrollReveal } from './ui';
+import { SwipeCarousel } from './mobile';
 import { TestimonialsService, type Testimonial } from '../services';
+
+function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
+  return (
+    <div className="relative bg-gradient-to-br from-white/[0.05] to-transparent rounded-2xl p-8 border border-white/10 hover:border-[#33ffcc]/30 transition-all duration-300 h-full">
+      <Quote className="w-10 h-10 text-[#33ffcc]/20 mb-6" />
+      <p className="text-gray-300 leading-relaxed mb-8">
+        "{testimonial.content}"
+      </p>
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 bg-[#33ffcc]/20 rounded-full flex items-center justify-center text-[#33ffcc] font-bold text-lg flex-shrink-0">
+          {testimonial.author_name.charAt(0)}
+        </div>
+        <div>
+          <p className="text-white font-semibold">{testimonial.author_name}</p>
+          <p className="text-gray-500 text-sm">{testimonial.author_role} - {testimonial.author_location}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Testimonials() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -133,45 +154,35 @@ export function Testimonials() {
             ))}
           </div>
         ) : (
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-        >
-          {testimonials.map((testimonial) => (
+          <>
+            {/* Mobile: SwipeCarousel with autoplay */}
+            <div className="md:hidden">
+              <SwipeCarousel itemsPerView={1} gap={16} autoPlay autoPlayInterval={4000}>
+                {testimonials.map((testimonial) => (
+                  <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+                ))}
+              </SwipeCarousel>
+            </div>
+
+            {/* Desktop: grid */}
             <motion.div
-              key={testimonial.id}
-              className="relative bg-gradient-to-br from-white/[0.05] to-transparent rounded-2xl p-8 border border-white/10 hover:border-[#33ffcc]/30 transition-all duration-300"
-              variants={cardVariants}
-              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              className="hidden md:grid md:grid-cols-3 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
             >
-              {/* Quote icon */}
-              <Quote className="w-10 h-10 text-[#33ffcc]/20 mb-6" />
-
-              {/* Texte */}
-              <p className="text-gray-300 leading-relaxed mb-8">
-                "{testimonial.content}"
-              </p>
-
-              {/* Auteur */}
-              <div className="flex items-center gap-4">
+              {testimonials.map((testimonial) => (
                 <motion.div
-                  className="w-12 h-12 bg-[#33ffcc]/20 rounded-full flex items-center justify-center text-[#33ffcc] font-bold text-lg"
-                  whileHover={{ scale: 1.1, rotate: 10 }}
-                  transition={{ duration: 0.2 }}
+                  key={testimonial.id}
+                  variants={cardVariants}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
                 >
-                  {testimonial.author_name.charAt(0)}
+                  <TestimonialCard testimonial={testimonial} />
                 </motion.div>
-                <div>
-                  <p className="text-white font-semibold">{testimonial.author_name}</p>
-                  <p className="text-gray-500 text-sm">{testimonial.author_role} - {testimonial.author_location}</p>
-                </div>
-              </div>
+              ))}
             </motion.div>
-          ))}
-        </motion.div>
+          </>
         )}
 
         {/* CTA */}

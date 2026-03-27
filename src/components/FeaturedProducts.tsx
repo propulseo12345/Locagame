@@ -6,6 +6,59 @@ import { ProductsService, CategoriesService } from '../services';
 import { Product } from '../types';
 import { formatPrice } from '../utils/pricing';
 import { ScrollReveal } from './ui';
+import { SwipeCarousel } from './mobile';
+
+function FeaturedProductCard({ product, index, getCategoryName }: { product: Product; index: number; getCategoryName: (id: string) => string }) {
+  const productImage = product.images?.[0] || 'https://images.pexels.com/photos/163888/pexels-photo-163888.jpeg?auto=compress&cs=tinysrgb&w=800';
+  const productPrice = product.pricing?.oneDay || 0;
+  const players = product.specifications?.players;
+
+  return (
+    <Link to={`/produit/${product.id}`} className="group block">
+      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4">
+        <img
+          src={productImage}
+          alt={product.name}
+          width={400}
+          height={300}
+          loading="lazy"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#000033]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {index === 0 && (
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 bg-[#fe1979] text-white text-xs font-bold rounded-full">
+            <Heart className="w-3 h-3 fill-current" />
+            Favori
+          </div>
+        )}
+        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+          <span className="text-white text-sm font-medium">Voir les détails</span>
+          <ArrowRight className="w-4 h-4 text-[#33ffcc]" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <p className="text-[#33ffcc] text-xs font-semibold uppercase tracking-wider">
+          {getCategoryName(product.category_id)}
+        </p>
+        <h3 className="text-white font-bold text-lg leading-snug group-hover:text-[#33ffcc] transition-colors duration-300 line-clamp-2">
+          {product.name}
+        </h3>
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-black text-white">{formatPrice(productPrice)}</span>
+            <span className="text-gray-500 text-sm">/jour</span>
+          </div>
+          {players && (
+            <div className="flex items-center gap-1.5 text-gray-400 text-sm">
+              <Users className="w-4 h-4" />
+              <span>{players.min}-{players.max}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export function FeaturedProducts() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -116,94 +169,31 @@ export function FeaturedProducts() {
             ))}
           </div>
         ) : (
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-          >
-            {featuredProducts.map((product, index) => {
-              const productImage = product.images?.[0] || 'https://images.pexels.com/photos/163888/pexels-photo-163888.jpeg?auto=compress&cs=tinysrgb&w=800';
-              const productPrice = product.pricing?.oneDay || 0;
-              const players = product.specifications?.players;
+          <>
+            {/* Mobile: SwipeCarousel */}
+            <div className="sm:hidden">
+              <SwipeCarousel itemsPerView={1.15} gap={16} showArrows={false}>
+                {featuredProducts.map((product, index) => (
+                  <FeaturedProductCard key={product.id} product={product} index={index} getCategoryName={getCategoryName} />
+                ))}
+              </SwipeCarousel>
+            </div>
 
-              return (
+            {/* Desktop: grid */}
+            <motion.div
+              className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.1 }}
+            >
+              {featuredProducts.map((product, index) => (
                 <motion.div key={product.id} variants={cardVariants}>
-                  <Link
-                    to={`/produit/${product.id}`}
-                    className="group block"
-                  >
-                    {/* Image */}
-                    <motion.div
-                      className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <img
-                        src={productImage}
-                        alt={product.name}
-                        width={400}
-                        height={300}
-                        loading="lazy"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-
-                      {/* Overlay au hover */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#000033]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                      {/* Badge premier élément */}
-                      {index === 0 && (
-                        <motion.div
-                          className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 bg-[#fe1979] text-white text-xs font-bold rounded-full"
-                          initial={{ scale: 0, rotate: -10 }}
-                          whileInView={{ scale: 1, rotate: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: 0.5, type: 'spring' }}
-                        >
-                          <Heart className="w-3 h-3 fill-current" />
-                          Favori
-                        </motion.div>
-                      )}
-
-                      {/* Prix au hover */}
-                      <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                        <span className="text-white text-sm font-medium">Voir les détails</span>
-                        <ArrowRight className="w-4 h-4 text-[#33ffcc]" />
-                      </div>
-                    </motion.div>
-
-                    {/* Contenu */}
-                    <div className="space-y-2">
-                      {/* Catégorie */}
-                      <p className="text-[#33ffcc] text-xs font-semibold uppercase tracking-wider">
-                        {getCategoryName(product.category_id)}
-                      </p>
-
-                      {/* Nom */}
-                      <h3 className="text-white font-bold text-lg leading-snug group-hover:text-[#33ffcc] transition-colors duration-300 line-clamp-2">
-                        {product.name}
-                      </h3>
-
-                      {/* Prix et joueurs */}
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-black text-white">{formatPrice(productPrice)}</span>
-                          <span className="text-gray-500 text-sm">/jour</span>
-                        </div>
-                        {players && (
-                          <div className="flex items-center gap-1.5 text-gray-400 text-sm">
-                            <Users className="w-4 h-4" />
-                            <span>{players.min}-{players.max}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
+                  <FeaturedProductCard product={product} index={index} getCategoryName={getCategoryName} />
                 </motion.div>
-              );
-            })}
-          </motion.div>
+              ))}
+            </motion.div>
+          </>
         )}
 
         {/* CTA discret */}

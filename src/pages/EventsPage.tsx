@@ -5,7 +5,66 @@ import { motion } from 'framer-motion';
 import { SEO } from '../components/SEO';
 import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
 import { ScrollReveal, StaggerContainer, StaggerItem } from '../components/ui/ScrollReveal';
+import { SwipeCarousel } from '../components/mobile';
 import { PortfolioEventsService, EventTypesService, type PortfolioEvent, type EventType } from '../services';
+
+function EventCard({ event }: { event: PortfolioEvent }) {
+  return (
+    <Link
+      to={`/evenements/${event.id}`}
+      className="group block bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden hover:border-[#33ffcc]/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(51,255,204,0.08)] h-full"
+    >
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <img
+          src={event.featured_image || event.images[0] || 'https://images.unsplash.com/photo-1511882150382-421056c89033?w=800'}
+          alt={event.title}
+          width={800}
+          height={600}
+          loading="lazy"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#000033]/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+        {event.event_type && (
+          <div className="absolute top-4 right-4 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
+            <span className="text-[#33ffcc] text-xs font-semibold">{event.event_type.name}</span>
+          </div>
+        )}
+        <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+          <span className="text-white text-sm font-medium">Voir les détails</span>
+          <ArrowRight className="w-4 h-4 text-[#33ffcc]" />
+        </div>
+      </div>
+      <div className="p-5">
+        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#33ffcc] transition-colors duration-300 line-clamp-1">
+          {event.title}
+        </h3>
+        {event.description && (
+          <p className="text-gray-400 text-sm mb-4 line-clamp-2">{event.description}</p>
+        )}
+        <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+          {event.event_date && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-lg">
+              <Calendar className="w-3.5 h-3.5 text-[#33ffcc]" />
+              {new Date(event.event_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </div>
+          )}
+          {event.guest_count && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-lg">
+              <Users className="w-3.5 h-3.5 text-[#33ffcc]" />
+              {event.guest_count} invités
+            </div>
+          )}
+          {event.location && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-lg">
+              <MapPin className="w-3.5 h-3.5 text-[#33ffcc]" />
+              <span className="truncate max-w-[120px]">{event.location.split(',')[0]}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function EventsPage() {
   const [events, setEvents] = useState<PortfolioEvent[]>([]);
@@ -149,10 +208,10 @@ export default function EventsPage() {
               <p className="text-center text-white/40 text-sm mb-5 uppercase tracking-wider">
                 Filtrer par type
               </p>
-              <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+              <div className="flex overflow-x-auto scrollbar-hide gap-2 md:flex-wrap md:justify-center md:gap-3 pb-1 md:pb-0">
                 <motion.button
                   onClick={() => setSelectedType(null)}
-                  className={`group relative px-5 py-2.5 rounded-full border transition-all duration-300 ${
+                  className={`group relative flex-shrink-0 px-5 py-2.5 rounded-full border transition-all duration-300 active:scale-95 ${
                     selectedType === null
                       ? 'bg-[#33ffcc] text-[#000033] border-[#33ffcc] font-bold shadow-[0_0_20px_rgba(51,255,204,0.3)]'
                       : 'bg-white/[0.04] border-white/10 text-white/80 hover:border-white/20 hover:bg-white/[0.08]'
@@ -171,7 +230,7 @@ export default function EventsPage() {
                     <motion.button
                       key={type.id}
                       onClick={() => setSelectedType(type.id)}
-                      className={`group relative px-5 py-2.5 rounded-full border transition-all duration-300 ${
+                      className={`group relative flex-shrink-0 px-5 py-2.5 rounded-full border transition-all duration-300 active:scale-95 ${
                         selectedType === type.id
                           ? 'bg-[#33ffcc] text-[#000033] border-[#33ffcc] font-bold shadow-[0_0_20px_rgba(51,255,204,0.3)]'
                           : 'bg-white/[0.04] border-white/10 text-white/80 hover:border-white/20 hover:bg-white/[0.08]'
@@ -179,7 +238,7 @@ export default function EventsPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 whitespace-nowrap">
                         <span className="text-lg">{emoji}</span>
                         <span className="text-sm font-medium">{type.name}</span>
                       </div>
@@ -292,78 +351,23 @@ export default function EventsPage() {
                 </ScrollReveal>
               )}
 
-              {/* Grille 3 colonnes */}
+              {/* Mobile: SwipeCarousel */}
+              <div className="md:hidden">
+                <SwipeCarousel itemsPerView={1.1} gap={12} showArrows={false}>
+                  {regularEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </SwipeCarousel>
+              </div>
+
+              {/* Desktop: Grid 3 colonnes */}
               <StaggerContainer
                 staggerDelay={0.12}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6"
               >
                 {regularEvents.map((event) => (
                   <StaggerItem key={event.id}>
-                    <Link
-                      to={`/evenements/${event.id}`}
-                      className="group block bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden hover:border-[#33ffcc]/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(51,255,204,0.08)]"
-                    >
-                      {/* Image */}
-                      <div className="relative aspect-[4/3] overflow-hidden">
-                        <img
-                          src={event.featured_image || event.images[0] || 'https://images.unsplash.com/photo-1511882150382-421056c89033?w=800'}
-                          alt={event.title}
-                          width={800}
-                          height={600}
-                          loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#000033]/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-
-                        {/* Type badge */}
-                        {event.event_type && (
-                          <div className="absolute top-4 right-4 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10">
-                            <span className="text-[#33ffcc] text-xs font-semibold">{event.event_type.name}</span>
-                          </div>
-                        )}
-
-                        {/* Hover CTA overlay */}
-                        <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                          <span className="text-white text-sm font-medium">Voir les détails</span>
-                          <ArrowRight className="w-4 h-4 text-[#33ffcc]" />
-                        </div>
-                      </div>
-
-                      {/* Contenu */}
-                      <div className="p-5">
-                        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#33ffcc] transition-colors duration-300 line-clamp-1">
-                          {event.title}
-                        </h3>
-
-                        {event.description && (
-                          <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                            {event.description}
-                          </p>
-                        )}
-
-                        {/* Infos */}
-                        <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-                          {event.event_date && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-lg">
-                              <Calendar className="w-3.5 h-3.5 text-[#33ffcc]" />
-                              {new Date(event.event_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </div>
-                          )}
-                          {event.guest_count && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-lg">
-                              <Users className="w-3.5 h-3.5 text-[#33ffcc]" />
-                              {event.guest_count} invités
-                            </div>
-                          )}
-                          {event.location && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 rounded-lg">
-                              <MapPin className="w-3.5 h-3.5 text-[#33ffcc]" />
-                              <span className="truncate max-w-[120px]">{event.location.split(',')[0]}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
+                    <EventCard event={event} />
                   </StaggerItem>
                 ))}
               </StaggerContainer>

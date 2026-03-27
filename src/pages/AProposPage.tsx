@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Users, Award, Heart, MapPin, ArrowRight } from 'lucide-react';
 import { SEO } from '../components/SEO';
 import { BreadcrumbSchema } from '../components/BreadcrumbSchema';
+import { SwipeCarousel } from '../components/mobile';
 
 export default function AProposPage() {
   const breadcrumbItems = [
@@ -55,8 +56,30 @@ export default function AProposPage() {
             </div>
           </div>
 
-          {/* Values Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
+          {/* Values — Mobile: SwipeCarousel */}
+          <div className="md:hidden mb-12">
+            <SwipeCarousel itemsPerView={1.15} gap={12} showArrows={false}>
+              {[
+                { icon: Award, title: 'Qualité premium', desc: 'Matériel professionnel entretenu et vérifié avant chaque location' },
+                { icon: Users, title: 'Service personnalisé', desc: 'Une équipe à votre écoute pour vous conseiller et vous accompagner' },
+                { icon: MapPin, title: 'Couverture PACA', desc: 'Livraison et installation dans toute la région, hors PACA sur demande' },
+              ].map((v, i) => {
+                const Icon = v.icon;
+                return (
+                  <div key={i} className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 text-center h-full">
+                    <div className="w-16 h-16 bg-[#33ffcc]/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <Icon className="w-8 h-8 text-[#33ffcc]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">{v.title}</h3>
+                    <p className="text-gray-400">{v.desc}</p>
+                  </div>
+                );
+              })}
+            </SwipeCarousel>
+          </div>
+
+          {/* Values — Desktop: Grid */}
+          <div className="hidden md:grid md:grid-cols-3 gap-8 mb-12">
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 text-center group hover:border-[#33ffcc]/30 transition-all duration-300">
               <div className="w-16 h-16 bg-[#33ffcc]/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#33ffcc] transition-colors duration-300">
                 <Award className="w-8 h-8 text-[#33ffcc] group-hover:text-[#000033]" />

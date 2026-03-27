@@ -1,0 +1,1 @@
+export { SwipeCarousel } from './SwipeCarousel';

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useInView, type Variants } from 'framer-motion';
 import { useRef } from 'react';
 import { ScrollReveal } from './ui';
+import { SwipeCarousel } from './mobile';
 
 const steps = [
   {
@@ -149,39 +150,24 @@ export function HowItWorks() {
           </div>
         </div>
 
-        {/* Steps - Mobile */}
-        <motion.div
-          className="lg:hidden space-y-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <motion.div
-                key={index}
-                className="flex items-start gap-5 group"
-                variants={stepVariants}
-              >
-                {/* Icône + ligne */}
-                <div className="flex flex-col items-center">
-                  <div className="relative">
-                    <div className="w-14 h-14 bg-[#33ffcc]/10 border border-[#33ffcc]/30 rounded-xl flex items-center justify-center">
-                      <Icon className="w-7 h-7 text-[#33ffcc]" />
+        {/* Steps - Mobile: Swipeable carousel */}
+        <div className="lg:hidden">
+          <SwipeCarousel itemsPerView={1.15} gap={12} showArrows={false}>
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={index}
+                  className="bg-white/[0.04] border border-white/10 rounded-2xl p-6 text-center h-full"
+                >
+                  <div className="relative inline-flex mb-4">
+                    <div className="w-16 h-16 bg-[#33ffcc]/10 border border-[#33ffcc]/30 rounded-xl flex items-center justify-center">
+                      <Icon className="w-8 h-8 text-[#33ffcc]" />
                     </div>
                     <span className="absolute -top-1 -right-1 w-6 h-6 bg-[#33ffcc] text-[#000033] text-xs font-bold rounded-full flex items-center justify-center">
                       {index + 1}
                     </span>
                   </div>
-                  {index < steps.length - 1 && (
-                    <div className="w-[2px] h-8 bg-gradient-to-b from-[#33ffcc]/30 to-transparent mt-3" />
-                  )}
-                </div>
-
-                {/* Contenu */}
-                <div className="flex-1 pb-2">
                   <h3 className="text-lg font-bold text-white mb-1">
                     {step.title}
                   </h3>
@@ -189,10 +175,10 @@ export function HowItWorks() {
                     {step.description}
                   </p>
                 </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+              );
+            })}
+          </SwipeCarousel>
+        </div>
 
         {/* CTA */}
         <ScrollReveal animation="scale" delay={0.2}>

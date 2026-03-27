@@ -75,6 +75,7 @@
     min-height: 100vh;
     position: relative;
     overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
@@ -253,6 +254,11 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
+  }
+
+  /* Safe bottom padding for fixed bottom nav */
+  .safe-bottom {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
 
   /* Responsive optimizations */
