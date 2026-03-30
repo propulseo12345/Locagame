@@ -1,15 +1,21 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Tag, Truck, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
+import { Tag, Truck, ShieldCheck, Clock, ArrowRight, AlertTriangle } from 'lucide-react';
 import { formatPrice } from '../../utils/pricing';
+import type { PricingRuleApplied } from '../../utils/pricingRulesTypes';
 
 interface CartSummaryProps {
   productsTotal: number;
   deliveryFee: number;
   totalPrice: number;
+  surchargesTotal?: number;
+  surchargeRules?: PricingRuleApplied[];
 }
 
-export default function CartSummary({ productsTotal, deliveryFee, totalPrice }: CartSummaryProps) {
+export default function CartSummary({
+  productsTotal, deliveryFee, totalPrice,
+  surchargesTotal = 0, surchargeRules = []
+}: CartSummaryProps) {
   const [promoCode, setPromoCode] = useState('');
   const [promoCodeError, setPromoCodeError] = useState('');
   const [promoCodeSuccess, setPromoCodeSuccess] = useState('');
@@ -32,7 +38,7 @@ export default function CartSummary({ productsTotal, deliveryFee, totalPrice }: 
     }
   };
 
-  const calculateTotal = () => totalPrice - discount;
+  const calculateTotal = () => totalPrice + surchargesTotal - discount;
 
   return (
     <div className="sticky top-[calc(var(--header-height)+1rem)] bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
@@ -94,6 +100,20 @@ export default function CartSummary({ productsTotal, deliveryFee, totalPrice }: 
           <p className="text-[11px] text-white/40 pl-6">
             0,80 €/km depuis notre entrepôt
           </p>
+
+          {surchargesTotal > 0 && (
+            <div className="space-y-2 py-3 border-t border-white/10">
+              {surchargeRules.map((rule, idx) => (
+                <div key={idx} className="flex justify-between text-sm">
+                  <span className="text-amber-400 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {rule.name}
+                  </span>
+                  <span className="text-amber-400 font-medium">+{formatPrice(rule.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {discount > 0 && (
             <div className="flex justify-between text-sm">

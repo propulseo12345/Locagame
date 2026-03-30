@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Plus, ArrowRight, Package } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import EmptyCart from '../components/cart/EmptyCart';
 import CartItemCard from '../components/cart/CartItemCard';
 import CartSummary from '../components/cart/CartSummary';
+import { calculateDeliverySurcharges } from '../utils/pricingRulesEngine';
+import { isWeekendOrHoliday } from '../utils/dateHolidays';
+import type { PricingRuleApplied } from '../utils/pricingRulesTypes';
 
 export default function CartPage() {
-  const { items: cartItems, removeItem, updateQuantity, totalPrice } = useCart();
+  const { items: cartItems, removeItem, updateQuantity, totalPrice, deliveryType } = useCart();
   const [removingItem, setRemovingItem] = useState<string | null>(null);
 
   const handleUpdateQuantity = (productId: string, startDate: string, _currentQuantity: number, newQuantity: number) => {
@@ -39,6 +42,24 @@ export default function CartPage() {
   const calculateDeliveryFee = () => {
     return cartItems.reduce((sum, item) => sum + (item.delivery_fee || 0), 0);
   };
+
+  const { surchargeRules, surchargesTotal } = useMemo(() => {
+    if (deliveryType === 'pickup') {
+      return { surchargeRules: [] as PricingRuleApplied[], surchargesTotal: 0 };
+    }
+    const rules: PricingRuleApplied[] = cartItems.flatMap(item => {
+      const deliveryMandatory = isWeekendOrHoliday(item.start_date);
+      const pickupMandatory = isWeekendOrHoliday(item.end_date);
+      if (!deliveryMandatory && !pickupMandatory) return [];
+      return calculateDeliverySurcharges(
+        item.start_date, item.end_date,
+        deliveryMandatory, pickupMandatory,
+        item.product.delivery_people_count ?? 1,
+        item.product.pickup_people_count ?? 1
+      );
+    });
+    return { surchargeRules: rules, surchargesTotal: rules.reduce((s, r) => s + r.amount, 0) };
+  }, [cartItems, deliveryType]);
 
   // État vide
   if (cartItems.length === 0) {
@@ -106,6 +127,8 @@ export default function CartPage() {
               productsTotal={calculateProductsTotal()}
               deliveryFee={calculateDeliveryFee()}
               totalPrice={totalPrice}
+              surchargesTotal={surchargesTotal}
+              surchargeRules={surchargeRules}
             />
           </div>
         </div>
