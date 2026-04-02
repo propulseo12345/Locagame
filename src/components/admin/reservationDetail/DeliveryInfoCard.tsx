@@ -4,10 +4,15 @@ import { Order } from '../../../types';
 
 interface DeliveryInfoCardProps {
   reservation: Order;
+  deliveryTasks?: any[];
 }
 
-export default function DeliveryInfoCard({ reservation }: DeliveryInfoCardProps) {
+export default function DeliveryInfoCard({ reservation, deliveryTasks }: DeliveryInfoCardProps) {
   const deliveryAddress = reservation.delivery_address as any;
+
+  // Find the delivery task with vehicle info
+  const deliveryTask = deliveryTasks?.find((t: any) => t.type === 'delivery') || deliveryTasks?.[0];
+  const vehicle = deliveryTask?.vehicle;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -72,11 +77,20 @@ export default function DeliveryInfoCard({ reservation }: DeliveryInfoCardProps)
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <div>
-              <span className="text-sm text-gray-500">Créneau livraison: </span>
-              <span className="font-medium">{reservation.delivery_time || 'Non specifie'}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <div>
+                <span className="text-sm text-gray-500">Créneau livraison: </span>
+                <span className="font-medium">{reservation.delivery_time || 'Non specifie'}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <div>
+                <span className="text-sm text-gray-500">Créneau reprise: </span>
+                <span className="font-medium">{reservation.return_time || reservation.pickup_time || 'Non specifie'}</span>
+              </div>
             </div>
           </div>
         )}
@@ -89,14 +103,36 @@ export default function DeliveryInfoCard({ reservation }: DeliveryInfoCardProps)
               <div>
                 <div className="text-sm text-gray-500 mb-1">Adresse de livraison</div>
                 <div className="font-medium text-gray-900">
-                  {deliveryAddress.street || deliveryAddress.address}
-                  {deliveryAddress.address_complement && (
-                    <span className="block text-sm text-gray-600">{deliveryAddress.address_complement}</span>
+                  {deliveryAddress.address_line1}
+                  {deliveryAddress.address_line2 && (
+                    <span className="block text-sm text-gray-600">{deliveryAddress.address_line2}</span>
                   )}
                   <span className="block">
-                    {deliveryAddress.postal_code || deliveryAddress.postalCode} {deliveryAddress.city}
+                    {deliveryAddress.postal_code} {deliveryAddress.city}
                   </span>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Véhicule assigné */}
+        {reservation.delivery_type === 'delivery' && (
+          <div className="pt-4 border-t border-gray-200">
+            <div className="flex items-start gap-3">
+              <Truck className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div>
+                <div className="text-sm text-gray-500 mb-1">Véhicule assigné</div>
+                {vehicle ? (
+                  <div className="font-medium text-gray-900">
+                    {vehicle.name}
+                    {vehicle.license_plate && (
+                      <span className="ml-2 text-sm text-gray-500">({vehicle.license_plate})</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400">Aucun véhicule assigné</div>
+                )}
               </div>
             </div>
           </div>

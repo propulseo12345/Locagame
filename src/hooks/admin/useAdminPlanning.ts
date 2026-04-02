@@ -6,11 +6,23 @@ import type { Technician, Vehicle } from '../../services/technicians.service';
 import type {
   UnassignedReservation,
   AssignFilter,
+  ViewMode,
   VehicleFormData,
 } from '../../components/admin/planning/planning.types';
 import { DEFAULT_VEHICLE_FORM } from '../../components/admin/planning/planning.types';
 import { logger } from '../../lib/logger';
 import { toLocalISODate } from '../../utils/dateHolidays';
+
+function getWeekBounds(dateStr: string): { start: string; end: string } {
+  const date = new Date(dateStr + 'T00:00:00');
+  const day = date.getDay(); // 0=dim
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // lundi
+  const monday = new Date(date);
+  monday.setDate(diff);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { start: toLocalISODate(monday), end: toLocalISODate(sunday) };
+}
 
 export function useAdminPlanning() {
   const toast = useToast();
@@ -24,7 +36,7 @@ export function useAdminPlanning() {
   const [operationInProgress, setOperationInProgress] = useState<string | null>(null);
 
   const [selectedDate, setSelectedDate] = useState(toLocalISODate(new Date()));
-  const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
+  const [viewMode, setViewMode] = useState<ViewMode>('day');
   const [assignFilter, setAssignFilter] = useState<AssignFilter>('all');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -38,10 +50,19 @@ export function useAdminPlanning() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      let tasksPromise: Promise<DeliveryTask[]>;
+
+      if (viewMode === 'week') {
+        const { start, end } = getWeekBounds(selectedDate);
+        tasksPromise = DeliveryService.getAllTasks({ fromDate: start, toDate: end });
+      } else {
+        tasksPromise = DeliveryService.getTasksByDate(selectedDate);
+      }
+
       const [vehiclesData, techniciansData, tasksData, unassignedRes] = await Promise.all([
         TechniciansService.getAllVehicles(),
         TechniciansService.getAllTechnicians(),
-        DeliveryService.getTasksByDate(selectedDate),
+        tasksPromise,
         ReservationsService.getUnassignedReservations(),
       ]);
       setVehicles(vehiclesData);
@@ -54,7 +75,7 @@ export function useAdminPlanning() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate]);
+  }, [selectedDate, viewMode]);
 
   useEffect(() => {
     loadData();
@@ -63,8 +84,17 @@ export function useAdminPlanning() {
   // Rafraichir uniquement les taches et reservations (apres une operation)
   const refreshTasksAndReservations = useCallback(async () => {
     try {
+      let tasksPromise: Promise<DeliveryTask[]>;
+
+      if (viewMode === 'week') {
+        const { start, end } = getWeekBounds(selectedDate);
+        tasksPromise = DeliveryService.getAllTasks({ fromDate: start, toDate: end });
+      } else {
+        tasksPromise = DeliveryService.getTasksByDate(selectedDate);
+      }
+
       const [tasksData, unassignedRes] = await Promise.all([
-        DeliveryService.getTasksByDate(selectedDate),
+        tasksPromise,
         ReservationsService.getUnassignedReservations(),
       ]);
       setTasksState(tasksData);
@@ -72,7 +102,7 @@ export function useAdminPlanning() {
     } catch (err) {
       logger.error('Erreur rafra\u00eechissement', err);
     }
-  }, [selectedDate]);
+  }, [selectedDate, viewMode]);
 
   // Taches pour la date selectionnee
   const existingTasks = useMemo(() => {
@@ -110,8 +140,12 @@ export function useAdminPlanning() {
   // seules les reservations SANS delivery_task assignee y figurent.
   // On filtre par date pour la vue planning.
   const unassignedReservations = useMemo(() => {
+    if (viewMode === 'week') {
+      const { start, end } = getWeekBounds(selectedDate);
+      return reservations.filter(res => res.start_date >= start && res.start_date <= end);
+    }
     return reservations.filter(res => res.start_date === selectedDate);
-  }, [reservations, selectedDate]);
+  }, [reservations, selectedDate, viewMode]);
 
   // Grouper toutes les taches par date pour la vue mois
   const allTasksByDate = useMemo(() => {
@@ -141,14 +175,21 @@ export function useAdminPlanning() {
     return days;
   }, [currentMonth, currentYear, allTasksByDate]);
 
-  const navigateDate = (days: number) => {
-    const date = new Date(selectedDate);
-    date.setDate(date.getDate() + days);
+  const navigateDate = (direction: number) => {
+    const date = new Date(selectedDate + 'T00:00:00');
+    if (viewMode === 'week') {
+      date.setDate(date.getDate() + (direction * 7));
+    } else {
+      date.setDate(date.getDate() + direction);
+    }
     setSelectedDate(toLocalISODate(date));
   };
 
   const goToToday = () => {
-    setSelectedDate(toLocalISODate(new Date()));
+    const today = new Date();
+    setSelectedDate(toLocalISODate(today));
+    setCurrentMonth(today.getMonth());
+    setCurrentYear(today.getFullYear());
   };
 
   const navigateMonth = (direction: number) => {
@@ -208,6 +249,7 @@ export function useAdminPlanning() {
     goToToday,
     navigateMonth,
     refreshTasksAndReservations,
+    getWeekBounds,
     toast,
   };
 }

@@ -216,6 +216,9 @@ export default function ReservationTableRow({
             </div>
             <div>
               <p className="text-xs font-medium text-gray-900">{taskInfo.technicianName}</p>
+              {taskInfo.vehicleName && (
+                <p className="text-[10px] text-gray-500 mt-0.5">{taskInfo.vehicleName}</p>
+              )}
               <span className={`inline-block mt-0.5 px-1.5 py-0.5 text-[10px] font-medium rounded-full ${
                 DELIVERY_STATUS_BADGE[taskInfo.status]?.color || 'bg-gray-100 text-gray-600'
               }`}>

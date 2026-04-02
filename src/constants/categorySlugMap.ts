@@ -6,7 +6,7 @@ export const CATEGORY_SLUG_MAP: Record<string, string> = {
   'jeux-bois': 'Jeux en Bois',
   'kermesse': 'Kermesse',
   'jeux-sportifs': 'Jeux Sportifs',
-  'loto-bingo': 'Loto & Bingo',
+  'loto': 'Loto',
   'decoration': 'Décoration',
   'son-lumiere': 'Son & Lumière',
 };
@@ -19,7 +19,7 @@ export const CATEGORY_NAME_TO_SLUG: Record<string, string> = {
   'Jeux en Bois': 'jeux-bois',
   'Kermesse': 'kermesse',
   'Jeux Sportifs': 'jeux-sportifs',
-  'Loto & Bingo': 'loto-bingo',
+  'Loto': 'loto',
   'Décoration': 'decoration',
   'Son & Lumière': 'son-lumiere',
 };

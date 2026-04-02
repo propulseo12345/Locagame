@@ -40,7 +40,7 @@ export function useProductDetail() {
   const loadProduct = async () => {
     try {
       setLoading(true);
-      const productData = await ProductsService.getProductById(id!);
+      const productData = await ProductsService.getProductById(id!, true);
       if (productData) {
         setProduct(productData);
         const pricing = (productData as any).pricing || {};

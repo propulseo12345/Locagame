@@ -57,6 +57,7 @@ export function useAdminReservations() {
 
       // Build delivery tasks map by reservationId
       const techMap = new Map(techs.map(t => [t.id, `${t.first_name} ${t.last_name}`]));
+      const vehMap = new Map(vehs.map(v => [v.id, v.name]));
       const tasksMap: Record<string, DeliveryTaskInfo> = {};
       for (const task of allTasks) {
         if (task.reservationId && task.technicianId) {
@@ -66,6 +67,7 @@ export function useAdminReservations() {
             technicianId: task.technicianId,
             status: task.status,
             technicianName: techMap.get(task.technicianId),
+            vehicleName: vehMap.get(task.vehicleId),
           };
         }
       }
@@ -136,6 +138,7 @@ export function useAdminReservations() {
 
       // Rebuild delivery tasks map
       const techMap = new Map(technicians.map(t => [t.id, `${t.first_name} ${t.last_name}`]));
+      const vehMap = new Map(vehicles.map(v => [v.id, v.name]));
       const tasksMap: Record<string, DeliveryTaskInfo> = {};
       for (const task of allTasks) {
         if (task.reservationId && task.technicianId) {
@@ -145,6 +148,7 @@ export function useAdminReservations() {
             technicianId: task.technicianId,
             status: task.status,
             technicianName: techMap.get(task.technicianId),
+            vehicleName: vehMap.get(task.vehicleId),
           };
         }
       }
@@ -152,7 +156,7 @@ export function useAdminReservations() {
     } catch (error) {
       logger.error('Error refreshing', error);
     }
-  }, [technicians]);
+  }, [technicians, vehicles]);
 
   const handleRejectReservation = useCallback(async (reservationId: string) => {
     const reason = prompt('Motif du refus (optionnel):');

@@ -32,7 +32,7 @@ function CategoryButton({ category, idx, onCategoryClick }: { category: Category
 }
 
 export function HeroCategories({ categories, onCategoryClick }: HeroCategoriesProps) {
-  const items = categories.slice(0, 8);
+  const items = categories;
 
   return (
     <motion.div variants={animations.fadeUp} className="pt-4">

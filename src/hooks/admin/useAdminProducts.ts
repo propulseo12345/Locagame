@@ -97,7 +97,6 @@ export function useAdminProducts() {
   const handleExport = async () => {
     try {
       setExporting(true);
-      // @ts-expect-error — getAllProductsForExport not yet implemented
       const allProducts = await ProductsService.getAllProductsForExport();
 
       const rows = allProducts.map((p: any) => ({

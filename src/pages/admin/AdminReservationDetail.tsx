@@ -63,7 +63,7 @@ export default function AdminReservationDetail() {
         <div className="lg:col-span-2 space-y-6">
           <CustomerInfoCard reservation={reservation} />
           <BillingCard reservation={reservation} />
-          <DeliveryInfoCard reservation={reservation} />
+          <DeliveryInfoCard reservation={reservation} deliveryTasks={deliveryTasks} />
           <EventDetailsCard reservation={reservation} />
           <ReservationItemsList
             reservation={reservation}

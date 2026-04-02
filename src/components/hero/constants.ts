@@ -48,7 +48,7 @@ export const categoryVisuals: Record<string, { gradient: string; emoji: string }
   'Jeux en Bois': { gradient: 'from-orange-600 to-amber-700', emoji: '🪵' },
   'Kermesse': { gradient: 'from-green-500 to-emerald-600', emoji: '🎪' },
   'Jeux Sportifs': { gradient: 'from-blue-500 to-cyan-600', emoji: '⚽' },
-  'Loto & Bingo': { gradient: 'from-pink-500 to-rose-600', emoji: '🎯' },
+  'Loto': { gradient: 'from-pink-500 to-rose-600', emoji: '🎯' },
   'Décoration': { gradient: 'from-violet-500 to-purple-600', emoji: '✨' },
   'Son & Lumière': { gradient: 'from-cyan-500 to-blue-600', emoji: '🔊' },
 };
@@ -61,7 +61,7 @@ export const categorySlugMap: Record<string, string> = {
   'Jeux en Bois': 'jeux-bois',
   'Kermesse': 'kermesse',
   'Jeux Sportifs': 'jeux-sportifs',
-  'Loto & Bingo': 'loto-bingo',
+  'Loto': 'loto',
   'Décoration': 'decoration',
   'Son & Lumière': 'son-lumiere'
 };

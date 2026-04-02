@@ -141,7 +141,9 @@ VITE_SUPABASE_ANON_KEY=votre-cle-anon`}
                 ))}
               </div>
             )}
-            <CatalogPagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+            {!showCategoryView && (
+              <CatalogPagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+            )}
           </>
         ) : (
           <div className="text-center py-20">

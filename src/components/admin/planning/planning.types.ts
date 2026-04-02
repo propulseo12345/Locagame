@@ -33,6 +33,8 @@ export interface UnassignedReservation {
   delivery_task_id?: string;
 }
 
+export type ViewMode = 'day' | 'week' | 'month';
+
 export type AssignFilter = 'all' | 'unassigned' | 'assigned';
 
 export interface VehicleFormData {

@@ -12,8 +12,9 @@ const iconMap: Record<string, typeof Dices> = {
   'jeux-bois': Trees,
   'kermesse': PartyPopper,
   'jeux-sportifs': Trophy,
-  'loto-bingo': Sparkles,
+  'loto': Sparkles,
   'decoration': Palette,
+  'son-lumiere': Sparkles,
 };
 
 // Images par défaut par slug
@@ -24,8 +25,9 @@ const defaultImages: Record<string, string> = {
   'jeux-bois': 'https://images.pexels.com/photos/4092459/pexels-photo-4092459.jpeg?auto=compress&cs=tinysrgb&w=800',
   'kermesse': 'https://images.pexels.com/photos/1684187/pexels-photo-1684187.jpeg?auto=compress&cs=tinysrgb&w=800',
   'jeux-sportifs': 'https://images.pexels.com/photos/274422/pexels-photo-274422.jpeg?auto=compress&cs=tinysrgb&w=800',
-  'loto-bingo': 'https://images.pexels.com/photos/3831645/pexels-photo-3831645.jpeg?auto=compress&cs=tinysrgb&w=800',
+  'loto': 'https://images.pexels.com/photos/3831645/pexels-photo-3831645.jpeg?auto=compress&cs=tinysrgb&w=800',
   'decoration': 'https://images.pexels.com/photos/1729797/pexels-photo-1729797.jpeg?auto=compress&cs=tinysrgb&w=800',
+  'son-lumiere': 'https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=800',
 };
 
 export function Categories() {

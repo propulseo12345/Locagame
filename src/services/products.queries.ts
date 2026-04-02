@@ -137,13 +137,17 @@ export class ProductsQueries {
   /**
    * Récupère un produit par son ID
    */
-  static async getProductById(id: string): Promise<Product | null> {
-    const { data, error } = await supabase
+  static async getProductById(id: string, includeInactive = false): Promise<Product | null> {
+    let query = supabase
       .from('products')
       .select(PRODUCT_SELECT)
-      .eq('id', id)
-      .eq('is_active', true)
-      .single();
+      .eq('id', id);
+
+    if (!includeInactive) {
+      query = query.eq('is_active', true);
+    }
+
+    const { data, error } = await query.single();
 
     if (error) {
       logger.error('Error fetching product', error);
@@ -170,6 +174,23 @@ export class ProductsQueries {
     }
 
     return data || [];
+  }
+
+  /**
+   * Récupère tous les produits (actifs + inactifs) pour l'export Excel admin
+   */
+  static async getAllProductsForExport(): Promise<Product[]> {
+    const { data, error } = await supabase
+      .from('products')
+      .select(PRODUCT_SELECT)
+      .order('name', { ascending: true });
+
+    if (error) {
+      logger.error('Error fetching products for export', error);
+      throw error;
+    }
+
+    return (data || []).map(normalizeProduct);
   }
 
   /**

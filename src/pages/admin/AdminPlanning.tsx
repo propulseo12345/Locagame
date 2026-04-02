@@ -5,6 +5,7 @@ import { usePlanningAssignment } from '../../hooks/admin/usePlanningAssignment';
 import {
   PlanningHeader,
   PlanningMonthView,
+  PlanningWeekView,
   PlanningDayView,
   UnassignedReservations,
   VehicleSection,
@@ -54,6 +55,7 @@ export default function AdminPlanning() {
         setVehicleFormData={planning.setVehicleFormData}
         setCurrentMonth={planning.setCurrentMonth}
         setCurrentYear={planning.setCurrentYear}
+        getWeekBounds={planning.getWeekBounds}
       />
 
       {/* Overlay loading pendant une operation */}
@@ -77,8 +79,20 @@ export default function AdminPlanning() {
         />
       )}
 
-      {/* Vue Jour - Reservations non assignees */}
-      {planning.viewMode === 'day' && (
+      {/* Vue Semaine */}
+      {planning.viewMode === 'week' && (
+        <PlanningWeekView
+          selectedDate={planning.selectedDate}
+          tasksState={planning.tasksState}
+          technicians={planning.technicians}
+          setSelectedDate={planning.setSelectedDate}
+          setViewMode={planning.setViewMode}
+        />
+      )}
+
+      {/* Reservations non assignees (jour et semaine, seulement si filtre !== 'assigned') */}
+      {(planning.viewMode === 'day' || planning.viewMode === 'week') &&
+        planning.assignFilter !== 'assigned' && (
         <UnassignedReservations
           reservations={planning.unassignedReservations}
           technicians={planning.technicians}
@@ -113,12 +127,12 @@ export default function AdminPlanning() {
       )}
 
       {/* Message si aucune intervention */}
-      {planning.viewMode === 'day' &&
+      {(planning.viewMode === 'day' || planning.viewMode === 'week') &&
         planning.unassignedReservations.length === 0 &&
         planning.filteredTasks.length === 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <p className="text-gray-500 text-lg">
-            Aucune intervention pour cette date
+            Aucune intervention pour cette {planning.viewMode === 'week' ? 'semaine' : 'date'}
           </p>
         </div>
       )}

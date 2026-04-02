@@ -22,7 +22,7 @@ export default function ContactMap() {
         <div className="h-[300px]">
           <iframe
             title="Localisation LocaGame"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2904.5!2d5.4!3d43.32!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDPCsDE5JzEyLjAiTiA1wrAyNCcwMC4wIkU!5e0!3m2!1sfr!2sfr!4v1234567890&q=553+rue+Saint+Pierre+13012+Marseille"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2903!2d5.4086!3d43.2896!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s553+Rue+Saint-Pierre%2C+13012+Marseille!5e0!3m2!1sfr!2sfr"
             width="100%"
             height="100%"
             style={{ border: 0 }}

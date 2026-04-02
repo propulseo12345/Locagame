@@ -9,7 +9,7 @@ export class ReservationsQueries {
   static async getCustomerReservations(customerId: string): Promise<Order[]> {
     const { data, error } = await supabase
       .from('reservations')
-      .select('*, customer:customers(*), reservation_items:reservation_items(*, product:products(name, images))')
+      .select('*, customer:customers(*), delivery_address:addresses!delivery_address_id(*), reservation_items:reservation_items(*, product:products(name, images))')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false });
 
@@ -27,7 +27,7 @@ export class ReservationsQueries {
   static async getReservationById(id: string): Promise<Order | null> {
     const { data, error } = await supabase
       .from('reservations')
-      .select('*, customer:customers(*), reservation_items:reservation_items(*, product:products(name, images))')
+      .select('*, customer:customers(*), delivery_address:addresses!delivery_address_id(*), reservation_items:reservation_items(*, product:products(name, images))')
       .eq('id', id)
       .single();
 
@@ -51,7 +51,7 @@ export class ReservationsQueries {
   ): Promise<Order[]> {
     let query = supabase
       .from('reservations')
-      .select('*, customer:customers(*), reservation_items:reservation_items(*, product:products(name))')
+      .select('*, customer:customers(*), delivery_address:addresses!delivery_address_id(*), reservation_items:reservation_items(*, product:products(name))')
       .order('created_at', { ascending: false });
 
     if (filters?.status) {

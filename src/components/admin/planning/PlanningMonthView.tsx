@@ -1,5 +1,6 @@
 import type { DeliveryTask } from '../../../types';
 import type { Technician } from '../../../services/technicians.service';
+import type { ViewMode } from './planning.types';
 import { toLocalISODate } from '../../../utils/dateHolidays';
 
 interface PlanningMonthViewProps {
@@ -7,7 +8,7 @@ interface PlanningMonthViewProps {
   selectedDate: string;
   technicians: Technician[];
   setSelectedDate: (date: string) => void;
-  setViewMode: (mode: 'day' | 'month') => void;
+  setViewMode: (mode: ViewMode) => void;
 }
 
 export default function PlanningMonthView({

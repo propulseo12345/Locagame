@@ -34,6 +34,7 @@ export interface DeliveryTaskInfo {
   technicianId: string;
   status: string;
   technicianName?: string;
+  vehicleName?: string;
 }
 
 export type DeliveryModeFilter = 'all' | 'delivery' | 'pickup';
