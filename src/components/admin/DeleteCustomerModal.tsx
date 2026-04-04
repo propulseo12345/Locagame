@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { Customer } from '../../types';
 import { CustomersService } from '../../services';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface DeleteCustomerModalProps {
   customer: Customer;
@@ -11,6 +12,7 @@ interface DeleteCustomerModalProps {
 
 export default function DeleteCustomerModal({ customer, onClose, onDeleted }: DeleteCustomerModalProps) {
   const [deleting, setDeleting] = useState(false);
+  const containerRef = useFocusTrap(true, onClose);
 
   const handleDelete = async () => {
     if (!customer.id) return;
@@ -27,13 +29,13 @@ export default function DeleteCustomerModal({ customer, onClose, onDeleted }: De
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div ref={containerRef} role="alertdialog" aria-modal="true" aria-labelledby="delete-customer-title" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-red-100 rounded-full">
             <AlertTriangle className="w-6 h-6 text-red-600" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900">Supprimer le client</h3>
+          <h3 id="delete-customer-title" className="text-xl font-bold text-gray-900">Supprimer le client</h3>
         </div>
         <p className="text-gray-600 mb-2">
           Êtes-vous sûr de vouloir supprimer ce client ?

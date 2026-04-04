@@ -3,6 +3,7 @@ import { FavoritesService } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 import { Product } from '../../types';
 import { FavoritesHeader, FavoritesEmptyState, FavoritesGrid } from '../../components/client/favorites';
+import { ProductCardSkeleton } from '../../components/ui/skeletons';
 
 export default function ClientFavorites() {
   const { user } = useAuth();
@@ -66,13 +67,11 @@ export default function ClientFavorites() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-[#fe1979] border-t-transparent animate-spin"></div>
-          </div>
-          <p className="text-white/60">Chargement de vos favoris...</p>
+      <div className="space-y-5 mt-6 md:mt-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
         </div>
       </div>
     );

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Edit2, MoreVertical, Trash2, Package } from 'lucide-react';
 import { Product } from '../../../types';
 import { stripHtml } from '../../../utils/html';
+import { TableRowSkeleton } from '../../ui/skeletons';
 
 interface AdminProductsTableProps {
   products: Product[];
@@ -23,23 +24,6 @@ const STATUS_LABELS: Record<string, string> = {
   maintenance: 'Maintenance',
 };
 
-function SkeletonRow() {
-  return (
-    <tr className="animate-pulse">
-      <td className="px-6 py-4">
-        <div className="h-4 bg-gray-200 rounded w-40 mb-1" />
-        <div className="h-3 bg-gray-100 rounded w-28" />
-      </td>
-      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24" /></td>
-      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-8" /></td>
-      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16" /></td>
-      <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded w-16" /></td>
-      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-8" /></td>
-      <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-12 ml-auto" /></td>
-    </tr>
-  );
-}
-
 export default function AdminProductsTable({ products, categories, onDelete, loading = false }: AdminProductsTableProps) {
   const [showMenu, setShowMenu] = useState<string | null>(null);
 
@@ -56,21 +40,21 @@ export default function AdminProductsTable({ products, categories, onDelete, loa
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" aria-label="Liste des produits">
           <thead>
             <tr className="bg-gray-50">
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Produit</th>
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Catégorie</th>
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Prix/jour</th>
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Réservations</th>
-              <th className="px-6 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Produit</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Catégorie</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Prix/jour</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Réservations</th>
+              <th scope="col" className="px-6 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
+              <TableRowSkeleton columns={7} rows={6} />
             ) : products.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-16 text-center">

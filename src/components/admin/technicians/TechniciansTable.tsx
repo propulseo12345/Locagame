@@ -1,5 +1,6 @@
 import { Pencil, Trash2, Users } from 'lucide-react';
 import type { Technician, Vehicle } from '../../../services/technicians.service';
+import { TableRowSkeleton } from '../../ui/skeletons';
 
 interface TechniciansTableProps {
   technicians: Technician[];
@@ -7,21 +8,6 @@ interface TechniciansTableProps {
   onEdit: (tech: Technician) => void;
   onDelete: (tech: Technician) => void;
   loading?: boolean;
-}
-
-function SkeletonRow() {
-  return (
-    <tr className="animate-pulse">
-      <td className="px-6 py-4">
-        <div className="h-4 bg-gray-200 rounded w-36 mb-1" />
-        <div className="h-3 bg-gray-100 rounded w-24" />
-      </td>
-      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-40" /></td>
-      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-28" /></td>
-      <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded w-16" /></td>
-      <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-12 ml-auto" /></td>
-    </tr>
-  );
 }
 
 export default function TechniciansTable({
@@ -34,19 +20,19 @@ export default function TechniciansTable({
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" aria-label="Liste des techniciens">
           <thead>
             <tr className="bg-gray-50">
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nom</th>
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Véhicule</th>
-              <th className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
-              <th className="px-6 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nom</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Véhicule</th>
+              <th scope="col" className="px-6 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+              <th scope="col" className="px-6 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
+              <TableRowSkeleton columns={5} rows={6} />
             ) : technicians.length === 0 ? (
               <tr>
                 <td colSpan={5} className="py-16 text-center">

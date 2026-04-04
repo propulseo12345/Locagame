@@ -30,12 +30,14 @@ export default function CustomersFilters({
           placeholder="Nom, email, entreprise..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
+          aria-label="Rechercher un client"
           className="w-full h-11 pl-9 pr-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
         />
       </div>
       <select
         value={typeFilter}
         onChange={(e) => onTypeChange(e.target.value)}
+        aria-label="Filtrer par type de client"
         className="h-11 w-44 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white"
       >
         <option value="all">Tous les types</option>

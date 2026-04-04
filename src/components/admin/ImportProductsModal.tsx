@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
 import { X, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { CategoriesService } from '../../services';
 import { ProductsService } from '../../services';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import {
   ImportRow, ValidationResult, ImportStep, ImportReport,
   slugify, normalizeHeader, EXPECTED_HEADERS
@@ -23,6 +23,7 @@ export default function ImportProductsModal({ onClose, onImportComplete }: Impor
   const [importReport, setImportReport] = useState<ImportReport | null>(null);
   const [importMode, setImportMode] = useState<'upsert' | 'insert'>('upsert');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useFocusTrap(true, onClose);
 
   const validCount = validationResults.filter(r => r.errors.length === 0).length;
 
@@ -32,6 +33,7 @@ export default function ImportProductsModal({ onClose, onImportComplete }: Impor
     setFileName(file.name);
 
     try {
+      const XLSX = await import('xlsx');
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
@@ -144,13 +146,13 @@ export default function ImportProductsModal({ onClose, onImportComplete }: Impor
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="import-products-title" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <FileSpreadsheet className="w-6 h-6 text-green-600" />
-            <h2 className="text-xl font-bold text-gray-900">Importer des produits</h2>
+            <h2 id="import-products-title" className="text-xl font-bold text-gray-900">Importer des produits</h2>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-6 h-6" />

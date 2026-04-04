@@ -4,6 +4,7 @@ import { Order } from '../../../types';
 import ReservationTableRow from './ReservationTableRow';
 import ReservationExpandedRow from './ReservationExpandedRow';
 import type { DeliveryTaskInfo } from './types';
+import { TableRowSkeleton } from '../../ui/skeletons';
 
 interface ReservationsTableProps {
   reservations: Order[];
@@ -15,22 +16,6 @@ interface ReservationsTableProps {
   loading?: boolean;
   hasActiveFilters?: boolean;
   onClearFilters?: () => void;
-}
-
-function SkeletonRow() {
-  return (
-    <tr className="animate-pulse">
-      <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-24" /></td>
-      <td className="px-4 py-3"><div className="flex items-center gap-2"><div className="w-8 h-8 bg-gray-200 rounded-full" /><div className="h-4 bg-gray-200 rounded w-28" /></div></td>
-      <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-20" /></td>
-      <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-16" /></td>
-      <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-20" /></td>
-      <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-14" /></td>
-      <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-24" /></td>
-      <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-20" /></td>
-      <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-12 ml-auto" /></td>
-    </tr>
-  );
 }
 
 export default function ReservationsTable({
@@ -47,27 +32,23 @@ export default function ReservationsTable({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" aria-label="Liste des réservations">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">N° Commande</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Client</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Mode</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Produits</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Dates</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Montant</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Livreur</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">N° Commande</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Client</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Mode</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Produits</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Dates</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Montant</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Livreur</th>
+              <th scope="col" className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
-              <>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <SkeletonRow key={i} />
-                ))}
-              </>
+              <TableRowSkeleton columns={9} rows={6} />
             ) : (
               reservations.map((reservation, index) => {
                 const isExpanded = expandedRow === reservation.id;

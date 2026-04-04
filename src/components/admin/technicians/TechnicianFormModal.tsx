@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import type { Technician, Vehicle } from '../../../services/technicians.service';
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
 import { useTechnicianForm } from '../../../hooks/admin/useTechnicianForm';
 import TechnicianFormFields from './TechnicianFormFields';
 import TechnicianFormPassword from './TechnicianFormPassword';
@@ -21,13 +22,14 @@ export default function TechnicianFormModal({
   onClose,
 }: TechnicianFormModalProps) {
   const form = useTechnicianForm({ technician, onSubmit });
+  const containerRef = useFocusTrap(true, onClose);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="technician-form-title" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 id="technician-form-title" className="text-xl font-bold text-gray-900">
             {form.isEdit ? 'Modifier le technicien' : 'Nouveau technicien'}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">

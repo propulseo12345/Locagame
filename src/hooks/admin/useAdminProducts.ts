@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import * as XLSX from 'xlsx';
 import { ProductsService, CategoriesService } from '../../services';
 import { Product } from '../../types';
 import { supabase } from '../../lib/supabase';
@@ -7,9 +6,17 @@ import { logger } from '../../lib/logger';
 
 const PAGE_SIZE = 20;
 
+interface ProductStats {
+  total: number;
+  active: number;
+  inactive: number;
+  totalStock: number;
+}
+
 export function useAdminProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState<ProductStats>({ total: 0, active: 0, inactive: 0, totalStock: 0 });
   const [page, setPage] = useState(0);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +54,22 @@ export function useAdminProducts() {
 
       if (productsError) throw productsError;
 
-      const categoriesData = await CategoriesService.getCategories();
+      // Global stats (independent of filters/pagination)
+      const [categoriesData, { count: totalAll }, { count: totalActive }, stockResult] = await Promise.all([
+        CategoriesService.getCategories(),
+        supabase.from('products').select('id', { count: 'exact', head: true }),
+        supabase.from('products').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('products').select('total_stock'),
+      ]);
+
+      const totalStock = (stockResult.data || []).reduce((sum: number, p: { total_stock: number | null }) => sum + (p.total_stock || 0), 0);
+      setStats({
+        total: totalAll || 0,
+        active: totalActive || 0,
+        inactive: (totalAll || 0) - (totalActive || 0),
+        totalStock,
+      });
+
       setProducts(productsData as Product[]);
       setTotalCount(count || 0);
       setCategories(categoriesData);
@@ -97,9 +119,10 @@ export function useAdminProducts() {
   const handleExport = async () => {
     try {
       setExporting(true);
+      const XLSX = await import('xlsx');
       const allProducts = await ProductsService.getAllProductsForExport();
 
-      const rows = allProducts.map((p: any) => ({
+      const rows = allProducts.map((p) => ({
         name: p.name || '',
         slug: p.slug || '',
         category_id: p.category?.slug || '',
@@ -151,5 +174,6 @@ export function useAdminProducts() {
     setPage,
     totalPages,
     totalCount,
+    stats,
   };
 }

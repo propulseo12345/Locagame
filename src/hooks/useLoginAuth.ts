@@ -73,8 +73,8 @@ export function useLoginAuth() {
     try {
       const profile = await signIn(email, password);
       navigateByRole(profile.role, navigate);
-    } catch (err: any) {
-      setError(err.message || 'Identifiants incorrects. Veuillez réessayer.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Identifiants incorrects. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
@@ -92,8 +92,8 @@ export function useLoginAuth() {
     try {
       const profile = await signIn(credentials.email, credentials.password);
       navigateByRole(profile.role, navigate);
-    } catch (err: any) {
-      setError(err.message || 'Erreur de connexion');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erreur de connexion');
     } finally {
       setLoading(false);
     }

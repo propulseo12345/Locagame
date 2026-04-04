@@ -1,6 +1,7 @@
 import { X, Heart, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAuthModal } from '../../hooks/useAuthModal';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { Button } from '../ui';
 import { AuthTabs } from './AuthTabs';
 import { LoginForm } from './LoginForm';
@@ -24,13 +25,14 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess: _onAuthSuccess, defa
     registerData, handleClose, handleTabChange,
     handleLogin, handleRegister, handleRegisterChange,
   } = useAuthModal({ signIn, signUp, onClose, defaultTab });
+  const containerRef = useFocusTrap(isOpen, handleClose);
 
   if (!isOpen) return null;
 
   // Registration success screen
   if (registerSuccess) {
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={handleClose}>
+      <div ref={containerRef} role="dialog" aria-modal="true" aria-label="Confirmation email" className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={handleClose}>
         <div className="bg-gradient-to-br from-[#001144] to-[#000033] border border-white/15 rounded-2xl shadow-2xl max-w-md w-full p-8 text-center" onClick={e => e.stopPropagation()}>
           <div className="w-16 h-16 bg-[#33ffcc]/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Mail className="w-8 h-8 text-[#33ffcc]" />
@@ -48,7 +50,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess: _onAuthSuccess, defa
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={handleClose}>
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={handleClose}>
       <div
         className="bg-gradient-to-br from-[#001144] to-[#000033] border border-white/15 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
@@ -68,7 +70,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess: _onAuthSuccess, defa
               </div>
             )}
             <div>
-              <h2 className="text-xl font-black text-white">{title || 'Sauvegardez vos coups de coeur'}</h2>
+              <h2 id="auth-modal-title" className="text-xl font-black text-white">{title || 'Sauvegardez vos coups de coeur'}</h2>
               <p className="text-sm text-gray-400">{subtitle || 'Créez un compte pour retrouver vos favoris'}</p>
             </div>
           </div>

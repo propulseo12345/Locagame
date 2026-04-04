@@ -95,6 +95,13 @@ const STATUS_CONFIG: Record<string, {
     ring: 'ring-red-500/30',
     border: 'border-l-red-500',
   },
+  expired: {
+    label: 'Expiré',
+    bg: 'bg-amber-500/15',
+    text: 'text-amber-400',
+    ring: 'ring-amber-500/30',
+    border: 'border-l-amber-500',
+  },
   pending: {
     label: 'Paiement en attente',
     bg: 'bg-orange-500/15',

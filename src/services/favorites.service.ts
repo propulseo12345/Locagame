@@ -48,60 +48,12 @@ export class FavoritesService {
       return [];
     }
 
-    // Normaliser les produits
+    // Normaliser les produits via normalizeProduct (réutilise la même logique)
+    const { normalizeProduct } = await import('./products.normalizers');
+
     return productsData
-      .map((product: any) => {
-        if (!product) return null;
-
-        // Normaliser le pricing
-        let pricing = { oneDay: 0, weekend: 0, week: 0, custom: 0 };
-        if (product.pricing) {
-          if (typeof product.pricing === 'object') {
-            pricing = {
-              oneDay: product.pricing.oneDay || product.pricing.one_day || 0,
-              weekend: product.pricing.weekend || 0,
-              week: product.pricing.week || 0,
-              custom: product.pricing.custom || 0
-            };
-          }
-        }
-
-        // Normaliser les specifications
-        let specifications = {
-          dimensions: '',
-          weight: 0,
-          players: { min: 1, max: 10 },
-          electricity: false,
-          setup_time: 0
-        };
-        if (product.specifications) {
-          if (typeof product.specifications === 'object') {
-            specifications = {
-              dimensions: product.specifications.dimensions || '',
-              weight: product.specifications.weight || 0,
-              players: product.specifications.players || { min: 1, max: 10 },
-              electricity: product.specifications.electricity || false,
-              setup_time: product.specifications.setup_time || product.specifications.setupTime || 0
-            };
-          }
-        }
-
-        return {
-          ...product,
-          pricing,
-          specifications,
-          images: Array.isArray(product.images) ? product.images : [],
-          total_stock: product.total_stock || 0,
-          is_active: product.is_active !== undefined ? product.is_active : true,
-          description: product.description || '',
-          category: product.category || null,
-          // Propriétés optionnelles avec valeurs par défaut
-          tags: product.tags || [],
-          rating: product.rating || undefined,
-          totalReservations: product.totalReservations || product.total_reservations || 0
-        };
-      })
-      .filter((product: any) => product !== null) as Product[];
+      .filter((product) => product !== null)
+      .map((product) => normalizeProduct(product as unknown as Parameters<typeof normalizeProduct>[0]));
   }
 
   /**

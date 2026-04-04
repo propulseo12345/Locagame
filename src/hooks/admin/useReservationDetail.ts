@@ -4,13 +4,23 @@ import { Order } from '../../types';
 import { supabase } from '../../lib/supabase';
 import { logger } from '../../lib/logger';
 
+import type { Database } from '../../lib/database.types';
+
+type TechnicianRow = Database['public']['Tables']['technicians']['Row'];
+type DeliveryTaskRow = Database['public']['Tables']['delivery_tasks']['Row'];
+
+interface DeliveryTaskWithRelations extends DeliveryTaskRow {
+  technician?: TechnicianRow | null;
+  vehicle?: Database['public']['Tables']['vehicles']['Row'] | null;
+}
+
 interface UseReservationDetailReturn {
   reservation: Order | null;
   loading: boolean;
   error: string | null;
   updating: boolean;
-  technicians: any[];
-  deliveryTasks: any[];
+  technicians: TechnicianRow[];
+  deliveryTasks: DeliveryTaskWithRelations[];
   selectedTechnician: string;
   setSelectedTechnician: (value: string) => void;
   handleStatusChange: (newStatus: Order['status']) => Promise<void>;
@@ -22,8 +32,8 @@ export function useReservationDetail(id: string | undefined): UseReservationDeta
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
-  const [technicians, setTechnicians] = useState<any[]>([]);
-  const [deliveryTasks, setDeliveryTasks] = useState<any[]>([]);
+  const [technicians, setTechnicians] = useState<TechnicianRow[]>([]);
+  const [deliveryTasks, setDeliveryTasks] = useState<DeliveryTaskWithRelations[]>([]);
   const [selectedTechnician, setSelectedTechnician] = useState<string>('');
 
   const loadReservation = useCallback(async () => {

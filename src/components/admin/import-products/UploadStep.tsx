@@ -27,6 +27,7 @@ export function UploadStep({ fileInputRef, onFileUpload }: UploadStepProps) {
           type="file"
           accept=".xlsx,.xls"
           onChange={onFileUpload}
+          aria-label="Importer un fichier Excel"
           className="hidden"
         />
       </div>

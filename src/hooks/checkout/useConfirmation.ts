@@ -4,6 +4,7 @@ import { ReservationsService } from '../../services/reservations.service';
 import { CheckoutService } from '../../services/checkout.service';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { Order } from '../../types';
 import { logger } from '../../lib/logger';
 
 export type ConfirmationPaymentState = 'loading' | 'success' | 'cancelled' | 'pending' | 'error';
@@ -14,7 +15,7 @@ export function useConfirmation() {
   const navigate = useNavigate();
   const { clearCart } = useCart();
   const { user } = useAuth();
-  const [reservation, setReservation] = useState<any>(null);
+  const [reservation, setReservation] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [paymentState, setPaymentState] = useState<ConfirmationPaymentState>('loading');

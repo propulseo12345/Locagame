@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useReservationDetail } from '../../hooks/admin/useReservationDetail';
+import { AdminPageSkeleton } from '../../components/ui/skeletons';
 import {
   ReservationHeader,
   CustomerInfoCard,
@@ -26,11 +27,7 @@ export default function AdminReservationDetail() {
   } = useReservationDetail(id);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-8 h-8 border-2 border-[#33ffcc] border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <AdminPageSkeleton type="detail" />;
   }
 
   if (error || !reservation) {

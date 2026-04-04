@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { Skeleton } from './ui/Skeleton';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,13 +13,18 @@ export function ProtectedRoute({ children, requiredRole, showAccessDenied = fals
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Afficher un loader pendant la vérification
+  // Afficher un skeleton pendant la vérification
   if (loading) {
     return (
       <div className="min-h-screen bg-[#000033] flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#33ffcc] border-t-transparent mb-4"></div>
-          <p className="text-white text-lg">Chargement...</p>
+        <div className="w-full max-w-4xl mx-auto px-6 space-y-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-28" rounded="2xl" />
+            ))}
+          </div>
         </div>
       </div>
     );

@@ -34,7 +34,7 @@ export default function ProductImagesSection({
       </div>
 
       {formData.images.length > 0 && (
-        <div className="grid grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {formData.images.map((image, index) => (
             <div key={index} className="relative group aspect-square">
               <img

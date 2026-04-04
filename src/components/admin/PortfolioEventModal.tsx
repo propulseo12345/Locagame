@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { PortfolioEventsService, type PortfolioEvent, type EventType } from '../../services';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface PortfolioEventModalProps {
   editingItem: PortfolioEvent | null;
@@ -10,6 +11,7 @@ interface PortfolioEventModalProps {
 }
 
 export default function PortfolioEventModal({ editingItem, eventTypes, onClose, onSaved }: PortfolioEventModalProps) {
+  const containerRef = useFocusTrap(true, onClose);
   const [formData, setFormData] = useState({
     title: editingItem?.title || '',
     description: editingItem?.description || '',
@@ -62,10 +64,10 @@ export default function PortfolioEventModal({ editingItem, eventTypes, onClose, 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="portfolio-event-title" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white">
-          <h2 className="text-lg font-bold text-gray-900">{editingItem ? 'Modifier' : 'Nouvel événement'}</h2>
+          <h2 id="portfolio-event-title" className="text-lg font-bold text-gray-900">{editingItem ? 'Modifier' : 'Nouvel événement'}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -77,7 +79,7 @@ export default function PortfolioEventModal({ editingItem, eventTypes, onClose, 
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent resize-none" rows={3} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date de l'événement</label>
               <input type="date" value={formData.event_date} onChange={(e) => setFormData({...formData, event_date: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" />
@@ -87,7 +89,7 @@ export default function PortfolioEventModal({ editingItem, eventTypes, onClose, 
               <input type="number" value={formData.guest_count || ''} onChange={(e) => setFormData({...formData, guest_count: e.target.value ? Number(e.target.value) : null})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" min="0" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Lieu</label>
               <input type="text" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" />
@@ -103,7 +105,7 @@ export default function PortfolioEventModal({ editingItem, eventTypes, onClose, 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Images</label>
             <div className="flex gap-2 mb-2">
-              <input type="url" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" placeholder="URL de l'image" />
+              <input type="url" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} aria-label="URL de l'image de l'événement" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" placeholder="URL de l'image" />
               <button type="button" onClick={handleAddImage} className="px-3 py-2 bg-[#33ffcc] text-[#000033] rounded-lg font-semibold hover:bg-[#66cccc]">
                 <Plus className="w-5 h-5" />
               </button>
@@ -124,7 +126,7 @@ export default function PortfolioEventModal({ editingItem, eventTypes, onClose, 
               </div>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Ordre d'affichage</label>
               <input type="number" value={formData.display_order} onChange={(e) => setFormData({...formData, display_order: Number(e.target.value)})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent" min="0" />

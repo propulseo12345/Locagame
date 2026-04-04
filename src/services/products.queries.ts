@@ -87,7 +87,7 @@ export class ProductsQueries {
 
     // 2. Fallback : produits avec prix > 0, triés par prix décroissant
     const remaining = limit - (featured?.length || 0);
-    const excludeIds = (featured || []).map((p: any) => p.id);
+    const excludeIds = (featured || []).map((p) => p.id);
 
     let query = supabase
       .from('products')
@@ -158,6 +158,26 @@ export class ProductsQueries {
   }
 
   /**
+   * Récupère un produit par son slug
+   */
+  static async getProductBySlug(slug: string): Promise<Product | null> {
+    const { data, error } = await supabase
+      .from('products')
+      .select(PRODUCT_SELECT)
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // not found
+      logger.error('Error fetching product by slug', error);
+      throw error;
+    }
+
+    return data ? normalizeProduct(data) : null;
+  }
+
+  /**
    * Récupère tous les produits avec leurs stocks disponibles en temps réel
    */
   static async getProductsWithStock(): Promise<unknown[]> {
@@ -211,7 +231,8 @@ export class ProductsQueries {
 
     const counts: Record<string, number> = {};
     for (const row of data || []) {
-      for (const pc of (row as any).product_categories || []) {
+      const pcs = (row as { product_categories?: Array<{ category_id: string }> }).product_categories || [];
+      for (const pc of pcs) {
         if (pc.category_id) {
           counts[pc.category_id] = (counts[pc.category_id] || 0) + 1;
         }

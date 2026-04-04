@@ -78,13 +78,24 @@ const TechnicianTasks = lazy(() => import('./pages/technician/TechnicianTasks'))
 const TechnicianTaskDetail = lazy(() => import('./pages/technician/TechnicianTaskDetail'));
 const TechnicianProfile = lazy(() => import('./pages/technician/TechnicianProfile'));
 
-// Composant de chargement
+// Composant de chargement — skeleton minimal plein écran
 function LoadingFallback() {
   return (
     <div className="min-h-screen bg-[#000033] flex items-center justify-center">
-      <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#33ffcc] border-t-transparent"></div>
-        <p className="mt-4 text-white text-lg">Chargement...</p>
+      <div className="w-full max-w-5xl mx-auto px-6 space-y-6">
+        <div className="h-8 w-48 bg-white/5 rounded-lg relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent animate-shimmer" />
+        </div>
+        <div className="h-4 w-80 bg-white/5 rounded relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent animate-shimmer" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-32 bg-white/5 rounded-2xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent animate-shimmer" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -121,8 +132,14 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#33ffcc] focus:text-[#000033] focus:rounded-lg focus:font-semibold"
+      >
+        Aller au contenu principal
+      </a>
       {!isAdminOrClientOrTechnician && !isAuthPage && <Header />}
-      <div className="pb-20 md:pb-0">
+      <main id="main-content" tabIndex={-1} className="pb-20 md:pb-0 outline-none">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Pages d'authentification */}
@@ -218,7 +235,7 @@ function AppContent() {
         </Suspense>
         {!isAdminOrClientOrTechnician && !isAuthPage && <Footer />}
         {!isAdminOrClientOrTechnician && !isAuthPage && <MobileBottomNav />}
-      </div>
+      </main>
     </div>
   );
 }

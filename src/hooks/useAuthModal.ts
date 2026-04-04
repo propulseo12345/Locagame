@@ -73,8 +73,8 @@ export function useAuthModal({ signIn, signUp, onClose, defaultTab = 'login' }: 
       // We need the user id - get it after signIn succeeds
       // The onAuthSuccess callback is handled by FavoritesContext watching user changes
       handleClose();
-    } catch (err: any) {
-      setError(err.message || 'Email ou mot de passe incorrect');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Email ou mot de passe incorrect');
     } finally {
       setLoading(false);
     }
@@ -111,8 +111,8 @@ export function useAuthModal({ signIn, signUp, onClose, defaultTab = 'login' }: 
         // Auto-confirmé : fermer le modal, l'utilisateur est connecté
         handleClose();
       }
-    } catch (err: any) {
-      setError(err.message || 'Erreur lors de la création du compte');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la création du compte');
     } finally {
       setLoading(false);
     }

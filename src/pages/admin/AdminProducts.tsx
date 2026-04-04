@@ -37,6 +37,7 @@ export default function AdminProducts() {
     setPage,
     totalPages,
     totalCount,
+    stats,
   } = useAdminProducts();
 
   const {
@@ -95,7 +96,7 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      <AdminProductsStats products={products} />
+      <AdminProductsStats stats={stats} />
 
       <AdminProductsFilters
         searchTerm={searchTerm}

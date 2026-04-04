@@ -1,5 +1,11 @@
 import { Product } from '../types';
 
+/** Raw product from Supabase — accepts any select shape */
+export type RawProduct = Record<string, unknown> & {
+  id: string;
+  name: string;
+};
+
 export const DEFAULT_SPECIFICATIONS: Product['specifications'] = {
   dimensions: null,
   weight: null,
@@ -16,40 +22,47 @@ export const DEFAULT_PRICING: Product['pricing'] = {
 };
 
 /** Normalise un produit brut de Supabase en garantissant specifications/pricing/images */
-export function normalizeProduct(raw: any): Product {
-  const specs = raw.specifications;
-  const pricing = raw.pricing;
+export function normalizeProduct(raw: RawProduct): Product {
+  const specs = raw.specifications as Record<string, unknown> | null | undefined;
+  const pricing = raw.pricing as Record<string, unknown> | null | undefined;
 
   // Extraire les catégories depuis la table de liaison product_categories
-  const rawPc = raw.product_categories;
+  const rawPc = raw.product_categories as Array<{
+    category_id: string;
+    categories: { id: string; name: string; slug?: string } | null;
+  }> | undefined;
   const categories: Product['categories'] = Array.isArray(rawPc)
-    ? rawPc.filter((pc: any) => pc.categories).map((pc: any) => pc.categories)
+    ? rawPc
+        .filter((pc) => pc.categories)
+        .map((pc) => pc.categories as Product['categories'] extends (infer U)[] | undefined ? U : never)
     : undefined;
 
+  const players = specs?.players as Record<string, number> | undefined;
+
   return {
-    ...raw,
+    ...(raw as unknown as Product),
     ...(categories !== undefined && { categories }),
-    description: raw.description || '',
-    images: Array.isArray(raw.images) ? raw.images : [],
-    total_stock: raw.total_stock || 0,
-    is_active: raw.is_active ?? true,
-    specifications: specs && typeof specs === 'object'
+    description: (raw.description as string) || '',
+    images: Array.isArray(raw.images) ? raw.images as string[] : [],
+    total_stock: (raw.total_stock as number) || 0,
+    is_active: (raw.is_active as boolean) ?? true,
+    specifications: specs
       ? {
           dimensions: typeof specs.dimensions === 'string' ? specs.dimensions : null,
           weight: specs.weight != null ? Number(specs.weight) : null,
-          players: specs.players && typeof specs.players === 'object'
-            ? { min: specs.players.min || 1, max: specs.players.max || 10 }
+          players: players && typeof players === 'object'
+            ? { min: players.min || 1, max: players.max || 10 }
             : DEFAULT_SPECIFICATIONS.players,
-          electricity: specs.electricity || false,
-          setup_time: specs.setup_time || specs.setupTime || 0,
+          electricity: Boolean(specs.electricity),
+          setup_time: Number(specs.setup_time || specs.setupTime || 0),
         }
       : { ...DEFAULT_SPECIFICATIONS },
-    pricing: pricing && typeof pricing === 'object'
+    pricing: pricing
       ? {
-          oneDay: pricing.oneDay || pricing.one_day || pricing.daily || 0,
-          weekend: pricing.weekend || 0,
-          week: pricing.week || pricing.weekly || 0,
-          custom: pricing.custom || 0,
+          oneDay: Number(pricing.oneDay || pricing.one_day || pricing.daily || 0),
+          weekend: Number(pricing.weekend || 0),
+          week: Number(pricing.week || pricing.weekly || 0),
+          custom: Number(pricing.custom || 0),
         }
       : { ...DEFAULT_PRICING },
   };

@@ -9,3 +9,4 @@ export {
   animationVariants,
 } from './ScrollReveal';
 export type { AnimationType } from './ScrollReveal';
+export { Skeleton } from './Skeleton';

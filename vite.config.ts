@@ -15,6 +15,7 @@ export default defineConfig({
           // Séparer les vendor chunks pour un meilleur caching
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'supabase-vendor': ['@supabase/supabase-js'],
+          'sentry-vendor': ['@sentry/react'],
           'icons-vendor': ['lucide-react'],
         },
       },

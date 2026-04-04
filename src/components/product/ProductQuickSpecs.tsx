@@ -12,7 +12,7 @@ export function ProductQuickSpecs({ product }: ProductQuickSpecsProps) {
         <Sparkles className="w-4 h-4 text-[#33ffcc]" />
         En un coup d'oeil
       </h4>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {product.specifications?.players?.min != null && product.specifications?.players?.max != null && (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#33ffcc]/20 flex items-center justify-center">

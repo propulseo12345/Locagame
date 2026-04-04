@@ -9,7 +9,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { Product, PriceCalculation } from '../../types';
-import { formatPrice } from '../../utils/pricing';
+import { formatPrice, hasWeekend } from '../../utils/pricing';
 import AvailabilityCalendar from '../AvailabilityCalendar';
 import PriceCalculator from '../PriceCalculator';
 import { TarifsDegressifs } from './TarifsDegressifs';
@@ -77,7 +77,7 @@ export function ProductReservationCard({
           </div>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-5xl font-black text-[#33ffcc]">{formatPrice(product.pricing.oneDay)}</span>
+          <span className="text-3xl sm:text-5xl font-black text-[#33ffcc]">{formatPrice(product.pricing.oneDay)}</span>
           <span className="text-xl text-white/60 font-medium">/jour</span>
         </div>
       </div>
@@ -175,6 +175,8 @@ function DateSummary({
   selectedEndDate: string;
   days: number;
 }) {
+  const weekendIncluded = hasWeekend(selectedStartDate, selectedEndDate);
+
   return (
     <div className="mb-4 p-4 bg-[#33ffcc]/10 rounded-xl border border-[#33ffcc]/30">
       <div className="flex items-center justify-between">
@@ -186,10 +188,15 @@ function DateSummary({
               <> &rarr; {new Date(selectedEndDate + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</>
             )}
           </div>
+          {weekendIncluded && (
+            <div className="text-white/50 text-xs mt-1">
+              · week-end inclus gratuitement
+            </div>
+          )}
         </div>
         <div className="bg-[#33ffcc] rounded-xl px-3 py-2 text-center">
           <div className="text-2xl font-black text-[#000033]">{days}</div>
-          <div className="text-[10px] font-bold text-[#000033]/70 uppercase">jour{days > 1 ? 's' : ''}</div>
+          <div className="text-[10px] font-bold text-[#000033]/70 uppercase">jour{days > 1 ? 's' : ''} de location</div>
         </div>
       </div>
     </div>
@@ -198,7 +205,7 @@ function DateSummary({
 
 function TrustBadges() {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div className="flex items-center gap-2 p-3 bg-white/5 rounded-xl border border-white/10">
         <Shield className="w-4 h-4 text-[#33ffcc]" />
         <span className="text-xs text-white/70">Paiement sécurisé</span>

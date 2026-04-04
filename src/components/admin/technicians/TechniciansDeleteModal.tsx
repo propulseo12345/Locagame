@@ -1,4 +1,5 @@
 import type { Technician } from '../../../services/technicians.service';
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
 
 interface TechniciansDeleteModalProps {
   technician: Technician;
@@ -13,10 +14,12 @@ export default function TechniciansDeleteModal({
   onConfirm,
   onCancel,
 }: TechniciansDeleteModalProps) {
+  const containerRef = useFocusTrap(true, onCancel);
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div ref={containerRef} role="alertdialog" aria-modal="true" aria-labelledby="technician-delete-title" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-2">
+        <h3 id="technician-delete-title" className="text-lg font-bold text-gray-900 mb-2">
           Supprimer le technicien
         </h3>
         <p className="text-gray-600 mb-1">

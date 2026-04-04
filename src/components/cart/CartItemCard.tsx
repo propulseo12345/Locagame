@@ -61,6 +61,8 @@ export default function CartItemCard({ item, isRemoving, onRemove, onUpdateQuant
             <img
               src={item.product.images[0]}
               alt={item.product.name}
+              width={200}
+              height={200}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (

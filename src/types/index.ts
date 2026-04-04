@@ -212,7 +212,7 @@ export interface Order {
   delivery_fee?: number | null;
   discount?: number | null;
   total: number;
-  status: 'pending_payment' | 'pending' | 'confirmed' | 'preparing' | 'delivered' | 'returned' | 'completed' | 'cancelled';
+  status: 'pending_payment' | 'pending' | 'confirmed' | 'preparing' | 'delivered' | 'returned' | 'completed' | 'cancelled' | 'expired';
   payment_status?: 'unpaid' | 'pending_payment' | 'paid' | 'failed' | 'expired' | 'refunded' | string | null;
   payment_intent_id?: string | null;
   stripe_checkout_session_id?: string | null;

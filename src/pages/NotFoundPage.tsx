@@ -12,7 +12,7 @@ export default function NotFoundPage() {
             </div>
           </div>
 
-          <h1 className="text-5xl font-black text-white mb-2">404</h1>
+          <h1 className="text-3xl sm:text-5xl font-black text-white mb-2">404</h1>
           <h2 className="text-xl font-semibold text-white/80 mb-4">
             Page introuvable
           </h2>

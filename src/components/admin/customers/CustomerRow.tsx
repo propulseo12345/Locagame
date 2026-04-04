@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { Customer } from '../../../types';
@@ -16,7 +17,7 @@ function computeReservationStats(customer: Customer) {
   return { validCount: valid.length, totalSpent, avgBasket };
 }
 
-export default function CustomerRow({ customer, isEven, onDeleteClick }: CustomerRowProps) {
+const CustomerRow = memo(function CustomerRow({ customer, isEven, onDeleteClick }: CustomerRowProps) {
   const { validCount, totalSpent, avgBasket } = computeReservationStats(customer);
 
   return (
@@ -84,4 +85,6 @@ export default function CustomerRow({ customer, isEven, onDeleteClick }: Custome
       </td>
     </tr>
   );
-}
+});
+
+export default CustomerRow;

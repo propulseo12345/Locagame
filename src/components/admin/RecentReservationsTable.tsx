@@ -51,15 +51,15 @@ export default function RecentReservationsTable({ reservations }: RecentReservat
         </Link>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" aria-label="Réservations récentes">
           <thead>
             <tr className="bg-gray-50 text-left border-b border-gray-100">
-              <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">N° Commande</th>
-              <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Client</th>
-              <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Produits</th>
-              <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Montant</th>
-              <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+              <th scope="col" className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">N° Commande</th>
+              <th scope="col" className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Client</th>
+              <th scope="col" className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Produits</th>
+              <th scope="col" className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+              <th scope="col" className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Montant</th>
+              <th scope="col" className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
             </tr>
           </thead>
           <tbody>

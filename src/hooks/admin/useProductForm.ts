@@ -137,26 +137,31 @@ export function useProductForm(onSuccess: () => void) {
       const productData = {
         name: formData.name,
         slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-        category_id: primaryCategoryId,
+        category_id: primaryCategoryId || '',
         description: formData.description,
         images: formData.images,
-        pricing: formData.pricing,
-        specifications: formData.specifications,
+        pricing: { ...formData.pricing, custom: 0 },
+        specifications: {
+          ...formData.specifications,
+          dimensions: formData.specifications.dimensions || null,
+          weight: formData.specifications.weight || null,
+          electricity: false,
+        },
         total_stock: formData.total_stock,
         is_active: formData.is_active,
         featured: formData.featured,
-        meta_title: formData.meta_title || null,
-        meta_description: formData.meta_description || null,
+        meta_title: formData.meta_title || undefined,
+        meta_description: formData.meta_description || undefined,
         delivery_people_count: formData.delivery_people_count,
         pickup_people_count: formData.pickup_people_count,
       };
 
       let productId: string;
       if (editingProduct) {
-        await ProductsService.updateProduct(editingProduct.id, productData as any);
+        await ProductsService.updateProduct(editingProduct.id, productData);
         productId = editingProduct.id;
       } else {
-        const created = await ProductsService.createProduct(productData as any);
+        const created = await ProductsService.createProduct(productData as Omit<Product, 'id' | 'created_at' | 'updated_at'>);
         productId = created.id;
       }
 

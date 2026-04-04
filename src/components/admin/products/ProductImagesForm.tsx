@@ -25,6 +25,8 @@ export default function ProductImagesForm({
               <img
                 src={image}
                 alt={`Image ${index + 1}`}
+                width={200}
+                height={96}
                 className="w-full h-24 object-cover rounded-lg border border-gray-200"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src =
@@ -48,6 +50,7 @@ export default function ProductImagesForm({
           value={newImageUrl}
           onChange={(e) => onNewImageUrlChange(e.target.value)}
           placeholder="URL de l'image (https://...)"
+          aria-label="URL de l'image du produit"
           className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
         />
         <button

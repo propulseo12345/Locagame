@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface ProductLightboxProps {
   images: string[];
@@ -16,15 +17,16 @@ export function ProductLightbox({
   onClose,
   onIndexChange
 }: ProductLightboxProps) {
+  const containerRef = useFocusTrap(true, onClose);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowRight') onIndexChange((currentIndex + 1) % images.length);
       if (e.key === 'ArrowLeft') onIndexChange((currentIndex - 1 + images.length) % images.length);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [currentIndex, images.length, onClose, onIndexChange]);
+  }, [currentIndex, images.length, onIndexChange]);
 
   const prevImage = () => {
     onIndexChange((currentIndex - 1 + images.length) % images.length);
@@ -36,6 +38,10 @@ export function ProductLightbox({
 
   return (
     <div
+      ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Galerie produit"
       className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
@@ -49,6 +55,8 @@ export function ProductLightbox({
       <img
         src={images[currentIndex]}
         alt={productName}
+        width={1200}
+        height={800}
         className="max-w-full max-h-[90vh] object-contain"
         onClick={(e) => e.stopPropagation()}
       />

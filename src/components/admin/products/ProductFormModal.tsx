@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { Product } from '../../../types';
 import { ProductFormData } from '../../../hooks/admin/useProductForm';
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
 import ProductImagesForm from './ProductImagesForm';
 import ProductSpecsForm from './ProductSpecsForm';
 
@@ -29,13 +30,14 @@ export default function ProductFormModal({
   onSubmit,
   onClose,
 }: ProductFormModalProps) {
+  const containerRef = useFocusTrap(true, onClose);
   const inputClass = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent";
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="product-form-title" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 id="product-form-title" className="text-2xl font-bold text-gray-900">
             {editingProduct ? 'Modifier le produit' : 'Nouveau produit'}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -77,7 +79,7 @@ export default function ProductFormModal({
                   </span>
                 )}
               </label>
-              <div className="grid grid-cols-2 gap-2 p-3 border border-gray-300 rounded-lg bg-white max-h-48 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 border border-gray-300 rounded-lg bg-white max-h-48 overflow-y-auto">
                 {categories.map(cat => {
                   const checked = formData.category_ids.includes(cat.id);
                   return (

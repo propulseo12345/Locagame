@@ -1,0 +1,75 @@
+Tu es un expert Supabase PostgreSQL.
+
+PROBLÈME : Les réservations en statut pending_payment n'expirent jamais.
+Le stock associé reste bloqué indéfiniment même si le client abandonne le paiement.
+
+ÉTAPE 1 — Audit des réservations bloquées :
+Via MCP Supabase :
+SELECT id, created_at, total, status,
+  NOW() - created_at AS age
+FROM reservations
+WHERE status = 'pending_payment'
+ORDER BY created_at ASC;
+
+→ Identifie les réservations bloquées depuis > 24h.
+
+ÉTAPE 2 — Crée la migration :
+Fichier : supabase/migrations/[timestamp]_add_reservation_ttl.sql
+
+-- Fonction d'expiration automatique
+CREATE OR REPLACE FUNCTION expire_pending_reservations()
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  -- Expire les réservations pending_payment de plus de 24h
+  UPDATE reservations
+  SET status = 'expired'
+  WHERE status = 'pending_payment'
+  AND created_at < NOW() - INTERVAL '24 hours';
+
+  -- Libère le stock pour chaque réservation expirée
+  -- (appelle la logique de restore_stock si elle existe)
+  -- Sinon inline :
+  UPDATE products p
+  SET total_stock = p.total_stock + ri.quantity
+  FROM reservation_items ri
+  JOIN reservations r ON r.id = ri.reservation_id
+  WHERE ri.product_id = p.id
+  AND r.status = 'expired'
+  AND r.updated_at > NOW() - INTERVAL '1 minute'; -- seulement les nouveaux expirés
+END;
+$$;
+
+-- Planifie l'exécution toutes les heures via pg_cron
+-- (si pg_cron est disponible sur Supabase)
+SELECT cron.schedule(
+  'expire-pending-reservations',
+  '0 * * * *', -- toutes les heures
+  'SELECT expire_pending_reservations()'
+);
+
+ÉTAPE 3 — Si pg_cron n'est pas disponible :
+Crée une Edge Function cron :
+Fichier : supabase/functions/expire-reservations/index.ts
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+Deno.serve(async () => {
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  )
+  await supabase.rpc('expire_pending_reservations')
+  return new Response('OK')
+})
+
+Configure le cron dans supabase/config.toml :
+[functions.expire-reservations]
+schedule = "0 * * * *"
+
+supabase db push
+supabase functions deploy expire-reservations
+
+VALIDATION :
+□ SELECT COUNT(*) FROM reservations WHERE status = 'pending_payment'
+  AND created_at < NOW() - INTERVAL '24 hours'; → 0 après exécution
+□ Le stock est bien libéré pour les réservations expirées

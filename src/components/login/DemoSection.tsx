@@ -110,6 +110,8 @@ function BrandingSection() {
           <img
             src="/logo-client.png"
             alt="LOCAGAME"
+            width={80}
+            height={80}
             className="h-20 w-auto mx-auto mb-6"
             onError={(e) => {
               // Fallback if logo doesn't exist

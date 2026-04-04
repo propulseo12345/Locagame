@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { CategoriesService, ProductsService } from '../services';
 import type { Category } from '../services/categories.service';
+import { CategoryCardSkeleton } from './ui/skeletons';
 
 // Mapping des icônes par slug de catégorie
 const iconMap: Record<string, typeof Dices> = {
@@ -88,20 +89,8 @@ export function Categories() {
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, index) => (
-              <div
-                key={index}
-                className="relative overflow-hidden rounded-2xl aspect-square bg-white/5 animate-pulse"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-[#000033] via-[#000033]/50 to-transparent"></div>
-                <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                  <div className="absolute top-4 right-4 w-10 h-6 bg-white/10 rounded-full"></div>
-                  <div className="mb-4 w-14 h-14 bg-white/10 rounded-xl"></div>
-                  <div className="h-6 w-3/4 bg-white/10 rounded mb-2"></div>
-                  <div className="h-4 w-full bg-white/10 rounded mb-1"></div>
-                  <div className="h-4 w-2/3 bg-white/10 rounded"></div>
-                </div>
-              </div>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <CategoryCardSkeleton key={i} />
             ))}
           </div>
         ) : (

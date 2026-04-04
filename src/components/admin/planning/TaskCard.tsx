@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { DeliveryTask } from '../../../types';
 import { getTypeLabel, getStatusColor, getStatusLabel } from './planning.types';
 
@@ -9,7 +10,7 @@ interface TaskCardProps {
   onUnassign: (taskId: string) => void;
 }
 
-export default function TaskCard({
+const TaskCard = memo(function TaskCard({
   task,
   operationInProgress,
   onDragStart,
@@ -86,4 +87,6 @@ export default function TaskCard({
       </span>
     </div>
   );
-}
+});
+
+export default TaskCard;

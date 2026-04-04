@@ -123,7 +123,7 @@ export function ProductGallery({
 
         {/* Thumbnails */}
         {images.length > 1 && (
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
             {images.slice(0, 5).map((image, index) => (
               <button
                 key={index}

@@ -1,6 +1,7 @@
 import { Users } from 'lucide-react';
 import { Customer } from '../../../types';
 import CustomerRow from './CustomerRow';
+import { TableRowSkeleton } from '../../ui/skeletons';
 
 interface CustomersTableProps {
   customers: Customer[];
@@ -8,29 +9,6 @@ interface CustomersTableProps {
   hasActiveFilters: boolean;
   onClearFilters: () => void;
   onDeleteClick: (customer: Customer) => void;
-}
-
-function SkeletonRows() {
-  return (
-    <>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <tr key={i} className="animate-pulse">
-          <td className="px-4 py-4">
-            <div className="space-y-1.5">
-              <div className="h-4 w-36 bg-gray-200 rounded" />
-              <div className="h-3 w-48 bg-gray-100 rounded" />
-            </div>
-          </td>
-          <td className="px-4 py-4"><div className="h-5 w-12 bg-gray-100 rounded-md" /></td>
-          <td className="px-4 py-4"><div className="h-4 w-6 bg-gray-100 rounded" /></td>
-          <td className="px-4 py-4"><div className="h-4 w-8 bg-gray-100 rounded" /></td>
-          <td className="px-4 py-4"><div className="h-4 w-8 bg-gray-100 rounded" /></td>
-          <td className="px-4 py-4"><div className="h-4 w-20 bg-gray-100 rounded" /></td>
-          <td className="px-4 py-4"><div className="h-4 w-6 bg-gray-100 rounded ml-auto" /></td>
-        </tr>
-      ))}
-    </>
-  );
 }
 
 export default function CustomersTable({
@@ -43,21 +21,21 @@ export default function CustomersTable({
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full" aria-label="Liste des clients">
           <thead>
             <tr className="bg-gray-50">
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Client</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Réservations</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Dépenses</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Panier moyen</th>
-              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Membre depuis</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Client</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Réservations</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Dépenses</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Panier moyen</th>
+              <th scope="col" className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Membre depuis</th>
+              <th scope="col" className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
-              <SkeletonRows />
+              <TableRowSkeleton columns={7} rows={6} />
             ) : customers.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-16 text-center">

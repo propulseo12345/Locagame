@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Product, PriceCalculation } from '../types';
 import { ProductsService, CategoriesService } from '../services';
 import { checkAvailability } from '../utils/availability';
+import { calculateLocagameDays } from '../utils/pricing';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { logger } from '../lib/logger';
@@ -61,24 +62,33 @@ export function useProductPage(): UseProductPageReturn {
 
   useEffect(() => {
     const loadProduct = async () => {
-      if (id) {
-        try {
-          setLoading(true);
-          const foundProduct = await ProductsService.getProductById(id);
-          if (foundProduct) {
-            setProduct(foundProduct);
-            if (foundProduct.category_id) {
-              const foundCategory = await CategoriesService.getCategoryById(foundProduct.category_id);
-              if (foundCategory) {
-                setCategory(foundCategory.name);
-              }
+      if (!id) return;
+      try {
+        setLoading(true);
+        // UUID pattern: try by ID first, otherwise by slug
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        let foundProduct = isUUID
+          ? await ProductsService.getProductById(id)
+          : await ProductsService.getProductBySlug(id);
+        // Fallback: if slug lookup failed, try by ID (and vice versa)
+        if (!foundProduct) {
+          foundProduct = isUUID
+            ? await ProductsService.getProductBySlug(id)
+            : await ProductsService.getProductById(id).catch(() => null);
+        }
+        if (foundProduct) {
+          setProduct(foundProduct);
+          if (foundProduct.category_id) {
+            const foundCategory = await CategoriesService.getCategoryById(foundProduct.category_id);
+            if (foundCategory) {
+              setCategory(foundCategory.name);
             }
           }
-        } catch (error) {
-          logger.error('Error loading product', error);
-        } finally {
-          setLoading(false);
         }
+      } catch (error) {
+        logger.error('Error loading product', error);
+      } finally {
+        setLoading(false);
       }
     };
     loadProduct();
@@ -178,10 +188,7 @@ export function useProductPage(): UseProductPageReturn {
 
   const getSelectedDays = () => {
     if (selectedStartDate && selectedEndDate) {
-      const start = new Date(selectedStartDate);
-      const end = new Date(selectedEndDate);
-      const diffTime = end.getTime() - start.getTime();
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      return calculateLocagameDays(selectedStartDate, selectedEndDate);
     }
     return 0;
   };

@@ -5,6 +5,7 @@ import { logger } from '../lib/logger';
 
 type ProductInsert = Database['public']['Tables']['products']['Insert'];
 type ProductUpdate = Database['public']['Tables']['products']['Update'];
+type ProductAvailabilityRow = Database['public']['Tables']['product_availability']['Row'];
 
 export class ProductsAdmin {
   /**
@@ -59,7 +60,7 @@ export class ProductsAdmin {
   /**
    * Récupère les disponibilités d'un produit (admin)
    */
-  static async getProductAvailability(productId: string): Promise<any[]> {
+  static async getProductAvailability(productId: string): Promise<ProductAvailabilityRow[]> {
     const { data, error } = await supabase
       .from('product_availability')
       .select('*')
@@ -84,7 +85,7 @@ export class ProductsAdmin {
     quantity: number;
     status: 'maintenance' | 'blocked';
     buffer_hours?: number;
-  }): Promise<any> {
+  }): Promise<ProductAvailabilityRow> {
     const { data, error } = await supabase
       .from('product_availability')
       .insert({

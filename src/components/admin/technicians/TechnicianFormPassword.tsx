@@ -81,6 +81,7 @@ export default function TechnicianFormPassword({
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Nouveau mot de passe (min. 8 car.)"
+                aria-label="Nouveau mot de passe"
                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-transparent"
                 minLength={8}
               />

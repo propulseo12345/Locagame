@@ -1,13 +1,17 @@
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
+
 interface CustomerImportModalProps {
   result: { success: number; errors: string[] };
   onClose: () => void;
 }
 
 export default function CustomerImportModal({ result, onClose }: CustomerImportModalProps) {
+  const containerRef = useFocusTrap(true, onClose);
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="import-result-title" className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Résultat de l'import</h3>
+        <h3 id="import-result-title" className="text-lg font-semibold text-gray-900 mb-4">Résultat de l'import</h3>
         <div className="flex gap-4 mb-4">
           <div className="flex-1 bg-green-50 border border-green-200 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-green-700">{result.success}</div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Trash2, Edit2, Plus, HelpCircle, Search, MessageSquare, CheckCircle, XCircle, Tag } from 'lucide-react';
 import { FaqsService, type FAQ } from '../../services';
+import { AdminPageSkeleton } from '../../components/ui/skeletons';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
@@ -100,51 +101,7 @@ export default function AdminFaqs() {
 
   // Skeleton loading
   if (loading) {
-    return (
-      <div className="space-y-6">
-        {/* Header skeleton */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
-            <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
-          </div>
-          <div className="h-10 w-40 bg-gray-200 rounded-lg animate-pulse" />
-        </div>
-
-        {/* Stats skeleton */}
-        <div className="grid grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
-              <div className="h-4 w-20 bg-gray-200 rounded mb-3" />
-              <div className="h-8 w-12 bg-gray-200 rounded mb-1" />
-              <div className="h-3 w-24 bg-gray-100 rounded" />
-            </div>
-          ))}
-        </div>
-
-        {/* Filters skeleton */}
-        <div className="flex gap-3">
-          <div className="h-11 flex-1 bg-gray-100 rounded-lg animate-pulse" />
-          <div className="h-11 w-44 bg-gray-100 rounded-lg animate-pulse" />
-          <div className="h-11 w-52 bg-gray-100 rounded-lg animate-pulse" />
-        </div>
-
-        {/* Table skeleton */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div className="h-10 bg-gray-50 border-b border-gray-200 animate-pulse" />
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0">
-              <div className="h-4 w-6 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 flex-1 bg-gray-200 rounded animate-pulse" />
-              <div className="h-5 w-20 bg-gray-100 rounded animate-pulse" />
-              <div className="h-5 w-16 bg-gray-100 rounded animate-pulse" />
-              <div className="h-4 w-8 bg-gray-100 rounded animate-pulse" />
-              <div className="h-6 w-16 bg-gray-100 rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <AdminPageSkeleton statsCount={4} tableColumns={4} />;
   }
 
   return (

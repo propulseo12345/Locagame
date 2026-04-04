@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Quality Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        continue-on-error: true # Pre-existing TS errors in services — fix then remove this flag
+        run: npx tsc --noEmit -p tsconfig.app.json
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+
+      - name: Tests
+        run: npx vitest run
+
+      - name: Bundle size check
+        run: |
+          BUILD_SIZE=$(du -sk dist/ | cut -f1)
+          echo "Bundle size: ${BUILD_SIZE}KB"
+          if [ $BUILD_SIZE -gt 5000 ]; then
+            echo "⚠️ Bundle size exceeded 5MB warning threshold"
+          fi

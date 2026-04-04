@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Trash2, Edit2, Plus, Star, Quote, Search, CheckCircle } from 'lucide-react';
 import { TestimonialsService, type Testimonial } from '../../services';
+import { AdminPageSkeleton } from '../../components/ui/skeletons';
 
 export default function AdminTestimonials() {
   const [items, setItems] = useState<Testimonial[]>([]);
@@ -98,53 +99,7 @@ export default function AdminTestimonials() {
   const avgRating = (items.reduce((s, i) => s + i.rating, 0) / Math.max(items.length, 1)).toFixed(1);
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        {/* Header skeleton */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <div className="h-8 w-48 bg-gray-200 rounded-lg animate-pulse" />
-            <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
-          </div>
-          <div className="h-10 w-44 bg-gray-200 rounded-lg animate-pulse" />
-        </div>
-        {/* Stats skeleton */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-200 animate-pulse">
-              <div className="h-4 w-20 bg-gray-100 rounded mb-3" />
-              <div className="h-8 w-12 bg-gray-200 rounded" />
-            </div>
-          ))}
-        </div>
-        {/* Filters skeleton */}
-        <div className="h-11 bg-gray-100 rounded-xl animate-pulse" />
-        {/* Cards skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse space-y-3">
-              <div className="flex justify-between">
-                <div className="h-4 w-24 bg-gray-200 rounded" />
-                <div className="h-5 w-16 bg-gray-100 rounded-md" />
-              </div>
-              <div className="h-4 w-6 bg-gray-100 rounded" />
-              <div className="space-y-1.5">
-                <div className="h-3 w-full bg-gray-100 rounded" />
-                <div className="h-3 w-5/6 bg-gray-100 rounded" />
-                <div className="h-3 w-4/6 bg-gray-100 rounded" />
-              </div>
-              <div className="flex justify-between pt-2 border-t border-gray-100">
-                <div className="h-4 w-28 bg-gray-200 rounded" />
-                <div className="flex gap-1">
-                  <div className="h-7 w-7 bg-gray-100 rounded" />
-                  <div className="h-7 w-7 bg-gray-100 rounded" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <AdminPageSkeleton statsCount={4} tableColumns={5} />;
   }
 
   return (

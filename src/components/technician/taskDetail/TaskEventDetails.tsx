@@ -16,7 +16,7 @@ export function TaskEventDetails({ reservation }: TaskEventDetailsProps) {
         <CalendarIcon className="w-5 h-5 text-purple-500" />
         {"Détails de l'événement"}
       </h2>
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         {reservation.event_type && (
           <div>
             <p className="text-sm text-gray-600 mb-1">{"Type d'événement"}</p>

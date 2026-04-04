@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { DeliveryTask } from '../../../types';
 import type { Technician, Vehicle } from '../../../services/technicians.service';
 import type { UnassignedReservation } from './planning.types';
@@ -18,7 +19,7 @@ interface TechnicianColumnProps {
   onUnassign: (taskId: string) => void;
 }
 
-export default function TechnicianColumn({
+const TechnicianColumn = memo(function TechnicianColumn({
   technician,
   vehicle,
   tasks,
@@ -87,4 +88,6 @@ export default function TechnicianColumn({
       </div>
     </div>
   );
-}
+});
+
+export default TechnicianColumn;

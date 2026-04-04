@@ -17,7 +17,7 @@ export function TaskRecipientInfo({ reservation }: TaskRecipientInfoProps) {
         <Users className="w-5 h-5 text-orange-500" />
         Réceptionnaire sur place
       </h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <p className="text-sm text-gray-600 mb-1">Nom</p>
           <p className="text-base font-semibold text-gray-900">

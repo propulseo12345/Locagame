@@ -5,6 +5,7 @@ import {
   Truck,
   CheckCircle2,
   XCircle,
+  TimerOff,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -59,6 +60,12 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     icon: XCircle,
     label: 'Refusé',
     classes: 'bg-red-50 text-red-700 ring-1 ring-red-200',
+    lineThrough: true,
+  },
+  expired: {
+    icon: TimerOff,
+    label: 'Expiré',
+    classes: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
     lineThrough: true,
   },
 };

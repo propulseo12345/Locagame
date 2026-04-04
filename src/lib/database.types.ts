@@ -1224,12 +1224,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calc_locagame_price: {
+        Args: { p_locagame_days: number; p_price_per_day: number }
+        Returns: number
+      }
       calc_product_unit_price: {
         Args: {
-          p_apply_coefficient: boolean
-          p_coefficient: number
-          p_duration: number
+          p_coefficient?: number
+          p_end: string
           p_pricing: Json
+          p_start: string
         }
         Returns: number
       }
@@ -1238,13 +1242,33 @@ export type Database = {
         Args: {
           p_end_date: string
           p_product_id: string
-          p_quantity: number
+          p_quantity?: number
+          p_start_date: string
+        }
+        Returns: boolean
+      }
+      check_product_availability_for_dates: {
+        Args: {
+          p_end_date: string
+          p_product_id: string
+          p_quantity?: number
           p_start_date: string
         }
         Returns: boolean
       }
       clean_description: { Args: { desc_text: string }; Returns: string }
+      count_locagame_days: {
+        Args: { p_end: string; p_start: string }
+        Returns: number
+      }
       create_guest_checkout: { Args: { payload: Json }; Returns: Json }
+      expire_pending_reservations: {
+        Args: never
+        Returns: {
+          expired_count: number
+          released_availability_count: number
+        }[]
+      }
       format_product_name: { Args: { name_text: string }; Returns: string }
       get_current_user_role: {
         Args: never
@@ -1292,7 +1316,6 @@ export type Database = {
         Args: {
           p_client_total?: number
           p_customer_id: string
-          p_delivery_fee?: number
           p_delivery_is_mandatory?: boolean
           p_delivery_type: string
           p_end_date: string

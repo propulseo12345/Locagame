@@ -7,6 +7,7 @@ import { Product } from '../types';
 import { formatPrice } from '../utils/pricing';
 import { ScrollReveal } from './ui';
 import { SwipeCarousel } from './mobile';
+import { FeaturedProductCardSkeleton } from './ui/skeletons';
 
 function FeaturedProductCard({ product, index, getCategoryName }: { product: Product; index: number; getCategoryName: (id: string) => string }) {
   const productImage = product.images?.[0] || 'https://images.pexels.com/photos/163888/pexels-photo-163888.jpeg?auto=compress&cs=tinysrgb&w=800';
@@ -159,13 +160,8 @@ export function FeaturedProducts() {
           </div>
         ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="aspect-[4/3] bg-white/5 rounded-2xl mb-4" />
-                <div className="h-4 bg-white/5 rounded w-1/3 mb-3" />
-                <div className="h-6 bg-white/5 rounded w-3/4 mb-3" />
-                <div className="h-8 bg-white/5 rounded w-1/2" />
-              </div>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <FeaturedProductCardSkeleton key={i} />
             ))}
           </div>
         ) : (

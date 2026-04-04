@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Product, Category } from '../types';
 import { CategoriesService } from '../services';
+import { normalizeProduct } from '../services/products.normalizers';
 import { supabase } from '../lib/supabase';
 import { logger } from '../lib/logger';
 
@@ -89,14 +90,14 @@ export function useCatalogData(): UseCatalogDataReturn {
           setProducts(mappedProducts);
           setCategories(categoriesData);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (attempt < 1 && !cancelled) {
           await new Promise(r => setTimeout(r, 1500));
           if (!cancelled) return loadData(attempt + 1);
         }
         if (!cancelled) {
           logger.error('[CatalogPage] Erreur chargement', err);
-          setError(err?.message || 'Impossible de charger le catalogue');
+          setError(err instanceof Error ? err.message : 'Impossible de charger le catalogue');
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -127,43 +128,6 @@ export function useCatalogData(): UseCatalogDataReturn {
 }
 
 /** Map raw Supabase data to typed Product objects */
-function mapProducts(productsData: any[]): Product[] {
-  return productsData.map((p: any) => {
-    let pricing = { oneDay: 0, weekend: 0, week: 0, custom: 0 };
-    if (p.pricing && typeof p.pricing === 'object') {
-      pricing = {
-        oneDay: p.pricing.oneDay || p.pricing.one_day || 0,
-        weekend: p.pricing.weekend || 0,
-        week: p.pricing.week || 0,
-        custom: p.pricing.custom || 0,
-      };
-    }
-
-    let specifications = {
-      dimensions: '',
-      weight: 0,
-      players: { min: 1, max: 10 },
-      electricity: false,
-      setup_time: 0,
-    };
-    if (p.specifications && typeof p.specifications === 'object') {
-      specifications = {
-        dimensions: p.specifications.dimensions || '',
-        weight: p.specifications.weight || 0,
-        players: p.specifications.players || { min: 1, max: 10 },
-        electricity: p.specifications.electricity || false,
-        setup_time: p.specifications.setup_time || p.specifications.setupTime || 0,
-      };
-    }
-
-    return {
-      ...p,
-      pricing,
-      specifications,
-      images: Array.isArray(p.images) ? p.images : [],
-      total_stock: p.total_stock || 0,
-      is_active: p.is_active !== undefined ? p.is_active : true,
-      description: p.description || '',
-    };
-  }) as Product[];
+function mapProducts(productsData: Array<Record<string, unknown> & { id: string; name: string }>): Product[] {
+  return productsData.map((p) => normalizeProduct(p));
 }

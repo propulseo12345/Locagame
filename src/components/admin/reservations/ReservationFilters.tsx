@@ -25,6 +25,7 @@ const STATUS_OPTIONS = [
   { value: 'delivered', label: 'Livré', dot: 'bg-cyan-500' },
   { value: 'completed', label: 'Terminée', dot: 'bg-gray-500' },
   { value: 'cancelled', label: 'Annulé', dot: 'bg-red-500' },
+  { value: 'expired', label: 'Expiré', dot: 'bg-amber-500' },
 ];
 
 const DELIVERY_MODES: { value: DeliveryModeFilter; label: string; icon?: typeof Truck }[] = [
@@ -59,6 +60,7 @@ export default function ReservationFilters({
             placeholder="Rechercher par n°, nom, email..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
+            aria-label="Rechercher une réservation"
             className="h-11 w-full pl-10 pr-4 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-shadow"
           />
         </div>
@@ -67,6 +69,7 @@ export default function ReservationFilters({
         <select
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value)}
+          aria-label="Filtrer par statut"
           className="h-11 w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
         >
           {STATUS_OPTIONS.map((opt) => (
@@ -100,6 +103,7 @@ export default function ReservationFilters({
         <select
           value={technicianFilter}
           onChange={(e) => onTechnicianChange(e.target.value)}
+          aria-label="Filtrer par livreur"
           className="h-11 w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
         >
           <option value="all">Tous les livreurs</option>

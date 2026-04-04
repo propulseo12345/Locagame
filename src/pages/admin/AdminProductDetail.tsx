@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Save, ExternalLink } from 'lucide-react';
 import { useProductDetail } from '../../hooks/admin/useProductDetail';
+import { AdminPageSkeleton } from '../../components/ui/skeletons';
 import {
   ProductBasicInfoSection,
   ProductImagesSection,
@@ -35,11 +36,7 @@ export default function AdminProductDetail() {
   } = useProductDetail();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Chargement...</div>
-      </div>
-    );
+    return <AdminPageSkeleton type="detail" />;
   }
 
   if (!product) {

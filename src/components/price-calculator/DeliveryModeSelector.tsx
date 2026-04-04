@@ -11,7 +11,7 @@ export function DeliveryModeSelector({ deliveryMode, setDeliveryMode }: Delivery
       <label className="block text-sm font-bold text-white/70 uppercase tracking-wider mb-3">
         Mode de recuperation
       </label>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Click & Collect */}
         <button
           onClick={() => setDeliveryMode('pickup')}

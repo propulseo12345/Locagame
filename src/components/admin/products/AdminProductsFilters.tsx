@@ -40,12 +40,14 @@ export default function AdminProductsFilters({
           placeholder="Nom, description..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
+          aria-label="Rechercher un produit"
           className="h-11 w-full pl-10 pr-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-transparent text-sm bg-white"
         />
       </div>
       <select
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value)}
+        aria-label="Filtrer par statut"
         className="h-11 w-40 px-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-transparent text-sm bg-white"
       >
         <option value="all">Tous statuts</option>
@@ -56,6 +58,7 @@ export default function AdminProductsFilters({
       <select
         value={categoryFilter}
         onChange={(e) => onCategoryChange(e.target.value)}
+        aria-label="Filtrer par catégorie"
         className="h-11 w-44 px-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-300 focus:border-transparent text-sm bg-white"
       >
         <option value="all">Toutes catégories</option>

@@ -40,8 +40,8 @@ export default function ProductSpecificationsSection({ formData, setFormData }: 
         <h2 className="text-sm font-semibold text-gray-900">Specifications techniques</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="col-span-1 sm:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Dimensions</label>
           <textarea
             value={stripHtml(formData.specifications.dimensions)}
@@ -82,7 +82,7 @@ export default function ProductSpecificationsSection({ formData, setFormData }: 
             className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 transition-colors"
           />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Joueurs min</label>
             <input
@@ -112,7 +112,7 @@ export default function ProductSpecificationsSection({ formData, setFormData }: 
           <Users className="w-4 h-4 text-gray-400" />
           <h3 className="text-sm font-semibold text-gray-900">Personnel logistique</h3>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Livraison (pers.)</label>
             <div className="flex items-center gap-1">

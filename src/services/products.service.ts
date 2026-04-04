@@ -10,6 +10,7 @@ export class ProductsService {
   static getFeaturedProducts = ProductsQueries.getFeaturedProducts;
   static searchProducts = ProductsQueries.searchProducts;
   static getProductById = ProductsQueries.getProductById;
+  static getProductBySlug = ProductsQueries.getProductBySlug;
   static getAllProductsForExport = ProductsQueries.getAllProductsForExport;
   static getProductsWithStock = ProductsQueries.getProductsWithStock;
   static getProductCountsByCategory = ProductsQueries.getProductCountsByCategory;

@@ -84,7 +84,7 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
         )}
 
         {activeTab === 'specs' && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {product.specifications?.players?.min != null && product.specifications?.players?.max != null && (
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
               <Users className="w-5 h-5 text-[#33ffcc] mb-2" />

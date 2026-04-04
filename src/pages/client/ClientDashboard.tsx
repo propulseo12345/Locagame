@@ -6,6 +6,7 @@ import { ReservationsService, StatsService, CustomersService } from '../../servi
 import { Order, Customer } from '../../types';
 import ReservationCard from '../../components/client/ReservationCard';
 import QuickActions from '../../components/client/QuickActions';
+import { ClientDashboardSkeleton } from '../../components/ui/skeletons';
 
 export default function ClientDashboard() {
   const { user } = useAuth();
@@ -47,17 +48,7 @@ export default function ClientDashboard() {
   const recentReservations = customerReservations.slice(0, 5);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-[#33ffcc] border-t-transparent animate-spin"></div>
-          </div>
-          <p className="text-white/60">Chargement de votre espace...</p>
-        </div>
-      </div>
-    );
+    return <ClientDashboardSkeleton />;
   }
 
   if (!user || user.role !== 'client') {

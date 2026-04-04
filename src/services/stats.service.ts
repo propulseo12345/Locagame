@@ -104,7 +104,7 @@ export class StatsService {
         const pid = item.product_id;
         if (!pid) continue;
         if (!productRentals[pid]) {
-          const prod = item.products as any;
+          const prod = item.products as { name: string; images: string[] } | null;
           productRentals[pid] = {
             id: pid,
             name: prod?.name || 'Produit inconnu',
@@ -213,8 +213,9 @@ export class StatsService {
 
       // Compter les catégories favorites
       const categoryCounts: Record<string, number> = {};
-      favoritesData?.forEach((fav: any) => {
-        const categoryName = fav.product?.category?.name;
+      favoritesData?.forEach((fav) => {
+        const product = fav.product as { category?: { name?: string } | null } | null;
+        const categoryName = product?.category?.name;
         if (categoryName) {
           categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
         }

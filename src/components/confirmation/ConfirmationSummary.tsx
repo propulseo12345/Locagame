@@ -13,7 +13,7 @@ export default function ConfirmationSummary({ reservation }: ConfirmationSummary
           <Package className="w-5 h-5 text-[#33ffcc]" />
           Récapitulatif
         </h2>
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div className="p-3 bg-white/5 rounded-xl">
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="w-4 h-4 text-[#33ffcc]" />

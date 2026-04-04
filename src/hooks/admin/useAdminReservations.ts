@@ -98,9 +98,9 @@ export function useAdminReservations() {
     return allReservations.filter(reservation => {
       const matchesStatus = statusFilter === 'all'
         || (statusFilter === 'unassigned'
-          ? (reservation as any).delivery_type === 'delivery' && !deliveryTasksMap[reservation.id]
+          ? reservation.delivery_type === 'delivery' && !deliveryTasksMap[reservation.id]
           : reservation.status === statusFilter);
-      const customer = reservation.customer as any;
+      const customer = reservation.customer;
       const customerName = customer?.first_name && customer?.last_name
         ? `${customer.first_name} ${customer.last_name}`
         : customer?.email || '';
@@ -108,7 +108,7 @@ export function useAdminReservations() {
         (reservation.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (customer?.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesDeliveryMode = deliveryModeFilter === 'all' || (reservation as any).delivery_type === deliveryModeFilter;
+      const matchesDeliveryMode = deliveryModeFilter === 'all' || reservation.delivery_type === deliveryModeFilter;
       const matchesTechnician = technicianFilter === 'all' || deliveryTasksMap[reservation.id]?.technicianId === technicianFilter;
       return matchesStatus && matchesSearch && matchesDeliveryMode && matchesTechnician;
     });
@@ -196,14 +196,14 @@ export function useAdminReservations() {
         );
       } else {
         // Pas de tâche → en créer une avec le technicien assigné
-        const customer = selectedReservation.customer as any;
-        const address = selectedReservation.delivery_address as any;
+        const customer = selectedReservation.customer;
+        const address = selectedReservation.delivery_address;
         await DeliveryService.createDeliveryTask({
           reservationId: selectedReservation.id,
           orderNumber: `ORD-${selectedReservation.id.substring(0, 8)}`,
           type: 'delivery',
           scheduledDate: selectedReservation.start_date,
-          scheduledTime: (selectedReservation as any).delivery_time || '10:00',
+          scheduledTime: selectedReservation.delivery_time || '10:00',
           vehicleId: selectedVehicle,
           technicianId: selectedTechnician,
           status: 'assigned',
@@ -214,12 +214,12 @@ export function useAdminReservations() {
             email: customer?.email || '',
           },
           address: {
-            street: address?.address_line1 || '',
+            street: address?.street || '',
             city: address?.city || '',
             postalCode: address?.postal_code || '',
             country: 'France',
           },
-          products: ((selectedReservation as any).reservation_items || []).map((item: any) => ({
+          products: (selectedReservation.reservation_items || []).map((item) => ({
             productId: item.product_id || '',
             productName: item.product?.name || 'Produit',
             quantity: item.quantity || 1,

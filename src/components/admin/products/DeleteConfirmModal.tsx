@@ -1,3 +1,5 @@
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
+
 interface DeleteConfirmModalProps {
   title?: string;
   message?: string;
@@ -11,10 +13,12 @@ export default function DeleteConfirmModal({
   onConfirm,
   onCancel,
 }: DeleteConfirmModalProps) {
+  const containerRef = useFocusTrap(true, onCancel);
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div ref={containerRef} role="alertdialog" aria-modal="true" aria-labelledby="delete-confirm-title" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
+        <h3 id="delete-confirm-title" className="text-xl font-bold text-gray-900 mb-4">{title}</h3>
         <p className="text-gray-600 mb-6">{message}</p>
         <div className="flex justify-end gap-3">
           <button

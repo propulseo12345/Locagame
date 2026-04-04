@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { DeliveryService } from '../../services';
 import { DeliveryZone } from '../../types';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface DeliveryZoneModalProps {
   editingZone: DeliveryZone | null;
@@ -10,6 +11,7 @@ interface DeliveryZoneModalProps {
 }
 
 export default function DeliveryZoneModal({ editingZone, onClose, onSaved }: DeliveryZoneModalProps) {
+  const containerRef = useFocusTrap(true, onClose);
   const [formData, setFormData] = useState({
     name: editingZone?.name || '',
     postal_codes: editingZone?.postal_codes.join(', ') || '',
@@ -46,10 +48,10 @@ export default function DeliveryZoneModal({ editingZone, onClose, onSaved }: Del
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="delivery-zone-title" className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-[#000033] rounded-xl border border-white/10 w-full max-w-lg">
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg font-bold text-white">
+          <h2 id="delivery-zone-title" className="text-lg font-bold text-white">
             {editingZone ? 'Modifier la zone' : 'Nouvelle zone'}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -87,7 +89,7 @@ export default function DeliveryZoneModal({ editingZone, onClose, onSaved }: Del
               placeholder="Marseille, Aix-en-Provence..."
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Frais de livraison (€) *</label>
               <input

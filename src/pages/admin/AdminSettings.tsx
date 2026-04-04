@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { SettingsService } from '../../services';
 import { Loader2, Check, Settings } from 'lucide-react';
+import { AdminPageSkeleton } from '../../components/ui/skeletons';
 
 export default function AdminSettings() {
   const { user, updateUserProfile } = useAuth();
@@ -81,26 +82,7 @@ export default function AdminSettings() {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-40" />
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <div className="h-5 bg-gray-200 rounded w-32" />
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-10 bg-gray-100 rounded" />
-            <div className="h-10 bg-gray-100 rounded" />
-          </div>
-          <div className="h-10 bg-gray-100 rounded" />
-          <div className="h-10 bg-gray-100 rounded" />
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-          <div className="h-5 bg-gray-200 rounded w-48" />
-          <div className="h-10 bg-gray-100 rounded" />
-          <div className="h-10 bg-gray-100 rounded" />
-          <div className="h-10 bg-gray-100 rounded" />
-        </div>
-      </div>
-    );
+    return <AdminPageSkeleton type="form" />;
   }
 
   return (

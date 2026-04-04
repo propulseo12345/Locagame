@@ -1,5 +1,6 @@
 import { MapPin, X, Home, Building2, Check, Loader2 } from 'lucide-react';
 import type { Address, AddressFormData } from '../../../hooks/client/useClientAddresses';
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
 
 interface AddressFormModalProps {
   editingAddress: Address | null;
@@ -18,8 +19,10 @@ export default function AddressFormModal({
   onSubmit,
   onClose,
 }: AddressFormModalProps) {
+  const containerRef = useFocusTrap(true, onClose);
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="address-form-title" className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-[#000033] rounded-2xl shadow-2xl max-w-lg w-full border border-white/10 overflow-hidden animate-fade-in">
         {/* Modal Header */}
         <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
@@ -27,7 +30,7 @@ export default function AddressFormModal({
             <div className="p-2 bg-[#33ffcc]/20 rounded-xl">
               <MapPin className="w-5 h-5 text-[#33ffcc]" />
             </div>
-            <h2 className="text-xl font-bold text-white">
+            <h2 id="address-form-title" className="text-xl font-bold text-white">
               {editingAddress ? "Modifier l'adresse" : 'Nouvelle adresse'}
             </h2>
           </div>
@@ -74,7 +77,7 @@ export default function AddressFormModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-white/70 mb-2">
                 Code postal *

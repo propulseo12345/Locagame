@@ -60,9 +60,11 @@ export function ROUND2(n: number): number {
 
 /**
  * Calcule le nombre de "jours LOCAGAME" entre deux dates.
- * Règle : seuls samedi et dimanche sont offerts (ne comptent pas).
- * Tous les jours ouvrés (lun-ven) sont des jours payants.
- * Minimum 1 jour (cas weekend-only).
+ * Règle du bloc week-end : Ven+Sam+Dim+Lun = 1 seul jour LOCAGAME.
+ *   - Vendredi (DOW=5) → compter 1 jour, sauter au Mardi suivant (+4j)
+ *   - Samedi   (DOW=6) → compter 1 jour, sauter au Mardi suivant (+3j)
+ *   - Dimanche (DOW=0) → compter 1 jour, sauter au Mardi suivant (+2j)
+ *   - Lun/Mar/Mer/Jeu   → compter 1 jour, avancer de 1
  */
 export function calculateLocagameDays(startDate: string | Date, endDate: string | Date): number {
   const start = typeof startDate === 'string' ? parseLocalDate(startDate) : new Date(startDate);
@@ -71,15 +73,52 @@ export function calculateLocagameDays(startDate: string | Date, endDate: string 
   const current = new Date(start.getFullYear(), start.getMonth(), start.getDate());
   const endMidnight = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
+  // Guard : si end < start → 0
+  if (endMidnight < current) return 0;
+  // Guard : max 365 jours calendaires
+  const diffCalendar = Math.round((endMidnight.getTime() - current.getTime()) / 86400000);
+  if (diffCalendar > 365) return 260;
+
   let days = 0;
-  while (current <= endMidnight) {
-    const dow = current.getDay(); // 0=dim, 6=sam
-    if (dow !== 0 && dow !== 6) {
-      days++;
+  let iter = 0;
+  while (current <= endMidnight && iter < 500) {
+    iter++;
+    const dow = current.getDay(); // 0=dim, 1=lun, 5=ven, 6=sam
+
+    days += 1; // on compte toujours 1 jour
+
+    if (dow === 5) {
+      // Vendredi → saute au mardi suivant (+4 jours)
+      current.setDate(current.getDate() + 4);
+    } else if (dow === 6) {
+      // Samedi → saute au mardi suivant (+3 jours)
+      current.setDate(current.getDate() + 3);
+    } else if (dow === 0) {
+      // Dimanche → saute au mardi suivant (+2 jours)
+      current.setDate(current.getDate() + 2);
+    } else {
+      // Lundi, Mardi, Mercredi, Jeudi → avance de 1 jour
+      current.setDate(current.getDate() + 1);
     }
+  }
+
+  return days;
+}
+
+/**
+ * Vérifie si la période contient un jour de week-end (ven/sam/dim)
+ */
+export function hasWeekend(startDate: string | Date, endDate: string | Date): boolean {
+  const start = typeof startDate === 'string' ? parseLocalDate(startDate) : new Date(startDate);
+  const end = typeof endDate === 'string' ? parseLocalDate(endDate) : new Date(endDate);
+  const current = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endMidnight = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  while (current <= endMidnight) {
+    const dow = current.getDay();
+    if (dow === 0 || dow === 5 || dow === 6) return true;
     current.setDate(current.getDate() + 1);
   }
-  return Math.max(1, days);
+  return false;
 }
 
 /**

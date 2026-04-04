@@ -109,19 +109,19 @@ export default function AProposPage() {
           <div className="bg-gradient-to-r from-[#33ffcc]/10 to-[#66cccc]/10 backdrop-blur-sm rounded-2xl p-8 border border-[#33ffcc]/20 mb-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
-                <div className="text-4xl font-bold text-[#33ffcc] mb-2">200+</div>
+                <div className="text-2xl sm:text-4xl font-bold text-[#33ffcc] mb-2">200+</div>
                 <div className="text-gray-400">Jeux disponibles</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-[#33ffcc] mb-2">2000+</div>
+                <div className="text-2xl sm:text-4xl font-bold text-[#33ffcc] mb-2">2000+</div>
                 <div className="text-gray-400">Événements</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-[#33ffcc] mb-2">98%</div>
+                <div className="text-2xl sm:text-4xl font-bold text-[#33ffcc] mb-2">98%</div>
                 <div className="text-gray-400">Satisfaction</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-[#33ffcc] mb-2">10 ans</div>
+                <div className="text-2xl sm:text-4xl font-bold text-[#33ffcc] mb-2">10 ans</div>
                 <div className="text-gray-400">D'expérience</div>
               </div>
             </div>

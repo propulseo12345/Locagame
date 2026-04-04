@@ -47,7 +47,7 @@ interface CreateReservationData {
 }
 
 async function createDeliveryTasks(
-  reservation: any,
+  reservation: { id: string },
   orderData: CreateReservationData
 ): Promise<void> {
   const { data: customer } = await supabase

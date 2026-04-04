@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Truck, Store, Trash2, Users, UserPlus } from 'lucide-react';
 import { Order, RecipientData } from '../../../types';
@@ -63,7 +64,7 @@ interface ReservationTableRowProps {
   taskInfo?: DeliveryTaskInfo;
 }
 
-export default function ReservationTableRow({
+const ReservationTableRow = memo(function ReservationTableRow({
   reservation,
   isExpanded,
   isEven,
@@ -266,4 +267,6 @@ export default function ReservationTableRow({
       </td>
     </tr>
   );
-}
+});
+
+export default ReservationTableRow;

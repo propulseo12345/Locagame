@@ -1,4 +1,5 @@
 import { AlertTriangle, ArrowLeft, Check } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface WeekendWarningModalProps {
   isOpen: boolean;
@@ -15,12 +16,18 @@ export function WeekendWarningModal({
   onConfirm,
   onCancel,
 }: WeekendWarningModalProps) {
+  const containerRef = useFocusTrap(isOpen, onCancel);
+
   if (!isOpen) return null;
 
   const label = context === 'delivery' ? 'livraison' : 'reprise';
 
   return (
     <div
+      ref={containerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="weekend-warning-title"
       className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onCancel}
     >
@@ -34,7 +41,7 @@ export function WeekendWarningModal({
             <AlertTriangle className="w-6 h-6 text-amber-400" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">
+            <h3 id="weekend-warning-title" className="text-lg font-bold text-white">
               Créneau hors horaires standards
             </h3>
             <p className="text-amber-400 text-sm mt-0.5">{dateLabel}</p>

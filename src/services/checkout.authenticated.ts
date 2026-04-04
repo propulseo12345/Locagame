@@ -31,6 +31,7 @@ export class CheckoutAuthenticated {
   ): Promise<CheckoutResult> {
     let customerId = userId;
     let deliveryAddressId: string | undefined;
+    let zoneId: string | null = null;
 
     try {
       // 1. Vérifier/créer le customer
@@ -59,19 +60,34 @@ export class CheckoutAuthenticated {
         });
       }
 
-      // 2. Créer l'adresse de livraison (si livraison)
+      // 2. Résoudre la zone de livraison depuis le code postal
+      if (payload.delivery_type === 'delivery' && payload.address?.postal_code) {
+        const { data: zones } = await supabase
+          .from('delivery_zones')
+          .select('id')
+          .contains('postal_codes', [payload.address.postal_code])
+          .eq('is_active', true)
+          .limit(1);
+
+        if (zones && zones.length > 0) {
+          zoneId = zones[0].id;
+        }
+      }
+
+      // 3. Créer l'adresse de livraison (si livraison) — avec zone_id
       if (payload.delivery_type === 'delivery' && payload.address) {
         const addressData = await AddressesService.createAddress(customerId, {
           address_line1: payload.address.address_line1,
           address_line2: payload.address.address_line2,
           city: payload.address.city,
           postal_code: payload.address.postal_code,
+          zone_id: zoneId,
           is_default: false,
         });
         deliveryAddressId = addressData.id;
       }
 
-      // 3. Appel RPC — le serveur recalcule TOUT (prix, dispo, stock)
+      // 4. Appel RPC — le serveur recalcule TOUT (prix, dispo, stock, frais livraison)
       const rpcItems = payload.items.map((item) => ({
         product_id: item.product_id,
         quantity: item.quantity,
@@ -110,14 +126,13 @@ export class CheckoutAuthenticated {
           p_end_date: payload.end_date,
           p_delivery_type: payload.delivery_type,
           p_customer_id: customerId,
-          p_zone_id: null,
+          p_zone_id: zoneId,
           p_metadata: rpcMetadata as unknown as Json,
           // Sous-total + majorations (SANS livraison) pour la validation anti-manipulation
           p_client_total: (payload.subtotal || 0) + (payload.surcharges_total || 0),
           p_delivery_is_mandatory: payload.delivery_is_mandatory ?? false,
           p_pickup_is_mandatory: payload.pickup_is_mandatory ?? false,
-          // Frais de livraison calculés par le frontend (distance × 0.80€/km)
-          p_delivery_fee: payload.delivery_fee || 0,
+          // p_delivery_fee SUPPRIMÉ — le serveur calcule depuis delivery_zones
         }
       );
 

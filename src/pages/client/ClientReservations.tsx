@@ -4,6 +4,7 @@ import { Package, Filter } from 'lucide-react';
 import { ReservationsService } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 import ReservationCard from '../../components/client/ReservationCard';
+import { ReservationCardSkeleton } from '../../components/ui/skeletons';
 
 interface ReservationItem {
   id: string;
@@ -72,13 +73,13 @@ export default function ClientReservations() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-4">
-            <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-[#33ffcc] border-t-transparent animate-spin"></div>
+      <div className="space-y-5 mt-6 md:mt-8">
+        <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <ReservationCardSkeleton key={i} />
+            ))}
           </div>
-          <p className="text-white/60">Chargement de vos réservations...</p>
         </div>
       </div>
     );

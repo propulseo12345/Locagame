@@ -1,19 +1,9 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Package } from 'lucide-react';
+import { ProductPageSkeleton } from '../ui/skeletons';
 
 export function ProductLoading() {
-  return (
-    <div className="min-h-screen bg-[#000033] pt-header flex items-center justify-center">
-      <div className="text-center">
-        <div className="relative w-20 h-20 mx-auto mb-6">
-          <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-[#33ffcc] border-t-transparent animate-spin"></div>
-          <div className="absolute inset-2 rounded-full border-4 border-[#fe1979] border-b-transparent animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-        </div>
-        <p className="text-white/60 text-lg">Chargement du produit...</p>
-      </div>
-    </div>
-  );
+  return <ProductPageSkeleton />;
 }
 
 export function ProductNotFound() {

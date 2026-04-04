@@ -4,6 +4,7 @@ import ProductCard from '../ProductCard';
 import { CatalogResultsBar } from './CatalogResultsBar';
 import { CatalogPagination } from './CatalogPagination';
 import { CatalogFilterSidebar } from './CatalogFilterSidebar';
+import { CatalogGridSkeleton } from '../ui/skeletons';
 
 interface CategoryWithCount extends Category {
   productCount: number;
@@ -74,10 +75,7 @@ export function CatalogProductsGrid({
         />
 
         {loading ? (
-          <div className="text-center py-12 text-gray-400">
-            <div className="inline-block w-8 h-8 border-4 border-[#33ffcc] border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p>Chargement du catalogue...</p>
-          </div>
+          <CatalogGridSkeleton />
         ) : error ? (
           <div className="text-center py-16">
             <div className="inline-flex items-center justify-center w-24 h-24 bg-red-500/10 rounded-full mb-6">

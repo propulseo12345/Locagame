@@ -59,7 +59,7 @@ export default function ProductPricingSection({ formData, setFormData }: Props) 
             <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3">
               Simulation tarifaire
             </p>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {simulations.map((sim) => (
                 <div key={sim.days} className="text-center">
                   <p className="text-xs text-gray-500 mb-1">{sim.label}</p>

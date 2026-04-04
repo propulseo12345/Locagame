@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProductsService, CategoriesService } from '../../services';
-import { Product } from '../../types';
+import { Product, Category } from '../../types';
+import type { Database } from '../../lib/database.types';
 import { logger } from '../../lib/logger';
 import {
   ProductFormData,
@@ -10,16 +11,18 @@ import {
   INITIAL_AVAILABILITY
 } from '../../components/admin/productDetail/types';
 
+type ProductAvailabilityRow = Database['public']['Tables']['product_availability']['Row'];
+
 export function useProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | null>(null);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<ProductFormData>(INITIAL_FORM_DATA);
   const [newImageUrl, setNewImageUrl] = useState('');
-  const [availabilities, setAvailabilities] = useState<any[]>([]);
+  const [availabilities, setAvailabilities] = useState<ProductAvailabilityRow[]>([]);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [newAvailability, setNewAvailability] = useState<NewAvailability>(INITIAL_AVAILABILITY);
   const initialFormDataRef = useRef<string>('');
@@ -43,12 +46,12 @@ export function useProductDetail() {
       const productData = await ProductsService.getProductById(id!, true);
       if (productData) {
         setProduct(productData);
-        const pricing = (productData as any).pricing || {};
-        const specs = (productData as any).specifications || {};
+        const pricing = productData.pricing;
+        const specs = productData.specifications;
 
         const loaded: ProductFormData = {
           name: productData.name || '',
-          slug: (productData as any).slug || '',
+          slug: productData.slug || '',
           description: productData.description || '',
           category_id: productData.category_id || '',
           pricing: {
@@ -59,17 +62,17 @@ export function useProductDetail() {
           },
           total_stock: productData.total_stock || 1,
           is_active: productData.is_active !== false,
-          featured: (productData as any).featured || false,
+          featured: productData.featured || false,
           images: productData.images || [],
           specifications: {
-            dimensions: specs.dimensions || { length: 0, width: 0, height: 0 },
+            dimensions: (typeof specs.dimensions === 'string' ? specs.dimensions : '') as string,
             weight: specs.weight || 0,
             players: specs.players || { min: 1, max: 1 },
             power_requirements: specs.power_requirements || '',
             setup_time: specs.setup_time || 0
           },
-          meta_title: (productData as any).meta_title || '',
-          meta_description: (productData as any).meta_description || '',
+          meta_title: productData.meta_title || '',
+          meta_description: productData.meta_description || '',
           multi_day_coefficient: productData.multi_day_coefficient ?? 1.00,
           delivery_people_count: productData.delivery_people_count ?? 1,
           pickup_people_count: productData.pickup_people_count ?? 1
@@ -98,7 +101,7 @@ export function useProductDetail() {
     if (!id) return;
     try {
       const data = await ProductsService.getProductAvailability(id);
-      setAvailabilities(data.filter((a: any) => !a.reservation_id && (a.status === 'maintenance' || a.status === 'blocked')));
+      setAvailabilities(data.filter((a) => !a.reservation_id && (a.status === 'maintenance' || a.status === 'blocked')));
     } catch (error) {
       logger.error('Error loading availabilities', error);
     }
@@ -152,19 +155,24 @@ export function useProductDetail() {
         name: formData.name,
         slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
         description: formData.description,
-        category_id: formData.category_id || null,
-        pricing: formData.pricing,
+        category_id: formData.category_id || undefined,
+        pricing: { ...formData.pricing, custom: 0 },
         total_stock: formData.total_stock,
         is_active: formData.is_active,
         featured: formData.featured,
         images: formData.images,
-        specifications: formData.specifications,
-        meta_title: formData.meta_title || null,
-        meta_description: formData.meta_description || null,
+        specifications: {
+          ...formData.specifications,
+          dimensions: formData.specifications.dimensions || null,
+          weight: formData.specifications.weight || null,
+          electricity: false,
+        },
+        meta_title: formData.meta_title || undefined,
+        meta_description: formData.meta_description || undefined,
         multi_day_coefficient: formData.multi_day_coefficient,
         delivery_people_count: formData.delivery_people_count,
         pickup_people_count: formData.pickup_people_count
-      } as any);
+      });
 
       initialFormDataRef.current = JSON.stringify(formData);
       alert('Produit mis a jour avec succes !');

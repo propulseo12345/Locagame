@@ -1,4 +1,5 @@
 import { X, User, Truck } from 'lucide-react';
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
 import type { UnassignedReservation, ReservationTechnician, ReservationVehicle } from './types';
 
 interface AssignDeliveryModalProps {
@@ -27,13 +28,14 @@ export default function AssignDeliveryModal({
   onClose,
 }: AssignDeliveryModalProps) {
   const customer = reservation.customer as any;
+  const containerRef = useFocusTrap(true, onClose);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="assign-delivery-title" className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Assigner une livraison</h2>
+            <h2 id="assign-delivery-title" className="text-2xl font-bold text-gray-900">Assigner une livraison</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               <X className="w-6 h-6" />
             </button>
@@ -44,7 +46,7 @@ export default function AssignDeliveryModal({
           {/* Infos de la reservation */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="font-semibold text-gray-900 mb-3">Details de la commande</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Client:</span>
                 <div className="font-medium text-gray-900">

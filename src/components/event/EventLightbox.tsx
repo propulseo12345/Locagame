@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface EventLightboxProps {
   gallery: string[];
@@ -17,8 +18,10 @@ export default function EventLightbox({
   onPrev,
   onSelectIndex
 }: EventLightboxProps) {
+  const containerRef = useFocusTrap(true, onClose);
+
   return (
-    <div className="fixed inset-0 z-50 bg-[#000033]/95 backdrop-blur-xl flex items-center justify-center p-4">
+    <div ref={containerRef} role="dialog" aria-modal="true" aria-label="Galerie evenement" className="fixed inset-0 z-50 bg-[#000033]/95 backdrop-blur-xl flex items-center justify-center p-4">
       <button
         onClick={onClose}
         className="absolute top-4 right-4 p-3 bg-white/10 rounded-full hover:bg-white/20 transition-all duration-300 text-white"
@@ -47,6 +50,8 @@ export default function EventLightbox({
       <img
         src={gallery[currentImageIndex]}
         alt="Event"
+        width={1200}
+        height={800}
         className="max-w-full max-h-[90vh] rounded-2xl shadow-2xl"
       />
 

@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import * as XLSX from 'xlsx';
 import { CustomersService } from '../../services';
 import { Customer } from '../../types';
 import { useToast } from '../../contexts/ToastContext';
@@ -50,10 +49,11 @@ export function useAdminCustomers() {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const rows = customers.map((c: any) => {
-        const res = c.reservations || [];
-        const valid = res.filter((r: any) => r.status !== 'cancelled');
-        const total = valid.reduce((sum: number, r: any) => sum + (r.total || 0), 0);
+      const XLSX = await import('xlsx');
+      const rows = customers.map((c) => {
+        const res = (c as Customer & { reservations?: Array<{ status: string; total: number }> }).reservations || [];
+        const valid = res.filter((r) => r.status !== 'cancelled');
+        const total = valid.reduce((sum: number, r) => sum + (r.total || 0), 0);
         const avg = valid.length > 0 ? total / valid.length : 0;
         return {
           'Prénom': c.first_name || '',
@@ -90,13 +90,14 @@ export function useAdminCustomers() {
     const errors: string[] = [];
 
     try {
+      const XLSX = await import('xlsx');
       const buffer = await file.arrayBuffer();
       const wb = XLSX.read(buffer, { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const rawRows = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
+      const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws);
 
       const rows = rawRows.map(row => {
-        const normalized: Record<string, any> = {};
+        const normalized: Record<string, unknown> = {};
         for (const key of Object.keys(row)) {
           normalized[key.trim().toLowerCase()] = row[key];
         }
@@ -130,7 +131,7 @@ export function useAdminCustomers() {
             .maybeSingle();
 
           if (existing) {
-            const updates: Record<string, any> = {};
+            const updates: Record<string, string> = {};
             if (firstName) updates.first_name = firstName;
             if (lastName) updates.last_name = lastName;
             if (phone) updates.phone = phone;
@@ -161,8 +162,9 @@ export function useAdminCustomers() {
             if (insertErr) throw insertErr;
           }
           successes[0]++;
-        } catch (err: any) {
-          errors.push(`Ligne ${lineNum} (${email}): ${err.message || 'Erreur inconnue'}`);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Erreur inconnue';
+          errors.push(`Ligne ${lineNum} (${email}): ${message}`);
         }
       }
 
@@ -175,7 +177,8 @@ export function useAdminCustomers() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
+    const XLSX = await import('xlsx');
     const templateData = [
       { 'Prénom': 'Jean', 'Nom': 'Dupont', 'Email': 'jean.dupont@email.com', 'Téléphone': '0612345678', 'Type': 'Particulier', 'Entreprise': '', 'SIRET': '' },
       { 'Prénom': 'Marie', 'Nom': 'Martin', 'Email': 'marie.martin@entreprise.fr', 'Téléphone': '0698765432', 'Type': 'Professionnel', 'Entreprise': 'Martin Events', 'SIRET': '12345678901234' },
