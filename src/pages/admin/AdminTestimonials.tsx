@@ -175,7 +175,7 @@ export default function AdminTestimonials() {
         </div>
         {/* Status toggle button group */}
         <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden h-11">
-          {(['all', 'active', 'inactive'] as const).map((s, idx) => (
+          {(['all', 'active', 'inactive'] as const).map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}

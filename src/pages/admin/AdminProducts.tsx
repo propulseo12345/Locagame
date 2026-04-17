@@ -17,7 +17,6 @@ export default function AdminProducts() {
   const isAdmin = hasRole('admin');
 
   const {
-    products,
     categories,
     loading,
     searchTerm,

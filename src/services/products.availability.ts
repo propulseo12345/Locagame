@@ -32,7 +32,6 @@ export class ProductsAvailability {
     endDate: string,
     quantity: number
   ): Promise<boolean> {
-    // @ts-expect-error — RPC check_product_availability_for_dates not in database.types.ts
     const { data, error } = await supabase.rpc('check_product_availability_for_dates', {
       p_product_id: productId,
       p_quantity: quantity,
@@ -52,8 +51,7 @@ export class ProductsAvailability {
    * Récupère le stock disponible en temps réel pour un produit
    */
   static async getAvailableStock(productId: string): Promise<number> {
-    // @ts-expect-error — RPC get_available_stock not in database.types.ts
-    const { data, error } = await supabase.rpc('get_available_stock', {
+    const { data, error } = await (supabase as any).rpc('get_available_stock', {
       p_product_id: productId,
     });
 

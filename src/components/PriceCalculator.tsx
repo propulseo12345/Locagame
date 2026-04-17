@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { Product, PriceCalculation } from '../types';
 import { calculateDurationDays } from '../utils/pricing';
 import { calculatePricingBreakdown } from '../utils/pricingRulesEngine';
-import { PRICE_PER_KM } from './price-calculator/constants';
 import { DeliveryModeSelector } from './price-calculator/DeliveryModeSelector';
 import { PriceSummary } from './price-calculator/PriceSummary';
 

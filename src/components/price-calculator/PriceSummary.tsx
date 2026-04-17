@@ -15,7 +15,7 @@ interface PriceSummaryProps {
 }
 
 export function PriceSummary({
-  deliveryMode, durationDays, quantity,
+  deliveryMode, quantity,
   productPrice, deliveryFee, totalPrice, distance,
   breakdown,
 }: PriceSummaryProps) {

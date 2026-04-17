@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import type { CartItem } from '../../types';
 import type { PricingBreakdown } from '../../utils/pricingRules';
 import { formatPrice } from '../../utils/pricing';
-import { PRICE_PER_KM } from '../../services/distance.service';
 
 interface CheckoutLayoutProps {
   children: ReactNode;

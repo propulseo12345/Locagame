@@ -75,11 +75,6 @@ export default function AdminTimeSlots() {
     }
   };
 
-  const getSlotTypeLabel = (type: string) => {
-    const labels: Record<string, string> = { delivery: 'Livraison', pickup: 'Récupération', both: 'Les deux' };
-    return labels[type] || type;
-  };
-
   const totalActive = items.filter(i => i.is_active).length;
   const deliveryCount = items.filter(i => i.slot_type === 'delivery').length;
   const pickupCount = items.filter(i => i.slot_type === 'pickup').length;

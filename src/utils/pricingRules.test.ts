@@ -22,12 +22,7 @@ import {
   periodContainsWeekend,
   toLocalISODate,
 } from './dateHolidays';
-import { REFERENCE_TIME } from '../constants/time';
 import type { Product } from '../types';
-
-// Vérification de cohérence temporelle
-const EXPECTED_YEAR = 2026;
-const EXPECTED_DATE = '2026-01-30';
 
 // Produit de test: Babyfoot avec forfait week-end
 const babyfootProduct: Product & { weekend_flat_price: number } = {
@@ -406,69 +401,69 @@ describe('pricingRules', () => {
 });
 
 describe('calculateLocagameDays — bloc week-end', () => {
-  test('Ven→Lun = 1 jour', () => {
+  it('Ven→Lun = 1 jour', () => {
     // 2026-04-10 = Vendredi, 2026-04-13 = Lundi
     expect(calculateLocagameDays(
       new Date('2026-04-10'), new Date('2026-04-13')
     )).toBe(1);
   });
 
-  test('Sam seul = 1 jour', () => {
+  it('Sam seul = 1 jour', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-11'), new Date('2026-04-11')
     )).toBe(1);
   });
 
-  test('Sam+Dim = 1 jour', () => {
+  it('Sam+Dim = 1 jour', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-11'), new Date('2026-04-12')
     )).toBe(1);
   });
 
-  test('Sam→Mar = 2 jours', () => {
+  it('Sam→Mar = 2 jours', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-11'), new Date('2026-04-14')
     )).toBe(2);
   });
 
-  test('Ven→Mer = 3 jours', () => {
+  it('Ven→Mer = 3 jours', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-10'), new Date('2026-04-15')
     )).toBe(3);
   });
 
-  test('Dim seul = 1 jour', () => {
+  it('Dim seul = 1 jour', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-12'), new Date('2026-04-12')
     )).toBe(1);
   });
 
-  test('Dim→Mar = 2 jours', () => {
+  it('Dim→Mar = 2 jours', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-12'), new Date('2026-04-14')
     )).toBe(2);
   });
 
-  test('Lun seul = 1 jour', () => {
+  it('Lun seul = 1 jour', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-13'), new Date('2026-04-13')
     )).toBe(1);
   });
 
-  test('Lun→Ven = 5 jours', () => {
+  it('Lun→Ven = 5 jours', () => {
     // Lun+Mar+Mer+Jeu+Ven(bloc) = 5 jours
     expect(calculateLocagameDays(
       new Date('2026-04-13'), new Date('2026-04-17')
     )).toBe(5);
   });
 
-  test('Mar seul = 1 jour', () => {
+  it('Mar seul = 1 jour', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-14'), new Date('2026-04-14')
     )).toBe(1);
   });
 
-  test('Lun→Lun (1 semaine) = 5 jours', () => {
+  it('Lun→Lun (1 semaine) = 5 jours', () => {
     // 2026-04-06 (Lun) → 2026-04-13 (Lun)
     // Lun6+Mar7+Mer8+Jeu9+Ven10(bloc, skip to Mar14)→14>13 STOP = 5
     expect(calculateLocagameDays(
@@ -476,18 +471,18 @@ describe('calculateLocagameDays — bloc week-end', () => {
     )).toBe(5);
   });
 
-  test('accepts string dates', () => {
+  it('accepts string dates', () => {
     expect(calculateLocagameDays('2026-04-10', '2026-04-13')).toBe(1);
     expect(calculateLocagameDays('2026-04-13', '2026-04-17')).toBe(5);
   });
 
-  test('end < start = 0', () => {
+  it('end < start = 0', () => {
     expect(calculateLocagameDays(
       new Date('2026-04-15'), new Date('2026-04-10')
     )).toBe(0);
   });
 
-  test('Mon→Fri across 2 weeks = 9 jours', () => {
+  it('Mon→Fri across 2 weeks = 9 jours', () => {
     // Mon9→Fri20: Mon+Tue+Wed+Thu+Fri(bloc→Tue17)+Tue+Wed+Thu+Fri(bloc→Tue24) = 9
     expect(calculateLocagameDays('2026-03-09', '2026-03-20')).toBe(9);
   });

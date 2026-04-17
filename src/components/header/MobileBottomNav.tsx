@@ -11,6 +11,13 @@ const navItems = [
   { path: 'account', label: 'Compte', icon: User },
 ] as const;
 
+type MobileNavItem = {
+  path: string;
+  label: string;
+  icon: (typeof navItems)[number]['icon'];
+  showBadge?: boolean;
+};
+
 export function MobileBottomNav() {
   const location = useLocation();
   const { totalItems } = useCart();
@@ -36,7 +43,7 @@ export function MobileBottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 h-16 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-full px-2">
-        {navItems.map((item) => {
+        {(navItems as readonly MobileNavItem[]).map((item) => {
           const path = item.path === 'account' ? getAccountPath() : item.path;
           const active = isActive(item.path);
           const Icon = item.icon;

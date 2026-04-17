@@ -56,7 +56,7 @@ export class CheckoutAuthenticated {
           const errMsg = (createErr as Record<string, unknown>)?.message as string
             || (createErr instanceof Error ? createErr.message : String(createErr));
           if (errMsg.includes('customers_email_key') || errMsg.includes('duplicate key')) {
-            logger.info('[CheckoutService] Customer with same email exists, reusing');
+            logger.log('[CheckoutService] Customer with same email exists, reusing');
             const { data: existingRow } = await supabase
               .from('customers')
               .select('id')
@@ -115,7 +115,7 @@ export class CheckoutAuthenticated {
           zone_id: zoneId,
           is_default: false,
         });
-        deliveryAddressId = addressData.id;
+        deliveryAddressId = addressData.id ?? undefined;
       }
 
       // 4. Appel RPC — le serveur recalcule TOUT (prix, dispo, stock, frais livraison)
@@ -157,7 +157,7 @@ export class CheckoutAuthenticated {
           p_end_date: payload.end_date,
           p_delivery_type: payload.delivery_type,
           p_customer_id: customerId,
-          p_zone_id: zoneId,
+          p_zone_id: zoneId ?? undefined,
           p_metadata: rpcMetadata as unknown as Json,
           // Sous-total + majorations (SANS livraison) pour la validation anti-manipulation
           p_client_total: (payload.subtotal || 0) + (payload.surcharges_total || 0),

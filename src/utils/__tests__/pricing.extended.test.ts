@@ -2,7 +2,7 @@
  * Extended pricing tests — weekend/weekday surcharges & edge cases
  */
 import { describe, it, expect } from 'vitest';
-import { isWeekend, isFrenchHoliday } from '../dateHolidays';
+import { isWeekend } from '../dateHolidays';
 import {
   calculateDeliverySurcharges,
   WEEKEND_DELIVERY_SURCHARGE,

@@ -21,7 +21,7 @@ export function DesktopTopBar({ isScrolled }: DesktopTopBarProps) {
           className={`w-auto transition-all duration-300 ${isScrolled ? 'h-16' : 'h-32'}`}
           width={isScrolled ? "200" : "128"}
           height={isScrolled ? "64" : "128"}
-          fetchpriority="high"
+          fetchPriority="high"
         />
       </Link>
 

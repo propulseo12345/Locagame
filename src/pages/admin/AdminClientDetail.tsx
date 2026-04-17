@@ -224,7 +224,7 @@ export default function AdminClientDetail() {
                         to={`/admin/reservations/${reservation.id}`}
                         className="text-sm font-medium text-blue-600 hover:underline"
                       >
-                        {reservation.order_number || reservation.id.slice(0, 8)}
+                        {reservation.id.slice(0, 8)}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">

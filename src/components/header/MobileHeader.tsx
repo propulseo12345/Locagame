@@ -21,7 +21,7 @@ export function MobileHeader({ isScrolled, cartItemsCount, mobileMenuOpen, setMo
             className={`w-auto transition-all duration-300 ${isScrolled ? 'h-10' : 'h-12'}`}
             width={isScrolled ? "80" : "48"}
             height={isScrolled ? "40" : "48"}
-            fetchpriority="high"
+            fetchPriority="high"
           />
         </Link>
 

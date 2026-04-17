@@ -31,6 +31,7 @@ interface CheckoutPricingReturn {
   deliveryDateIsWeekendOrHoliday: boolean;
   pickupDateIsWeekendOrHoliday: boolean;
   pricingInfoMessage: string | undefined;
+  calculateFromCoords: (lat: number, lng: number) => Promise<void>;
 }
 
 export function useCheckoutPricing({

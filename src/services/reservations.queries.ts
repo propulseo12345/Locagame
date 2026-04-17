@@ -18,7 +18,7 @@ export class ReservationsQueries {
       throw error;
     }
 
-    return data as Order[];
+    return (data ?? []) as unknown as Order[];
   }
 
   /**
@@ -36,7 +36,7 @@ export class ReservationsQueries {
       throw error;
     }
 
-    return data as Order;
+    return data as unknown as Order;
   }
 
   /**
@@ -74,6 +74,6 @@ export class ReservationsQueries {
       throw error;
     }
 
-    return data as Order[];
+    return (data ?? []) as unknown as Order[];
   }
 }
