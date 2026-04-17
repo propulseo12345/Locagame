@@ -164,7 +164,7 @@ export function MobileMenu({
               <Instagram className="w-5 h-5" />
             </a>
             <a
-              href="https://www.tiktok.com/@pokeragency"
+              href="https://www.tiktok.com/@locagame.events"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 p-3 bg-white/5 rounded-lg text-[#33ffcc] font-bold hover:bg-white/10 transition-colors min-w-[44px] min-h-[44px]"

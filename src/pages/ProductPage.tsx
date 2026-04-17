@@ -34,6 +34,8 @@ export default function ProductPage() {
     isAddingToCart,
     handleAddToCart,
     availabilityError,
+    isCheckingAvailability,
+    isAvailable,
     quantity,
   } = useProductPage();
 
@@ -124,6 +126,8 @@ export default function ProductPage() {
                   priceCalculation={priceCalculation}
                   availabilityError={availabilityError}
                   isAddingToCart={isAddingToCart}
+                  isCheckingAvailability={isCheckingAvailability}
+                  isAvailable={isAvailable}
                   onDateSelect={handleDateSelect}
                   onClearSelection={handleClearSelection}
                   onPriceChange={handlePriceChange}
@@ -147,11 +151,15 @@ export default function ProductPage() {
               </div>
               <button
                 onClick={handleAddToCart}
-                disabled={isAddingToCart || !selectedStartDate || !selectedEndDate}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors"
+                disabled={isAddingToCart || isCheckingAvailability || isAvailable === false || !selectedStartDate || !selectedEndDate}
+                className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 font-bold rounded-xl disabled:opacity-50 transition-colors ${
+                  isAvailable === false
+                    ? 'bg-[#fe1979]/20 text-[#fe1979] cursor-not-allowed'
+                    : 'bg-[#33ffcc] text-[#000033] hover:bg-[#66cccc]'
+                }`}
               >
                 <ShoppingCart className="w-5 h-5" />
-                {isAddingToCart ? 'Ajout...' : 'Réserver'}
+                {isAddingToCart ? 'Ajout...' : isCheckingAvailability ? 'Vérification...' : isAvailable === false ? 'Indisponible' : 'Réserver'}
               </button>
             </div>
           ) : (

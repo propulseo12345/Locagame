@@ -7,6 +7,7 @@ export const ROUTES = {
   // Public
   HOME: '/',
   LOGIN: '/login',
+  RESET_PASSWORD: '/reset-password',
   CATALOG: '/catalogue',
   PRODUCT: (id: string) => `/produit/${id}`,
   CART: '/panier',
@@ -73,6 +74,7 @@ export function isPublicRoute(pathname: string): boolean {
     ROUTES.CHECKOUT,
     ROUTES.EVENTS,
     ROUTES.CONTACT,
+    ROUTES.RESET_PASSWORD,
     ROUTES.DEMO,
   ];
 

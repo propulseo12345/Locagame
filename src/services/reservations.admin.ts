@@ -70,7 +70,7 @@ export class ReservationsAdmin {
       .from('reservations')
       .select('*, customer:customers(*), reservation_items:reservation_items(*, product:products(name)), delivery_address:addresses!delivery_address_id(*)')
       .eq('delivery_type', 'delivery')
-      .in('status', ['pending_payment', 'pending', 'confirmed', 'preparing'])
+      .in('status', ['pending', 'confirmed', 'preparing'])
       .order('created_at', { ascending: false });
 
     if (reservationsError) {

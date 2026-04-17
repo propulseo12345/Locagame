@@ -38,17 +38,48 @@ export class CheckoutAuthenticated {
       const existingCustomer = await CustomersService.getCustomerById(userId);
 
       if (!existingCustomer) {
-        const newCustomer = await CustomersService.createCustomer({
-          id: userId,
-          email: payload.email,
-          first_name: payload.first_name,
-          last_name: payload.last_name,
-          phone: payload.phone,
-          customer_type: payload.customer_type,
-          company_name: payload.company_name,
-          siret: payload.siret,
-        });
-        customerId = newCustomer.id || userId;
+        try {
+          const newCustomer = await CustomersService.createCustomer({
+            id: userId,
+            email: payload.email,
+            first_name: payload.first_name,
+            last_name: payload.last_name,
+            phone: payload.phone,
+            customer_type: payload.customer_type,
+            company_name: payload.company_name,
+            siret: payload.siret,
+          });
+          customerId = newCustomer.id || userId;
+        } catch (createErr: unknown) {
+          // Un guest customer avec le même email peut déjà exister.
+          // Réutiliser le customer existant et mettre à jour ses infos.
+          const errMsg = (createErr as Record<string, unknown>)?.message as string
+            || (createErr instanceof Error ? createErr.message : String(createErr));
+          if (errMsg.includes('customers_email_key') || errMsg.includes('duplicate key')) {
+            logger.info('[CheckoutService] Customer with same email exists, reusing');
+            const { data: existingRow } = await supabase
+              .from('customers')
+              .select('id')
+              .eq('email', payload.email)
+              .single();
+
+            if (existingRow) {
+              customerId = existingRow.id;
+              await CustomersService.updateCustomer(customerId, {
+                first_name: payload.first_name,
+                last_name: payload.last_name,
+                phone: payload.phone,
+                customer_type: payload.customer_type,
+                company_name: payload.company_name,
+                siret: payload.siret,
+              });
+            } else {
+              throw createErr;
+            }
+          } else {
+            throw createErr;
+          }
+        }
       } else {
         await CustomersService.updateCustomer(userId, {
           first_name: payload.first_name,
@@ -132,7 +163,9 @@ export class CheckoutAuthenticated {
           p_client_total: (payload.subtotal || 0) + (payload.surcharges_total || 0),
           p_delivery_is_mandatory: payload.delivery_is_mandatory ?? false,
           p_pickup_is_mandatory: payload.pickup_is_mandatory ?? false,
-          // p_delivery_fee SUPPRIMÉ — le serveur calcule depuis delivery_zones
+          // Tarif ORS (distance routière réelle × 0,80€/km)
+          p_delivery_fee: payload.delivery_fee ?? null,
+          p_delivery_distance_km: payload.delivery_distance_km ?? null,
         }
       );
 
@@ -153,18 +186,6 @@ export class CheckoutAuthenticated {
         };
       }
 
-      // 4. Créer les tâches de livraison (non-bloquant)
-      try {
-        await this.createDeliveryTasks(
-          result.reservation_id!,
-          customerId,
-          deliveryAddressId,
-          payload
-        );
-      } catch (taskError) {
-        logger.error('[CheckoutService] Erreur création tâches (non-bloquant)', taskError);
-      }
-
       return {
         success: true,
         reservation_id: result.reservation_id,
@@ -183,93 +204,4 @@ export class CheckoutAuthenticated {
     }
   }
 
-  /**
-   * Crée les delivery_tasks après la réservation (non-bloquant).
-   * Reprend la logique de ReservationsCreation.createReservation §3.
-   */
-  private static async createDeliveryTasks(
-    reservationId: string,
-    customerId: string,
-    deliveryAddressId: string | undefined,
-    payload: CheckoutPayload
-  ): Promise<void> {
-    const { data: customer } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('id', customerId)
-      .single();
-
-    const { data: products } = await supabase
-      .from('products')
-      .select('*')
-      .in('id', payload.items.map((i) => i.product_id));
-
-    if (payload.delivery_type === 'delivery' && deliveryAddressId) {
-      const { data: address } = await supabase
-        .from('addresses')
-        .select('*')
-        .eq('id', deliveryAddressId)
-        .single();
-
-      // Tâche LIVRAISON (start_date)
-      await supabase.from('delivery_tasks').insert({
-        reservation_id: reservationId,
-        order_number: `ORD-${reservationId.substring(0, 8)}-DELIVERY`,
-        type: 'delivery',
-        scheduled_date: payload.start_date,
-        scheduled_time: payload.delivery_time || '09:00',
-        status: 'scheduled',
-        customer_data: customer as unknown as Json,
-        address_data: address as unknown as Json,
-        products_data: products as unknown as Json,
-      });
-
-      // Tâche RETOUR (end_date)
-      await supabase.from('delivery_tasks').insert({
-        reservation_id: reservationId,
-        order_number: `ORD-${reservationId.substring(0, 8)}-PICKUP`,
-        type: 'pickup',
-        scheduled_date: payload.end_date,
-        scheduled_time: payload.delivery_time || '09:00',
-        status: 'scheduled',
-        customer_data: customer as unknown as Json,
-        address_data: address as unknown as Json,
-        products_data: products as unknown as Json,
-      });
-    } else if (payload.delivery_type === 'pickup') {
-      const warehouseAddress = {
-        name: 'Entrepôt LOCAGAME',
-        street: 'Zone Industrielle des Paluds',
-        city: '13400 Aubagne',
-      };
-
-      // Tâche RETRAIT CLIENT (start_date)
-      await supabase.from('delivery_tasks').insert({
-        reservation_id: reservationId,
-        order_number: `ORD-${reservationId.substring(0, 8)}-CLIENT-PICKUP`,
-        type: 'client_pickup',
-        scheduled_date: payload.start_date,
-        scheduled_time: payload.pickup_time || '09:00',
-        status: 'scheduled',
-        customer_data: customer as unknown as Json,
-        address_data: warehouseAddress as unknown as Json,
-        products_data: products as unknown as Json,
-        notes: "Retrait client à l'entrepôt",
-      });
-
-      // Tâche RETOUR CLIENT (end_date)
-      await supabase.from('delivery_tasks').insert({
-        reservation_id: reservationId,
-        order_number: `ORD-${reservationId.substring(0, 8)}-CLIENT-RETURN`,
-        type: 'client_return',
-        scheduled_date: payload.end_date,
-        scheduled_time: payload.return_time || '09:00',
-        status: 'scheduled',
-        customer_data: customer as unknown as Json,
-        address_data: warehouseAddress as unknown as Json,
-        products_data: products as unknown as Json,
-        notes: "Retour client à l'entrepôt",
-      });
-    }
-  }
 }

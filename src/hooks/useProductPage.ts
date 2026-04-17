@@ -6,6 +6,7 @@ import { checkAvailability } from '../utils/availability';
 import { calculateLocagameDays } from '../utils/pricing';
 import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { useAvailabilityCheck } from './useAvailabilityCheck';
 import { logger } from '../lib/logger';
 
 export interface UseProductPageReturn {
@@ -35,6 +36,9 @@ export interface UseProductPageReturn {
   isAddingToCart: boolean;
   handleAddToCart: () => Promise<void>;
   availabilityError: string;
+  // Availability (real-time)
+  isCheckingAvailability: boolean;
+  isAvailable: boolean | null;
   // Tabs
   activeTab: 'description' | 'includes' | 'specs';
   setActiveTab: (tab: 'description' | 'includes' | 'specs') => void;
@@ -59,6 +63,29 @@ export function useProductPage(): UseProductPageReturn {
   const [priceCalculation, setPriceCalculation] = useState<PriceCalculation | null>(null);
   const [availabilityError, setAvailabilityError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'description' | 'includes' | 'specs'>('description');
+
+  // Vérification de disponibilité en temps réel
+  const {
+    isChecking: isCheckingAvailability,
+    isAvailable,
+    result: availabilityResult,
+  } = useAvailabilityCheck({
+    productId: product?.id,
+    startDate: selectedStartDate,
+    endDate: selectedEndDate,
+    quantity,
+  });
+
+  // Synchroniser l'erreur de disponibilité avec le résultat du hook
+  useEffect(() => {
+    if (availabilityResult && !availabilityResult.available) {
+      const msg = availabilityResult.error
+        || 'Ce produit n\'est pas disponible pour les dates sélectionnées. Essayez d\'autres dates.';
+      setAvailabilityError(msg);
+    } else if (availabilityResult?.available) {
+      setAvailabilityError('');
+    }
+  }, [availabilityResult]);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -213,6 +240,8 @@ export function useProductPage(): UseProductPageReturn {
     isAddingToCart,
     handleAddToCart,
     availabilityError,
+    isCheckingAvailability,
+    isAvailable,
     activeTab,
     setActiveTab,
     quantity,

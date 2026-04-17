@@ -1,3 +1,4 @@
+export { useCheckout, CHECKOUT_STEPS } from './useCheckout';
 export { useCheckoutForm } from './useCheckoutForm';
 export { useCheckoutPricing } from './useCheckoutPricing';
 export { useCheckoutValidation } from './useCheckoutValidation';

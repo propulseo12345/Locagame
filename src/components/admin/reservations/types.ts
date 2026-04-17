@@ -41,7 +41,6 @@ export type DeliveryModeFilter = 'all' | 'delivery' | 'pickup';
 
 export interface ReservationStats {
   total: number;
-  pending_payment: number;
   pending: number;
   confirmed: number;
   preparing: number;

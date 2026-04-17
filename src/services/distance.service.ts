@@ -1,20 +1,23 @@
 import { logger } from '../lib/logger';
 
-// Service de calcul de distance pour les frais de livraison
+// ─── Configuration ────────────────────────────────────────────────────────────
+const ORS_API_KEY = import.meta.env.VITE_ORS_API_KEY;
+const ORS_BASE_URL = 'https://api.openrouteservice.org';
 
-// Adresse de l'entrepôt LOCAGAME
-const WAREHOUSE_ADDRESS = {
-  street: "553 rue St Pierre",
-  city: "Marseille",
-  postalCode: "13012",
-  // Coordonnées approximatives de l'entrepôt (à ajuster si nécessaire)
-  lat: 43.3082,
-  lng: 5.4372,
-};
-
-// Tarif par kilomètre
+/** Tarif par kilomètre */
 export const PRICE_PER_KM = 0.80;
 
+/** Distance maximale de livraison (km) */
+const MAX_DELIVERY_DISTANCE_KM = 150;
+
+/** Coordonnées fixes de l'entrepôt LOCAGAME */
+export const WAREHOUSE = {
+  lat: 43.2896,
+  lng: 5.4086,
+  address: '553 rue Saint-Pierre, 13012 Marseille',
+};
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface Coordinates {
   lat: number;
   lng: number;
@@ -27,159 +30,261 @@ interface DistanceResult {
   error?: string;
 }
 
-/**
- * Calcule la distance à vol d'oiseau entre deux points (formule de Haversine)
- */
-function haversineDistance(coord1: Coordinates, coord2: Coordinates): number {
-  const R = 6371; // Rayon de la Terre en km
-  const dLat = toRad(coord2.lat - coord1.lat);
-  const dLng = toRad(coord2.lng - coord1.lng);
+// ─── Cache sessionStorage ─────────────────────────────────────────────────────
+const CACHE_KEY = 'ors_delivery_cache';
 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(coord1.lat)) * Math.cos(toRad(coord2.lat)) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-function toRad(deg: number): number {
-  return deg * (Math.PI / 180);
-}
-
-/**
- * Géocode une adresse en utilisant l'API Nominatim (OpenStreetMap)
- */
-async function geocodeAddress(address: string, city: string, postalCode: string): Promise<Coordinates | null> {
+function getCached(key: string): { fee: number; distanceKm: number } | null {
   try {
-    const query = encodeURIComponent(`${address}, ${postalCode} ${city}, France`);
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
-      {
-        headers: {
-          'User-Agent': 'LOCAGAME-App/1.0',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      logger.error('Erreur géocodage', response.statusText);
-      return null;
+    const cache = JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}');
+    const entry = cache[key];
+    if (entry && Date.now() - entry.timestamp < 3_600_000) {
+      return { fee: entry.fee, distanceKm: entry.distanceKm };
     }
-
-    const data = await response.json();
-
-    if (data && data.length > 0) {
-      return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
-      };
-    }
-
     return null;
-  } catch (error) {
-    logger.error('Erreur géocodage', error);
+  } catch {
     return null;
   }
 }
 
-/**
- * Calcule les frais de livraison basés sur la distance
- * Applique un coefficient de 1.3 pour tenir compte des routes (vs vol d'oiseau)
- */
+function setCache(key: string, fee: number, distanceKm: number) {
+  try {
+    const cache = JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}');
+    cache[key] = { fee, distanceKm, timestamp: Date.now() };
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // silently ignore
+  }
+}
+
+// ─── 1. Géocodage adresse → coordonnées GPS (Pelias / ORS) ───────────────────
+async function geocodeAddress(
+  address: string,
+  city: string,
+  postalCode: string
+): Promise<Coordinates | null> {
+  const query = `${address}, ${postalCode} ${city}, France`;
+  const url =
+    `${ORS_BASE_URL}/geocode/search?api_key=${ORS_API_KEY}` +
+    `&text=${encodeURIComponent(query)}` +
+    `&boundary.country=FR` +
+    `&size=1`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Geocode HTTP ${res.status}`);
+    const data = await res.json();
+    const feature = data.features?.[0];
+    if (!feature) return null;
+
+    const [lng, lat] = feature.geometry.coordinates;
+    return { lat, lng };
+  } catch (err) {
+    logger.error('[ORS] Geocode error:', err);
+    return null;
+  }
+}
+
+// ─── 2. Distance routière réelle (ORS Directions API) ─────────────────────────
+async function getRouteDistance(
+  clientLat: number,
+  clientLng: number
+): Promise<number | null> {
+  const url =
+    `${ORS_BASE_URL}/v2/directions/driving-car` +
+    `?api_key=${ORS_API_KEY}` +
+    `&start=${WAREHOUSE.lng},${WAREHOUSE.lat}` +
+    `&end=${clientLng},${clientLat}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Directions HTTP ${res.status}`);
+    const data = await res.json();
+
+    const distanceMeters = data.features?.[0]?.properties?.summary?.distance;
+    if (distanceMeters == null) return null;
+
+    // Mètres → km, arrondi à 1 décimale
+    return Math.round(distanceMeters / 100) / 10;
+  } catch (err) {
+    logger.error('[ORS] Directions error:', err);
+    return null;
+  }
+}
+
+// ─── 3. Fonction principale exportée ──────────────────────────────────────────
 export async function calculateDeliveryFee(
   address: string,
   city: string,
   postalCode: string
 ): Promise<DistanceResult> {
+  if (!address || !city || !postalCode) {
+    return { success: false, distanceKm: 0, deliveryFee: 0, error: 'Adresse incomplète' };
+  }
+
+  if (!ORS_API_KEY) {
+    logger.error('[ORS] VITE_ORS_API_KEY non configurée');
+    return { success: false, distanceKm: 0, deliveryFee: 0, error: 'Service de calcul indisponible' };
+  }
+
+  // Cache hit ?
+  const cacheKey = `${address}|${postalCode}|${city}`.toLowerCase();
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return { success: true, distanceKm: cached.distanceKm, deliveryFee: cached.fee };
+  }
+
   try {
-    // Si l'adresse est incomplète, retourner une erreur
-    if (!address || !city || !postalCode) {
+    // 1. Géocode l'adresse client
+    const coords = await geocodeAddress(address, city, postalCode);
+    if (!coords) {
       return {
+        success: false,
         distanceKm: 0,
         deliveryFee: 0,
-        success: false,
-        error: 'Adresse incomplète',
+        error: 'Adresse introuvable — vérifiez votre saisie',
       };
     }
 
-    // Géocoder l'adresse de livraison
-    const deliveryCoords = await geocodeAddress(address, city, postalCode);
-
-    if (!deliveryCoords) {
-      // Si le géocodage échoue, estimer basé sur le code postal
-      const estimatedDistance = estimateDistanceByPostalCode(postalCode);
+    // 2. Distance routière réelle
+    const distanceKm = await getRouteDistance(coords.lat, coords.lng);
+    if (distanceKm === null) {
       return {
-        distanceKm: estimatedDistance,
-        deliveryFee: Math.round(estimatedDistance * PRICE_PER_KM * 100) / 100,
-        success: true,
-        error: 'Distance estimée (adresse non trouvée)',
+        success: false,
+        distanceKm: 0,
+        deliveryFee: 0,
+        error: 'Impossible de calculer la distance routière',
       };
     }
 
-    // Calculer la distance à vol d'oiseau
-    const straightLineDistance = haversineDistance(
-      { lat: WAREHOUSE_ADDRESS.lat, lng: WAREHOUSE_ADDRESS.lng },
-      deliveryCoords
-    );
+    // 3. Plafond de distance
+    if (distanceKm > MAX_DELIVERY_DISTANCE_KM) {
+      return {
+        success: false,
+        distanceKm,
+        deliveryFee: 0,
+        error: `Livraison non disponible au-delà de ${MAX_DELIVERY_DISTANCE_KM} km (${distanceKm} km). Contactez-nous.`,
+      };
+    }
 
-    // Appliquer un coefficient pour la distance route (environ 1.3x la distance à vol d'oiseau)
-    const roadDistance = Math.round(straightLineDistance * 1.3 * 10) / 10;
+    // 4. Prix = distance × tarif/km, arrondi au centime
+    const deliveryFee = Math.round(distanceKm * PRICE_PER_KM * 100) / 100;
 
-    // Calculer les frais
-    const fee = Math.round(roadDistance * PRICE_PER_KM * 100) / 100;
+    // 5. Mise en cache
+    setCache(cacheKey, deliveryFee, distanceKm);
 
+    return { success: true, distanceKm, deliveryFee };
+  } catch (err) {
+    logger.error('[ORS] calculateDeliveryFee error:', err);
     return {
-      distanceKm: roadDistance,
-      deliveryFee: fee,
-      success: true,
-    };
-  } catch (error) {
-    logger.error('Erreur calcul distance', error);
-    return {
+      success: false,
       distanceKm: 0,
       deliveryFee: 0,
-      success: false,
-      error: 'Erreur lors du calcul',
+      error: 'Erreur lors du calcul de la distance',
     };
   }
 }
 
-/**
- * Estimation de la distance basée sur le département (code postal)
- * Utilisé en fallback si le géocodage échoue
- */
-function estimateDistanceByPostalCode(postalCode: string): number {
-  const dept = postalCode.substring(0, 2);
-
-  // Distances estimées depuis Marseille (13012) vers les départements voisins
-  const distancesByDept: Record<string, number> = {
-    '13': 15,  // Bouches-du-Rhône (moyenne)
-    '84': 80,  // Vaucluse
-    '30': 100, // Gard
-    '83': 60,  // Var
-    '04': 120, // Alpes-de-Haute-Provence
-    '05': 180, // Hautes-Alpes
-    '06': 200, // Alpes-Maritimes
-    '34': 150, // Hérault
-    '11': 250, // Aude
-    '26': 200, // Drôme
-  };
-
-  return distancesByDept[dept] || 100; // Par défaut 100km
+// ─── 4. Autocomplétion d'adresse (ORS Pelias) ────────────────────────────────
+export interface AddressSuggestion {
+  label: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  lat: number;
+  lng: number;
 }
 
-/**
- * Formate les frais de livraison pour l'affichage
- */
+export async function searchAddresses(
+  query: string,
+  signal?: AbortSignal
+): Promise<AddressSuggestion[]> {
+  if (!query || query.length < 3 || !ORS_API_KEY) return [];
+
+  const url =
+    `${ORS_BASE_URL}/geocode/autocomplete?api_key=${ORS_API_KEY}` +
+    `&text=${encodeURIComponent(query)}` +
+    `&boundary.country=FR` +
+    `&layers=address,street` +
+    `&size=6` +
+    `&focus.point.lat=${WAREHOUSE.lat}` +
+    `&focus.point.lon=${WAREHOUSE.lng}`;
+
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) throw new Error(`ORS autocomplete ${res.status}`);
+    const data = await res.json();
+
+    return (data.features ?? [])
+      .map((f: Record<string, unknown>) => {
+        const p = f.properties as Record<string, string | undefined>;
+        const geom = f.geometry as { coordinates: [number, number] };
+        const [lng, lat] = geom.coordinates;
+
+        const parts = [
+          p.housenumber,
+          p.street ?? p.name,
+          p.postalcode,
+          p.locality ?? p.county,
+        ].filter(Boolean);
+
+        return {
+          label: parts.join(', '),
+          street: [p.housenumber, p.street ?? p.name].filter(Boolean).join(' '),
+          city: p.locality ?? p.county ?? '',
+          postalCode: p.postalcode ?? '',
+          lat,
+          lng,
+        };
+      })
+      .filter((s: AddressSuggestion) => s.postalCode && s.city);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') return [];
+    logger.error('[ORS] Autocomplete error:', err);
+    return [];
+  }
+}
+
+// ─── 5. Calcul depuis coordonnées (skip geocoding) ───────────────────────────
+export async function calculateDeliveryFeeFromCoords(
+  lat: number,
+  lng: number
+): Promise<DistanceResult> {
+  if (!ORS_API_KEY) {
+    return { success: false, distanceKm: 0, deliveryFee: 0, error: 'Service indisponible' };
+  }
+
+  try {
+    const distanceKm = await getRouteDistance(lat, lng);
+    if (distanceKm === null) {
+      return { success: false, distanceKm: 0, deliveryFee: 0, error: 'Impossible de calculer la distance' };
+    }
+
+    if (distanceKm > MAX_DELIVERY_DISTANCE_KM) {
+      return {
+        success: false,
+        distanceKm,
+        deliveryFee: 0,
+        error: `Livraison non disponible au-delà de ${MAX_DELIVERY_DISTANCE_KM} km (${distanceKm} km). Contactez-nous.`,
+      };
+    }
+
+    const deliveryFee = Math.round(distanceKm * PRICE_PER_KM * 100) / 100;
+    return { success: true, distanceKm, deliveryFee };
+  } catch (err) {
+    logger.error('[ORS] calculateDeliveryFeeFromCoords error:', err);
+    return { success: false, distanceKm: 0, deliveryFee: 0, error: 'Erreur de calcul' };
+  }
+}
+
 export function formatDeliveryFee(distanceKm: number, fee: number): string {
   return `${distanceKm} km × ${PRICE_PER_KM.toFixed(2)}€ = ${fee.toFixed(2)}€`;
 }
 
 export const DistanceService = {
   calculateDeliveryFee,
+  calculateDeliveryFeeFromCoords,
+  searchAddresses,
   formatDeliveryFee,
   PRICE_PER_KM,
-  WAREHOUSE_ADDRESS,
+  WAREHOUSE,
 };

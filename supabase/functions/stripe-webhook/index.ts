@@ -98,6 +98,88 @@ async function sendConfirmationEmail(
   }
 }
 
+/**
+ * Crée les delivery_tasks après confirmation de paiement.
+ * Logique identique à l'ancienne CheckoutAuthenticated.createDeliveryTasks.
+ */
+async function createDeliveryTasks(
+  supabase: ReturnType<typeof createClient>,
+  reservation: Record<string, any>
+): Promise<void> {
+  const reservationId = reservation.id;
+  const customer = reservation.customer;
+  const deliveryAddress = reservation.delivery_address;
+  const items = reservation.reservation_items || [];
+
+  // Charger les produits complets pour products_data
+  const productIds = items.map((i: Record<string, any>) => i.product_id).filter(Boolean);
+  const { data: products } = productIds.length > 0
+    ? await supabase.from("products").select("*").in("id", productIds)
+    : { data: [] };
+
+  if (reservation.delivery_type === "delivery" && deliveryAddress) {
+    // Tâche LIVRAISON (start_date)
+    await supabase.from("delivery_tasks").insert({
+      reservation_id: reservationId,
+      order_number: `ORD-${reservationId.substring(0, 8)}-DELIVERY`,
+      type: "delivery",
+      scheduled_date: reservation.start_date,
+      scheduled_time: reservation.delivery_time || "09:00",
+      status: "scheduled",
+      customer_data: customer,
+      address_data: deliveryAddress,
+      products_data: products,
+    });
+
+    // Tâche RETOUR (end_date)
+    await supabase.from("delivery_tasks").insert({
+      reservation_id: reservationId,
+      order_number: `ORD-${reservationId.substring(0, 8)}-PICKUP`,
+      type: "pickup",
+      scheduled_date: reservation.end_date,
+      scheduled_time: reservation.delivery_time || "09:00",
+      status: "scheduled",
+      customer_data: customer,
+      address_data: deliveryAddress,
+      products_data: products,
+    });
+  } else if (reservation.delivery_type === "pickup") {
+    const warehouseAddress = {
+      name: "Entrepôt LOCAGAME",
+      street: "Zone Industrielle des Paluds",
+      city: "13400 Aubagne",
+    };
+
+    // Tâche RETRAIT CLIENT (start_date)
+    await supabase.from("delivery_tasks").insert({
+      reservation_id: reservationId,
+      order_number: `ORD-${reservationId.substring(0, 8)}-CLIENT-PICKUP`,
+      type: "client_pickup",
+      scheduled_date: reservation.start_date,
+      scheduled_time: reservation.pickup_time || "09:00",
+      status: "scheduled",
+      customer_data: customer,
+      address_data: warehouseAddress,
+      products_data: products,
+      notes: "Retrait client à l'entrepôt",
+    });
+
+    // Tâche RETOUR CLIENT (end_date)
+    await supabase.from("delivery_tasks").insert({
+      reservation_id: reservationId,
+      order_number: `ORD-${reservationId.substring(0, 8)}-CLIENT-RETURN`,
+      type: "client_return",
+      scheduled_date: reservation.end_date,
+      scheduled_time: reservation.return_time || "09:00",
+      status: "scheduled",
+      customer_data: customer,
+      address_data: warehouseAddress,
+      products_data: products,
+      notes: "Retour client à l'entrepôt",
+    });
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -241,6 +323,20 @@ Deno.serve(async (req: Request) => {
             supabaseServiceKey,
             reservation
           );
+
+          // Créer les delivery_tasks APRÈS paiement confirmé
+          try {
+            await createDeliveryTasks(supabase, reservation);
+            console.log(
+              `[stripe-webhook] Delivery tasks created for reservation ${reservationId}`
+            );
+          } catch (taskErr) {
+            // Best-effort: ne pas bloquer le webhook si la création des tasks échoue
+            console.error(
+              "[stripe-webhook] Delivery tasks creation error (non-blocking):",
+              taskErr
+            );
+          }
         }
 
         break;
@@ -266,6 +362,12 @@ Deno.serve(async (req: Request) => {
           console.error("[stripe-webhook] Cancel error:", cancelError);
           throw cancelError;
         }
+
+        // Supprimer les delivery_tasks orphelines (filet de sécurité)
+        await supabase
+          .from("delivery_tasks")
+          .delete()
+          .eq("reservation_id", reservationId);
 
         // Liberer le stock
         await supabase

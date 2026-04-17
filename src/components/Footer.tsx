@@ -46,7 +46,7 @@ export function Footer() {
                 <Instagram className="w-5 h-5" />
               </a>
               <a
-                href="https://www.tiktok.com/@pokeragency"
+                href="https://www.tiktok.com/@locagame.events"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#33ffcc]/10 hover:border-[#33ffcc]/30 hover:text-[#33ffcc] transition-all duration-300"

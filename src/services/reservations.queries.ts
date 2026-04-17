@@ -52,6 +52,7 @@ export class ReservationsQueries {
     let query = supabase
       .from('reservations')
       .select('*, customer:customers(*), delivery_address:addresses!delivery_address_id(*), reservation_items:reservation_items(*, product:products(name))')
+      .not('status', 'in', '("pending_payment","expired")')
       .order('created_at', { ascending: false });
 
     if (filters?.status) {

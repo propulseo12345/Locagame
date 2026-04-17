@@ -2,18 +2,27 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import Stripe from "https://esm.sh/stripe@17.7.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-const ALLOWED_ORIGIN = Deno.env.get("SITE_URL") || "https://www.locagame.net";
+const PROD_ORIGIN = "https://www.locagame.net";
+const ALLOWED_ORIGINS = [
+  PROD_ORIGIN,
+  "http://localhost:5173",
+  "http://localhost:1974",
+];
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : PROD_ORIGIN;
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
 
-function jsonResponse(body: Record<string, unknown>, status = 200) {
+function jsonResponse(body: Record<string, unknown>, status = 200, cors?: Record<string, string>) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...(cors || {}), "Content-Type": "application/json" },
   });
 }
 
@@ -29,6 +38,7 @@ async function verifyOwnership(
   supabaseAnonKey: string
 ): Promise<{ authorized: boolean; error?: string }> {
   const authHeader = req.headers.get("authorization");
+  const customer = reservation.customer as Record<string, unknown> | null;
 
   if (authHeader && authHeader.startsWith("Bearer ")) {
     try {
@@ -38,24 +48,38 @@ async function verifyOwnership(
       const { data: { user }, error } = await anonClient.auth.getUser();
 
       if (error || !user) {
+        // Le SDK Supabase envoie toujours Bearer <anon_key> même sans session.
+        // Fallback : autoriser si c'est une réservation guest.
+        if (customer && customer.is_guest === true) {
+          console.log("[create-checkout-session] No valid session but guest reservation – allowed");
+          return { authorized: true };
+        }
         return { authorized: false, error: "Token invalide" };
       }
 
-      const customer = reservation.customer as Record<string, unknown> | null;
-      if (!customer || customer.id !== user.id) {
-        console.error(
-          `[create-checkout-session] Ownership mismatch: user=${user.id}, customer=${customer?.id}`
-        );
-        return { authorized: false, error: "Non autorisé : cette réservation ne vous appartient pas" };
+      // Utilisateur authentifié : vérifier qu'il est propriétaire
+      if (customer && customer.id === user.id) {
+        return { authorized: true };
       }
 
-      return { authorized: true };
+      // L'utilisateur s'est connecté après avoir créé une réservation guest
+      if (customer && customer.is_guest === true) {
+        console.log("[create-checkout-session] Authenticated user accessing guest reservation – allowed");
+        return { authorized: true };
+      }
+
+      console.error(
+        `[create-checkout-session] Ownership mismatch: user=${user.id}, customer=${customer?.id}`
+      );
+      return { authorized: false, error: "Non autorisé : cette réservation ne vous appartient pas" };
     } catch (err) {
       console.error("[create-checkout-session] JWT verification error:", err);
+      if (customer && customer.is_guest === true) {
+        return { authorized: true };
+      }
       return { authorized: false, error: "Erreur de vérification d'identité" };
     }
   } else {
-    const customer = reservation.customer as Record<string, unknown> | null;
     if (!customer || customer.is_guest !== true) {
       console.error(
         `[create-checkout-session] Unauthenticated access to non-guest reservation`
@@ -68,14 +92,16 @@ async function verifyOwnership(
 }
 
 Deno.serve(async (req: Request) => {
+  const cors = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: cors });
   }
 
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   if (!stripeKey) {
     console.error("[create-checkout-session] STRIPE_SECRET_KEY is not set");
-    return jsonResponse({ error: "Configuration Stripe manquante (STRIPE_SECRET_KEY)" }, 500);
+    return jsonResponse({ error: "Configuration Stripe manquante (STRIPE_SECRET_KEY)" }, 500, cors);
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -83,7 +109,7 @@ Deno.serve(async (req: Request) => {
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error("[create-checkout-session] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set");
-    return jsonResponse({ error: "Configuration Supabase manquante" }, 500);
+    return jsonResponse({ error: "Configuration Supabase manquante" }, 500, cors);
   }
 
   try {
@@ -96,7 +122,7 @@ Deno.serve(async (req: Request) => {
     const { reservation_id, success_url, cancel_url } = body;
 
     if (!reservation_id || !success_url || !cancel_url) {
-      return jsonResponse({ error: "reservation_id, success_url et cancel_url requis" }, 400);
+      return jsonResponse({ error: "reservation_id, success_url et cancel_url requis" }, 400, cors);
     }
 
     // 1. Charger la reservation avec ses items, customer et pricing_breakdown
@@ -108,11 +134,11 @@ Deno.serve(async (req: Request) => {
 
     if (resError) {
       console.error("[create-checkout-session] DB error:", resError);
-      return jsonResponse({ error: "Reservation introuvable: " + resError.message }, 404);
+      return jsonResponse({ error: "Reservation introuvable: " + resError.message }, 404, cors);
     }
 
     if (!reservation) {
-      return jsonResponse({ error: "Reservation introuvable" }, 404);
+      return jsonResponse({ error: "Reservation introuvable" }, 404, cors);
     }
 
     // 2. SÉCURITÉ: Vérifier l'ownership
@@ -124,14 +150,14 @@ Deno.serve(async (req: Request) => {
     );
 
     if (!ownershipCheck.authorized) {
-      return jsonResponse({ error: ownershipCheck.error || "Non autorisé" }, 403);
+      return jsonResponse({ error: ownershipCheck.error || "Non autorisé" }, 403, cors);
     }
 
     console.log("[create-checkout-session] Reservation status:", reservation.status, "payment_status:", reservation.payment_status);
 
     // 3. Verifier que la reservation est en attente de paiement
     if (reservation.status !== "pending_payment") {
-      return jsonResponse({ error: `Statut invalide: ${reservation.status}. Attendu: pending_payment` }, 400);
+      return jsonResponse({ error: `Statut invalide: ${reservation.status}. Attendu: pending_payment` }, 400, cors);
     }
 
     // 4. Construire les line items Stripe depuis la DB (source de vérité)
@@ -229,7 +255,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (lineItems.length === 0) {
-      return jsonResponse({ error: "Aucun article dans la reservation" }, 400);
+      return jsonResponse({ error: "Aucun article dans la reservation" }, 400, cors);
     }
 
     // 7. Vérification de cohérence : total Stripe vs total DB
@@ -303,11 +329,11 @@ Deno.serve(async (req: Request) => {
       })
       .eq("id", reservation.id);
 
-    return jsonResponse({ session_id: session.id, session_url: session.url });
+    return jsonResponse({ session_id: session.id, session_url: session.url }, 200, cors);
 
   } catch (error) {
     console.error("[create-checkout-session] Unhandled error:", error);
     const message = error instanceof Error ? error.message : String(error);
-    return jsonResponse({ error: message }, 500);
+    return jsonResponse({ error: message }, 500, cors);
   }
 });

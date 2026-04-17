@@ -164,6 +164,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { needsEmailConfirmation: true };
   }, []);
 
+  const resetPasswordForEmail = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      logger.error('[Auth] Erreur resetPasswordForEmail', error);
+      throw new Error(translateAuthError(error.message));
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     setUser(null);
     supabase.auth.signOut().catch((err) => {
@@ -232,11 +242,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signOut,
+      resetPasswordForEmail,
       isAuthenticated: !!user,
       hasRole,
       updateUserProfile,
     }),
-    [user, loading, signIn, signUp, signOut, hasRole, updateUserProfile]
+    [user, loading, signIn, signUp, signOut, resetPasswordForEmail, hasRole, updateUserProfile]
   );
 
   return (

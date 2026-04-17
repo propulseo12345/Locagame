@@ -112,9 +112,11 @@ export interface CheckoutPricingReturn {
   calculatedDeliveryFee: number;
   deliveryDistance: number;
   isCalculatingFee: boolean;
+  deliveryError: string;
   deliveryDateIsWeekendOrHoliday: boolean;
   pickupDateIsWeekendOrHoliday: boolean;
   pricingInfoMessage: string | undefined;
+  calculateFromCoords: (lat: number, lng: number) => Promise<void>;
 }
 
 export interface CheckoutValidationReturn {

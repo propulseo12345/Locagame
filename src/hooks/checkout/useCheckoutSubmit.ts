@@ -35,6 +35,7 @@ interface UseCheckoutSubmitArgs {
   surchargesTotal: number;
   finalTotal: number;
   calculatedDeliveryFee: number;
+  deliveryDistance: number;
   clearCart: () => void;
   validatePayment: () => boolean;
 }
@@ -60,6 +61,7 @@ export function useCheckoutSubmit({
   surchargesTotal,
   finalTotal,
   calculatedDeliveryFee,
+  deliveryDistance,
   clearCart: _clearCart,
   validatePayment,
 }: UseCheckoutSubmitArgs) {
@@ -67,6 +69,8 @@ export function useCheckoutSubmit({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
   const isSubmittingRef = useRef(false);
+  // Garde la reservation_id si le checkout a réussi mais le paiement a échoué (ex: guest→login)
+  const pendingReservationIdRef = useRef<string | null>(null);
 
   const startDate = cartItems[0]?.start_date || '';
   const endDate = cartItems[0]?.end_date || '';
@@ -80,108 +84,116 @@ export function useCheckoutSubmit({
     setSubmitError(null);
 
     try {
-      const reservationItems = cartItems.map(item => ({
-        product_id: item.product.id,
-        quantity: item.quantity,
-        duration_days: item.end_date ? calculateDurationDays(item.start_date, item.end_date) : 1,
-        unit_price: item.product.pricing?.oneDay || item.product_price || 0,
-        subtotal: item.total_price,
-        delivery_people_count: item.product.delivery_people_count ?? 1,
-        pickup_people_count: item.product.pickup_people_count ?? 1,
-      }));
+      // Si une réservation a déjà été créée (ex: guest checkout OK mais Stripe KO),
+      // on skip la création et on retente directement le paiement.
+      let reservationId = pendingReservationIdRef.current;
 
-      const subtotal = productsSubtotal;
-      const finalDeliveryFee = isPickup ? 0 : calculatedDeliveryFee;
+      if (!reservationId) {
+        const reservationItems = cartItems.map(item => ({
+          product_id: item.product.id,
+          quantity: item.quantity,
+          duration_days: item.end_date ? calculateDurationDays(item.start_date, item.end_date) : 1,
+          unit_price: item.product.pricing?.oneDay || item.product_price || 0,
+          subtotal: item.total_price,
+          delivery_people_count: item.product.delivery_people_count ?? 1,
+          pickup_people_count: item.product.pickup_people_count ?? 1,
+        }));
 
-      const combinedPricingBreakdown = {
-        items: pricingBreakdowns.map((b, i) => ({
-          product_id: cartItems[i].product.id,
-          product_name: cartItems[i].product.name,
-          ...serializeBreakdown(b),
-        })),
-        products_subtotal: productsSubtotal,
-        surcharges_total: surchargesTotal,
-        delivery_fee: finalDeliveryFee,
-        total: finalTotal,
-      };
+        const subtotal = productsSubtotal;
+        const finalDeliveryFee = isPickup ? 0 : calculatedDeliveryFee;
 
-      const checkoutPayload: CheckoutPayload = {
-        email: user?.email || customer.email,
-        first_name: customer.firstName,
-        last_name: customer.lastName,
-        phone: customer.phone,
-        customer_type: customer.isProfessional ? 'professional' : 'individual',
-        company_name: customer.companyName || undefined,
-        siret: customer.isProfessional ? customer.siret : undefined,
-        address: !isPickup && delivery.address ? {
-          address_line1: delivery.address,
-          address_line2: delivery.addressComplement || undefined,
-          city: delivery.city,
-          postal_code: delivery.postalCode,
-        } : undefined,
-        start_date: isPickup ? startDate : delivery.date,
-        end_date: isPickup ? endDate : (delivery.pickupDate || delivery.date),
-        start_slot: startSlot,
-        end_slot: endSlot,
-        delivery_type: selectedDeliveryMode,
-        delivery_time: isPickup ? undefined : delivery.timeSlot,
-        pickup_time: isPickup ? pickup.pickupTime : undefined,
-        return_time: isPickup ? pickup.returnTime : undefined,
-        event_type: eventDetails.eventType,
-        event_details: !isPickup ? {
-          guestCount: eventDetails.guestCount || undefined,
-          venueName: eventDetails.venueName || undefined,
-          accessDifficulty: eventDetails.accessDifficulty || undefined,
-          accessDetails: eventDetails.accessDetails || undefined,
-          hasElevator: eventDetails.hasElevator,
-          floorNumber: eventDetails.floorNumber || undefined,
-          parkingAvailable: eventDetails.parkingAvailable,
-          parkingDetails: eventDetails.parkingDetails || undefined,
-          electricityAvailable: eventDetails.electricityAvailable,
-          setupSpace: eventDetails.setupSpace || undefined,
-        } : undefined,
-        recipient_data: !recipient.sameAsCustomer ? {
-          firstName: recipient.firstName,
-          lastName: recipient.lastName,
-          phone: recipient.phone,
-          email: recipient.email || undefined,
-          sameAsCustomer: false,
-        } : { firstName: '', lastName: '', phone: '', sameAsCustomer: true },
-        notes: eventDetails.specialRequests || undefined,
-        subtotal,
-        surcharges_total: surchargesTotal,
-        delivery_fee: finalDeliveryFee,
-        discount: 0,
-        total: finalTotal,
-        pricing_breakdown: combinedPricingBreakdown,
-        items: reservationItems,
-        cgv_accepted: payment.acceptCGV,
-        newsletter_accepted: payment.acceptNewsletter,
-        is_business: customer.isProfessional,
-        delivery_is_mandatory: !isPickup && deliveryIsMandatory,
-        pickup_is_mandatory: !isPickup && pickupIsMandatory,
-        billing_company_name: customer.isProfessional ? billingAddress.companyName : undefined,
-        billing_vat_number: customer.isProfessional && billingAddress.vatNumber ? billingAddress.vatNumber : undefined,
-        billing_address_line1: customer.isProfessional ? billingAddress.addressLine1 : undefined,
-        billing_address_line2: customer.isProfessional && billingAddress.addressLine2 ? billingAddress.addressLine2 : undefined,
-        billing_postal_code: customer.isProfessional ? billingAddress.postalCode : undefined,
-        billing_city: customer.isProfessional ? billingAddress.city : undefined,
-        billing_country: customer.isProfessional ? billingAddress.country : undefined,
-      };
+        const combinedPricingBreakdown = {
+          items: pricingBreakdowns.map((b, i) => ({
+            product_id: cartItems[i].product.id,
+            product_name: cartItems[i].product.name,
+            ...serializeBreakdown(b),
+          })),
+          products_subtotal: productsSubtotal,
+          surcharges_total: surchargesTotal,
+          delivery_fee: finalDeliveryFee,
+          total: finalTotal,
+        };
 
-      const result = await CheckoutService.checkout(user?.id || null, checkoutPayload);
+        const checkoutPayload: CheckoutPayload = {
+          email: user?.email || customer.email,
+          first_name: customer.firstName,
+          last_name: customer.lastName,
+          phone: customer.phone,
+          customer_type: customer.isProfessional ? 'professional' : 'individual',
+          company_name: customer.companyName || undefined,
+          siret: customer.isProfessional ? customer.siret : undefined,
+          address: !isPickup && delivery.address ? {
+            address_line1: delivery.address,
+            address_line2: delivery.addressComplement || undefined,
+            city: delivery.city,
+            postal_code: delivery.postalCode,
+          } : undefined,
+          start_date: isPickup ? startDate : delivery.date,
+          end_date: isPickup ? endDate : (delivery.pickupDate || delivery.date),
+          start_slot: startSlot,
+          end_slot: endSlot,
+          delivery_type: selectedDeliveryMode,
+          delivery_time: isPickup ? undefined : delivery.timeSlot,
+          pickup_time: isPickup ? pickup.pickupTime : undefined,
+          return_time: isPickup ? pickup.returnTime : undefined,
+          event_type: eventDetails.eventType,
+          event_details: !isPickup ? {
+            guestCount: eventDetails.guestCount || undefined,
+            venueName: eventDetails.venueName || undefined,
+            accessDifficulty: eventDetails.accessDifficulty || undefined,
+            accessDetails: eventDetails.accessDetails || undefined,
+            hasElevator: eventDetails.hasElevator,
+            floorNumber: eventDetails.floorNumber || undefined,
+            parkingAvailable: eventDetails.parkingAvailable,
+            parkingDetails: eventDetails.parkingDetails || undefined,
+            electricityAvailable: eventDetails.electricityAvailable,
+            setupSpace: eventDetails.setupSpace || undefined,
+          } : undefined,
+          recipient_data: !recipient.sameAsCustomer ? {
+            firstName: recipient.firstName,
+            lastName: recipient.lastName,
+            phone: recipient.phone,
+            email: recipient.email || undefined,
+            sameAsCustomer: false,
+          } : { firstName: '', lastName: '', phone: '', sameAsCustomer: true },
+          notes: eventDetails.specialRequests || undefined,
+          subtotal,
+          surcharges_total: surchargesTotal,
+          delivery_fee: finalDeliveryFee,
+          delivery_distance_km: isPickup ? undefined : deliveryDistance,
+          discount: 0,
+          total: finalTotal,
+          pricing_breakdown: combinedPricingBreakdown,
+          items: reservationItems,
+          cgv_accepted: payment.acceptCGV,
+          newsletter_accepted: payment.acceptNewsletter,
+          is_business: customer.isProfessional,
+          delivery_is_mandatory: !isPickup && deliveryIsMandatory,
+          pickup_is_mandatory: !isPickup && pickupIsMandatory,
+          billing_company_name: customer.isProfessional ? billingAddress.companyName : undefined,
+          billing_vat_number: customer.isProfessional && billingAddress.vatNumber ? billingAddress.vatNumber : undefined,
+          billing_address_line1: customer.isProfessional ? billingAddress.addressLine1 : undefined,
+          billing_address_line2: customer.isProfessional && billingAddress.addressLine2 ? billingAddress.addressLine2 : undefined,
+          billing_postal_code: customer.isProfessional ? billingAddress.postalCode : undefined,
+          billing_city: customer.isProfessional ? billingAddress.city : undefined,
+          billing_country: customer.isProfessional ? billingAddress.country : undefined,
+        };
 
-      if (!result.success) {
-        throw new Error(result.error || 'Erreur lors de la creation de la reservation');
+        const result = await CheckoutService.checkout(user?.id || null, checkoutPayload);
+
+        if (!result.success) {
+          throw new Error(result.error || 'Erreur lors de la creation de la reservation');
+        }
+
+        reservationId = result.reservation_id!;
+        pendingReservationIdRef.current = reservationId;
+        sessionStorage.setItem('lastReservationId', reservationId);
       }
 
-      // Stocker le reservationId en session pour les guests
-      sessionStorage.setItem('lastReservationId', result.reservation_id!);
-
       // Créer la session Stripe Checkout et rediriger
-      const baseUrl = `${window.location.origin}/confirmation/${result.reservation_id}`;
+      const baseUrl = `${window.location.origin}/confirmation/${reservationId}`;
       const { session_url } = await CheckoutService.createStripeCheckoutSession(
-        result.reservation_id!,
+        reservationId,
         `${baseUrl}?payment=success`,
         `${baseUrl}?payment=cancelled`
       );

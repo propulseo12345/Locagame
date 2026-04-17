@@ -7,6 +7,8 @@ import {
   AlertCircle,
   Award,
   MessageCircle,
+  CalendarX2,
+  Loader2,
 } from 'lucide-react';
 import { Product, PriceCalculation } from '../../types';
 import { formatPrice, hasWeekend } from '../../utils/pricing';
@@ -22,6 +24,8 @@ interface ProductReservationCardProps {
   priceCalculation: PriceCalculation | null;
   availabilityError: string;
   isAddingToCart: boolean;
+  isCheckingAvailability: boolean;
+  isAvailable: boolean | null;
   onDateSelect: (startDate: string, endDate: string) => void;
   onClearSelection: () => void;
   onPriceChange: (calculation: PriceCalculation) => void;
@@ -37,6 +41,8 @@ export function ProductReservationCard({
   priceCalculation,
   availabilityError,
   isAddingToCart,
+  isCheckingAvailability,
+  isAvailable,
   onDateSelect,
   onClearSelection,
   onPriceChange,
@@ -141,23 +147,15 @@ export function ProductReservationCard({
         )}
 
         {/* Bouton Reserver */}
-        <button
-          onClick={onAddToCart}
-          disabled={isAddingToCart || !selectedStartDate || !selectedEndDate}
-          className="w-full flex items-center justify-center gap-3 px-6 py-5 bg-[#33ffcc] text-[#000033] rounded-2xl hover:bg-[#66cccc] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-black text-lg shadow-lg shadow-[#33ffcc]/30"
-        >
-          {isAddingToCart ? (
-            <>
-              <div className="w-5 h-5 border-2 border-[#000033] border-t-transparent rounded-full animate-spin"></div>
-              Ajout en cours...
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="w-5 h-5" />
-              {priceCalculation ? `Réserver • ${formatPrice(priceCalculation.total)}` : 'Ajouter au panier'}
-            </>
-          )}
-        </button>
+        <ReserveButton
+          selectedStartDate={selectedStartDate}
+          selectedEndDate={selectedEndDate}
+          isCheckingAvailability={isCheckingAvailability}
+          isAvailable={isAvailable}
+          isAddingToCart={isAddingToCart}
+          priceCalculation={priceCalculation}
+          onAddToCart={onAddToCart}
+        />
 
         {/* Trust badges */}
         <TrustBadges />
@@ -200,6 +198,89 @@ function DateSummary({
         </div>
       </div>
     </div>
+  );
+}
+
+function ReserveButton({
+  selectedStartDate,
+  selectedEndDate,
+  isCheckingAvailability,
+  isAvailable,
+  isAddingToCart,
+  priceCalculation,
+  onAddToCart,
+}: {
+  selectedStartDate: string;
+  selectedEndDate: string;
+  isCheckingAvailability: boolean;
+  isAvailable: boolean | null;
+  isAddingToCart: boolean;
+  priceCalculation: PriceCalculation | null;
+  onAddToCart: () => void;
+}) {
+  const hasDates = !!(selectedStartDate && selectedEndDate);
+
+  // Pas de dates sélectionnées
+  if (!hasDates) {
+    return (
+      <button
+        disabled
+        className="w-full flex items-center justify-center gap-3 px-6 py-5 bg-white/10 text-white/50 rounded-2xl cursor-not-allowed font-black text-lg border border-white/10"
+      >
+        <Calendar className="w-5 h-5" />
+        Choisissez vos dates
+      </button>
+    );
+  }
+
+  // Vérification en cours
+  if (isCheckingAvailability) {
+    return (
+      <button
+        disabled
+        className="w-full flex items-center justify-center gap-3 px-6 py-5 bg-white/10 text-white/70 rounded-2xl cursor-not-allowed font-black text-lg border border-white/10"
+      >
+        <Loader2 className="w-5 h-5 animate-spin" />
+        Vérification de la disponibilité...
+      </button>
+    );
+  }
+
+  // Indisponible
+  if (isAvailable === false) {
+    return (
+      <button
+        disabled
+        className="w-full flex items-center justify-center gap-3 px-6 py-5 bg-[#fe1979]/20 text-[#fe1979] rounded-2xl cursor-not-allowed font-black text-lg border border-[#fe1979]/30"
+      >
+        <CalendarX2 className="w-5 h-5" />
+        Indisponible sur ces dates
+      </button>
+    );
+  }
+
+  // Disponible — ajout en cours
+  if (isAddingToCart) {
+    return (
+      <button
+        disabled
+        className="w-full flex items-center justify-center gap-3 px-6 py-5 bg-[#33ffcc] text-[#000033] rounded-2xl cursor-not-allowed font-black text-lg shadow-lg shadow-[#33ffcc]/30"
+      >
+        <Loader2 className="w-5 h-5 animate-spin" />
+        Ajout en cours...
+      </button>
+    );
+  }
+
+  // Disponible — prêt à réserver
+  return (
+    <button
+      onClick={onAddToCart}
+      className="w-full flex items-center justify-center gap-3 px-6 py-5 bg-[#33ffcc] text-[#000033] rounded-2xl hover:bg-[#66cccc] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] font-black text-lg shadow-lg shadow-[#33ffcc]/30"
+    >
+      <ShoppingCart className="w-5 h-5" />
+      {priceCalculation ? `Réserver • ${formatPrice(priceCalculation.total)}` : 'Ajouter au panier'}
+    </button>
   );
 }
 

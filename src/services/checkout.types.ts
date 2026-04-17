@@ -34,6 +34,7 @@ export interface CheckoutPayload {
   subtotal: number;
   surcharges_total: number;
   delivery_fee: number;
+  delivery_distance_km?: number;
   discount?: number;
   total: number;
   pricing_breakdown?: Record<string, unknown>;

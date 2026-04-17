@@ -5,7 +5,7 @@ import {
   type PricingBreakdown,
 } from '../../utils/pricingRules';
 import { isWeekendOrHoliday } from '../../utils/dateHolidays';
-import { DistanceService } from '../../services/distance.service';
+import { DistanceService, calculateDeliveryFeeFromCoords } from '../../services/distance.service';
 import type { DeliveryState } from './types';
 import { logger } from '../../lib/logger';
 
@@ -27,6 +27,7 @@ interface CheckoutPricingReturn {
   calculatedDeliveryFee: number;
   deliveryDistance: number;
   isCalculatingFee: boolean;
+  deliveryError: string;
   deliveryDateIsWeekendOrHoliday: boolean;
   pickupDateIsWeekendOrHoliday: boolean;
   pricingInfoMessage: string | undefined;
@@ -41,10 +42,11 @@ export function useCheckoutPricing({
   startSlot,
   endSlot,
 }: UseCheckoutPricingArgs): CheckoutPricingReturn {
-  // Delivery fee calculation
+  // Delivery fee calculation (ORS)
   const [calculatedDeliveryFee, setCalculatedDeliveryFee] = useState(0);
   const [deliveryDistance, setDeliveryDistance] = useState(0);
   const [isCalculatingFee, setIsCalculatingFee] = useState(false);
+  const [deliveryError, setDeliveryError] = useState('');
 
   // Pricing breakdowns per cart item
   const pricingBreakdowns: PricingBreakdown[] = cartItems.map(item => {
@@ -77,15 +79,17 @@ export function useCheckoutPricing({
   const pickupDateIsWeekendOrHoliday = !!delivery.pickupDate && isWeekendOrHoliday(delivery.pickupDate);
   const pricingInfoMessage = pricingBreakdowns.find(b => b.infoMessage)?.infoMessage;
 
-  // Calculate delivery fee from address
+  // Calculate delivery fee from address via ORS
   const calculateDeliveryFeeFromAddress = useCallback(async () => {
     if (isPickup || !delivery.address || !delivery.city || !delivery.postalCode) {
       setCalculatedDeliveryFee(0);
       setDeliveryDistance(0);
+      setDeliveryError('');
       return;
     }
 
     setIsCalculatingFee(true);
+    setDeliveryError('');
     try {
       const result = await DistanceService.calculateDeliveryFee(
         delivery.address,
@@ -96,15 +100,22 @@ export function useCheckoutPricing({
       if (result.success) {
         setDeliveryDistance(result.distanceKm);
         setCalculatedDeliveryFee(result.deliveryFee);
+        setDeliveryError('');
+      } else {
+        setDeliveryDistance(result.distanceKm);
+        setCalculatedDeliveryFee(0);
+        setDeliveryError(result.error ?? 'Erreur de calcul');
       }
     } catch (error) {
       logger.error('Erreur calcul frais', error);
+      setDeliveryError('Erreur lors du calcul des frais de livraison');
+      setCalculatedDeliveryFee(0);
     } finally {
       setIsCalculatingFee(false);
     }
   }, [delivery.address, delivery.city, delivery.postalCode, isPickup]);
 
-  // Debounced address fee calculation
+  // Debounced address fee calculation (500ms)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (delivery.address && delivery.city && delivery.postalCode) {
@@ -115,6 +126,30 @@ export function useCheckoutPricing({
     return () => clearTimeout(timeoutId);
   }, [delivery.address, delivery.city, delivery.postalCode, calculateDeliveryFeeFromAddress]);
 
+  // Instant calculation from autocomplete coords (skip geocoding)
+  const calculateFromCoords = useCallback(async (lat: number, lng: number) => {
+    setIsCalculatingFee(true);
+    setDeliveryError('');
+    try {
+      const result = await calculateDeliveryFeeFromCoords(lat, lng);
+      if (result.success) {
+        setDeliveryDistance(result.distanceKm);
+        setCalculatedDeliveryFee(result.deliveryFee);
+        setDeliveryError('');
+      } else {
+        setDeliveryDistance(result.distanceKm);
+        setCalculatedDeliveryFee(0);
+        setDeliveryError(result.error ?? 'Erreur de calcul');
+      }
+    } catch (error) {
+      logger.error('Erreur calcul frais coords', error);
+      setDeliveryError('Erreur lors du calcul des frais');
+      setCalculatedDeliveryFee(0);
+    } finally {
+      setIsCalculatingFee(false);
+    }
+  }, []);
+
   return {
     pricingBreakdowns,
     productsSubtotal,
@@ -123,8 +158,10 @@ export function useCheckoutPricing({
     calculatedDeliveryFee,
     deliveryDistance,
     isCalculatingFee,
+    deliveryError,
     deliveryDateIsWeekendOrHoliday,
     pickupDateIsWeekendOrHoliday,
     pricingInfoMessage,
+    calculateFromCoords,
   };
 }

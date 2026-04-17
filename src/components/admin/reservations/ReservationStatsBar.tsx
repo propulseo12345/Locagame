@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  CreditCard,
   Clock,
   CheckCircle,
   Package,
@@ -31,15 +30,6 @@ const STAT_CARDS: StatCardConfig[] = [
     borderColor: 'border-l-gray-900',
     ringColor: 'ring-gray-400 ring-offset-1',
     getValue: (s) => s.total,
-  },
-  {
-    key: 'pending_payment',
-    label: 'Paiement',
-    icon: CreditCard,
-    color: 'text-orange-600',
-    borderColor: 'border-l-orange-500',
-    ringColor: 'ring-orange-400 ring-offset-1',
-    getValue: (s) => s.pending_payment,
   },
   {
     key: 'pending',
@@ -106,7 +96,7 @@ interface ReservationStatsBarProps {
 
 export default function ReservationStatsBar({ stats, activeFilter, onFilterClick }: ReservationStatsBarProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-9 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
       {STAT_CARDS.map((card) => {
         const Icon = card.icon;
         const value = card.getValue(stats);

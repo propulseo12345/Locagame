@@ -30,6 +30,8 @@ interface CheckoutDeliveryStepProps {
   isCalculatingFee: boolean;
   deliveryDistance: number;
   calculatedDeliveryFee: number;
+  deliveryError: string;
+  calculateFromCoords: (lat: number, lng: number) => Promise<void>;
   // Time slots
   timeSlots: TimeSlot[];
   eventTypes: EventType[];
@@ -58,6 +60,8 @@ export function CheckoutDeliveryStep({
   isCalculatingFee,
   deliveryDistance,
   calculatedDeliveryFee,
+  deliveryError,
+  calculateFromCoords,
   timeSlots,
   eventTypes,
   accessDifficulties,
@@ -156,6 +160,8 @@ export function CheckoutDeliveryStep({
             isCalculatingFee={isCalculatingFee}
             deliveryDistance={deliveryDistance}
             calculatedDeliveryFee={calculatedDeliveryFee}
+            deliveryError={deliveryError}
+            calculateFromCoords={calculateFromCoords}
           />
           <CheckoutDeliverySlots
             delivery={delivery}

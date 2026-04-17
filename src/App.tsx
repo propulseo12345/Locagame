@@ -22,6 +22,7 @@ import { ROUTES } from './constants/routes';
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const AccessDeniedPage = lazy(() => import('./pages/AccessDeniedPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 
 // Lazy loading des pages pour optimiser le bundle
 const CatalogPage = lazy(() => import('./pages/CatalogPage'));
@@ -122,7 +123,7 @@ function ReservationRedirect() {
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === ROUTES.LOGIN || location.pathname === '/inscription';
+  const isAuthPage = location.pathname === ROUTES.LOGIN || location.pathname === '/inscription' || location.pathname === ROUTES.RESET_PASSWORD;
   const isAdminOrClientOrTechnician =
     location.pathname.startsWith(ROUTES.ADMIN.BASE) ||
     location.pathname.startsWith(ROUTES.CLIENT.BASE) ||
@@ -148,6 +149,7 @@ function AppContent() {
 
             {/* Page accès refusé */}
             <Route path="/access-denied" element={<AccessDeniedPage />} />
+            <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
 
             {/* Pages publiques */}
             <Route path={ROUTES.HOME} element={<HomePage />} />

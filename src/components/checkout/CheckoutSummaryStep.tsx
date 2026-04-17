@@ -112,11 +112,13 @@ export function CheckoutSummaryStep({
             <span className="text-gray-400">
               Frais de livraison
               {deliveryDistance > 0 && (
-                <span className="text-xs ml-1">({deliveryDistance} km x {PRICE_PER_KM.toFixed(2)}&euro;)</span>
+                <span className="text-xs ml-1">({deliveryDistance} km &times; {PRICE_PER_KM.toFixed(2)}&euro;)</span>
               )}
             </span>
             <span className="text-white font-medium">
-              {calculatedDeliveryFee > 0 ? formatPrice(calculatedDeliveryFee) : 'A calculer'}
+              {calculatedDeliveryFee > 0
+                ? formatPrice(calculatedDeliveryFee)
+                : <span className="text-orange-400 text-sm">À calculer</span>}
             </span>
           </div>
         )}

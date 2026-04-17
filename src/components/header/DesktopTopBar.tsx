@@ -78,7 +78,7 @@ export function DesktopTopBar({ isScrolled }: DesktopTopBarProps) {
           <Instagram className={`group-hover:scale-110 transition-transform ${isScrolled ? 'w-5 h-5' : 'w-7 h-7'}`} />
         </a>
         <a
-          href="https://www.tiktok.com/@pokeragency"
+          href="https://www.tiktok.com/@locagame.events"
           target="_blank"
           rel="noopener noreferrer"
           className="text-[#33ffcc] hover:text-[#66cccc] transition-all duration-300 group"

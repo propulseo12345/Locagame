@@ -116,7 +116,6 @@ export function useAdminReservations() {
 
   const stats: ReservationStats = useMemo(() => ({
     total: allReservations.length,
-    pending_payment: allReservations.filter(r => r.status === 'pending_payment').length,
     pending: allReservations.filter(r => r.status === 'pending').length,
     confirmed: allReservations.filter(r => r.status === 'confirmed').length,
     preparing: allReservations.filter(r => r.status === 'preparing').length,
@@ -238,21 +237,6 @@ export function useAdminReservations() {
       setAssigning(false);
     }
   }, [selectedReservation, selectedTechnician, selectedVehicle, refreshAfterAction, toast]);
-
-  // Auto-refresh silencieux quand il y a des pending_payment (toutes les 30s)
-  // Utilise refreshAfterAction au lieu de loadData pour ne pas afficher "Chargement..."
-  const hasPendingPayments = useMemo(
-    () => allReservations.some(r => r.status === 'pending_payment'),
-    [allReservations]
-  );
-
-  useEffect(() => {
-    if (!hasPendingPayments) return;
-    const interval = setInterval(() => {
-      refreshAfterAction();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [hasPendingPayments, refreshAfterAction]);
 
   // Realtime: subscribe to delivery_tasks changes for live status updates
   const techniciansRef = useRef(technicians);

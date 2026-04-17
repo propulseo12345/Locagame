@@ -16,6 +16,7 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<User>;
   signUp: (email: string, password: string, metadata: SignUpMetadata) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
   isAuthenticated: boolean;
   hasRole: (role: 'admin' | 'client' | 'technician') => boolean;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
