@@ -47,16 +47,24 @@ export class ReservationsQueries {
       status?: Order['status'];
       dateFrom?: string;
       dateTo?: string;
+      includePendingPayment?: boolean;
     }
   ): Promise<Order[]> {
     let query = supabase
       .from('reservations')
       .select('*, customer:customers(*), delivery_address:addresses!delivery_address_id(*), reservation_items:reservation_items(*, product:products(name))')
-      .not('status', 'in', '("pending_payment","expired")')
       .order('created_at', { ascending: false });
 
-    if (filters?.status) {
-      query = query.eq('status', filters.status);
+    // Par défaut, exclure pending_payment et expired sauf filtre explicite
+    if (filters?.status === 'pending_payment') {
+      query = query.eq('status', 'pending_payment');
+    } else if (filters?.includePendingPayment) {
+      query = query.not('status', 'eq', 'expired');
+    } else {
+      query = query.not('status', 'in', '("pending_payment","expired")');
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      }
     }
 
     if (filters?.dateFrom) {

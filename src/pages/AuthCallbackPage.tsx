@@ -12,6 +12,12 @@ export default function AuthCallbackPage() {
     // Supabase (detectSessionInUrl: true) parse automatiquement le token dans l'URL
     // On ecoute le changement d'etat auth pour savoir si la confirmation a reussi
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Si c'est un lien de recovery qui a atterri ici, rediriger vers /reset-password
+      if (event === 'PASSWORD_RECOVERY' || (session && window.location.hash.includes('type=recovery'))) {
+        navigate('/reset-password' + window.location.hash, { replace: true });
+        return;
+      }
+
       if (event === 'SIGNED_IN' && session) {
         setStatus('success');
         // Redirection vers le dashboard client apres 2s
@@ -23,7 +29,7 @@ export default function AuthCallbackPage() {
       }
     });
 
-    // Verifier si une erreur est presente dans l'URL (#error=...)
+    // Vérifier si une erreur est présente dans l'URL (#error=...)
     const hash = window.location.hash;
     if (hash.includes('error=')) {
       const params = new URLSearchParams(hash.slice(1));

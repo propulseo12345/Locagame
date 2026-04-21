@@ -53,7 +53,7 @@ export default function TechnicianTaskDetail() {
   return (
     <div className="space-y-6">
       {/* En-tête */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <Link
             to="/technician/dashboard"
@@ -61,15 +61,15 @@ export default function TechnicianTaskDetail() {
           >
             {"\u2190 Retour au planning"}
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             {"Détails de l'intervention"}
           </h1>
         </div>
-        <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 text-sm font-semibold rounded ${getTypeColor(task.type)}`}>
+        <div className="flex items-center gap-2">
+          <span className={`px-3 py-1.5 text-sm font-semibold rounded ${getTypeColor(task.type)}`}>
             {getTypeLabel(task.type)}
           </span>
-          <span className={`px-3 py-1 text-sm font-medium rounded border ${getStatusColor(task.status)}`}>
+          <span className={`px-3 py-1.5 text-sm font-medium rounded border ${getStatusColor(task.status)}`}>
             {getStatusLabel(task.status)}
           </span>
         </div>

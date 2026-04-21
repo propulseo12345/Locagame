@@ -265,14 +265,14 @@ export default function AdminPortfolioEvents() {
                 <div className="flex gap-1">
                   <button
                     onClick={() => handleToggleActive(item)}
-                    className={`p-1.5 rounded-lg transition-colors ${item.is_active ? 'text-green-500 hover:bg-green-50' : 'text-gray-300 hover:bg-gray-50'}`}
+                    className={`p-2 rounded-lg transition-colors active:scale-95 ${item.is_active ? 'text-green-500 hover:bg-green-50' : 'text-gray-300 hover:bg-gray-50'}`}
                     title={item.is_active ? 'Désactiver' : 'Activer'}
                   >
                     {item.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => handleToggleFeatured(item)}
-                    className={`p-1.5 rounded-lg transition-colors ${item.is_featured ? 'text-yellow-500 hover:bg-yellow-50' : 'text-gray-300 hover:bg-gray-50'}`}
+                    className={`p-2 rounded-lg transition-colors active:scale-95 ${item.is_featured ? 'text-yellow-500 hover:bg-yellow-50' : 'text-gray-300 hover:bg-gray-50'}`}
                     title={item.is_featured ? 'Retirer des favoris' : 'Mettre en avant'}
                   >
                     <Star className={`w-4 h-4 ${item.is_featured ? 'fill-current' : ''}`} />

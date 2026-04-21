@@ -12,6 +12,5 @@ export class ReservationsService {
   static syncPaymentWithStripe = ReservationsPayments.syncPaymentWithStripe;
   static updateReservationStatus = ReservationsAdmin.updateReservationStatus;
   static cancelReservation = ReservationsAdmin.cancelReservation;
-  static refundDeposit = ReservationsAdmin.refundDeposit;
   static getUnassignedReservations = ReservationsAdmin.getUnassignedReservations;
 }

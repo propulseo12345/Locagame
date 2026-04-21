@@ -24,8 +24,8 @@ export default function ConfirmationNextSteps({ paymentState }: ConfirmationNext
             <p className="text-white font-medium text-sm">Paiement et confirmation</p>
             <p className="text-gray-400 text-xs">
               {paymentState === 'success'
-                ? 'Paiement recu — reservation confirmee.'
-                : 'Finalisez votre paiement pour confirmer la reservation.'}
+                ? 'Paiement reçu — réservation confirmée.'
+                : 'Finalisez votre paiement pour confirmer la réservation.'}
             </p>
           </div>
         </div>

@@ -51,11 +51,11 @@ export function DateSelectionSummary({
         </div>
       </div>
 
-      {/* Statut de disponibilite */}
+      {/* Statut de disponibilité */}
       {isCheckingAvailability && (
         <div className="flex items-center gap-2 text-sm text-gray-400 bg-white/5 p-3 rounded-lg">
           <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#33ffcc] border-t-transparent"></div>
-          Verification de la disponibilite...
+          Vérification de la disponibilité...
         </div>
       )}
 

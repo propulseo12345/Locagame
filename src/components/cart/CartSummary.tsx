@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Tag, Truck, ShieldCheck, Clock, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Truck, ShieldCheck, Clock, ArrowRight, AlertTriangle } from 'lucide-react';
 import { formatPrice } from '../../utils/pricing';
 import type { PricingRuleApplied } from '../../utils/pricingRulesTypes';
 
@@ -16,29 +15,7 @@ export default function CartSummary({
   productsTotal, deliveryFee, totalPrice,
   surchargesTotal = 0, surchargeRules = []
 }: CartSummaryProps) {
-  const [promoCode, setPromoCode] = useState('');
-  const [promoCodeError, setPromoCodeError] = useState('');
-  const [promoCodeSuccess, setPromoCodeSuccess] = useState('');
-  const [discount, setDiscount] = useState(0);
-
-  const applyPromoCode = () => {
-    const validCodes: { [key: string]: number } = {
-      'WELCOME10': 10,
-      'SUMMER20': 20,
-      'FAMILY15': 15
-    };
-
-    if (promoCode in validCodes) {
-      setDiscount(validCodes[promoCode]);
-      setPromoCodeSuccess(`-${validCodes[promoCode]}€ appliqué`);
-      setPromoCodeError('');
-    } else {
-      setPromoCodeError('Code invalide');
-      setPromoCodeSuccess('');
-    }
-  };
-
-  const calculateTotal = () => totalPrice + surchargesTotal - discount;
+  const total = totalPrice + surchargesTotal;
 
   return (
     <div className="sticky top-[calc(var(--header-height)+1rem)] bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
@@ -48,37 +25,6 @@ export default function CartSummary({
       </div>
 
       <div className="p-6">
-        {/* Code promo */}
-        <div className="mb-6">
-          <label className="block text-sm text-white/60 mb-2">
-            Code promo
-          </label>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input
-                type="text"
-                placeholder="Entrez votre code"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#33ffcc]/50 focus:border-[#33ffcc]/50 transition-all text-sm"
-              />
-            </div>
-            <button
-              onClick={applyPromoCode}
-              className="px-4 py-3 bg-white/10 hover:bg-white/15 text-white font-medium rounded-xl transition-colors text-sm"
-            >
-              Appliquer
-            </button>
-          </div>
-          {promoCodeError && (
-            <p className="mt-2 text-sm text-red-400">{promoCodeError}</p>
-          )}
-          {promoCodeSuccess && (
-            <p className="mt-2 text-sm text-[#33ffcc]">{promoCodeSuccess}</p>
-          )}
-        </div>
-
         {/* Détail des prix */}
         <div className="space-y-3 mb-6">
           <div className="flex justify-between text-sm">
@@ -114,20 +60,13 @@ export default function CartSummary({
               ))}
             </div>
           )}
-
-          {discount > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-[#33ffcc]">Réduction</span>
-              <span className="text-[#33ffcc] font-medium">-{formatPrice(discount)}</span>
-            </div>
-          )}
         </div>
 
         {/* Total */}
         <div className="border-t border-white/10 pt-4 mb-6">
           <div className="flex justify-between items-center">
             <span className="text-white/80">Total TTC</span>
-            <span className="text-2xl md:text-3xl font-bold text-white">{formatPrice(calculateTotal())}</span>
+            <span className="text-2xl md:text-3xl font-bold text-white">{formatPrice(total)}</span>
           </div>
         </div>
 

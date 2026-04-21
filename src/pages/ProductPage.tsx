@@ -13,6 +13,7 @@ import {
   ProductQuickSpecs,
   ProductLoading,
   ProductNotFound,
+  SimilarProducts,
 } from '../components/product';
 import { useProductPage } from '../hooks/useProductPage';
 
@@ -113,6 +114,8 @@ export default function ProductPage() {
               </div>
 
               <ProductInfoTabs product={product} />
+
+              <SimilarProducts categoryId={product.category_id} currentProductId={product.id} />
             </div>
 
             {/* Right column - Reservation Sticky */}

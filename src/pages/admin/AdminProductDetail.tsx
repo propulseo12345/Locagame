@@ -106,7 +106,7 @@ export default function AdminProductDetail() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Colonne principale */}
           <div className="flex-1 space-y-6 min-w-0">
             <ProductBasicInfoSection
@@ -146,7 +146,7 @@ export default function AdminProductDetail() {
           </div>
 
           {/* Sidebar */}
-          <div className="w-80 flex-shrink-0">
+          <div className="w-full lg:w-80 flex-shrink-0">
             <div className="sticky top-6">
               <ProductSidebarSection
                 formData={formData}

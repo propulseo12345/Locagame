@@ -99,7 +99,7 @@ export function useClientAddresses() {
   };
 
   const handleDelete = async (addressId: string) => {
-    if (!confirm('Etes-vous sur de vouloir supprimer cette adresse ?')) return;
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette adresse ?')) return;
 
     setDeletingId(addressId);
     try {

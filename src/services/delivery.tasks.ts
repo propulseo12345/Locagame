@@ -82,7 +82,7 @@ export class DeliveryTasksService {
   static async createDeliveryTask(
     task: Omit<DeliveryTask, 'id'>
   ): Promise<DeliveryTask> {
-    // Verifier s'il existe deja une task pour cette reservation
+    // Vérifier s'il existe déjà une task pour cette reservation
     if (task.reservationId) {
       const { data: existing } = await supabase
         .from('delivery_tasks')

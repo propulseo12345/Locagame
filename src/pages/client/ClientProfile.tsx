@@ -38,7 +38,7 @@ export default function ClientProfile() {
   }
 
   return (
-    <div className="space-y-6 mt-6 md:mt-8">
+    <div className="space-y-6">
       <ProfileHeader
         firstName={formData.firstName}
         lastName={formData.lastName}

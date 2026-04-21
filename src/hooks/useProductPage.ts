@@ -8,6 +8,7 @@ import { useCart } from '../contexts/CartContext';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useAvailabilityCheck } from './useAvailabilityCheck';
 import { logger } from '../lib/logger';
+import { AnalyticsService } from '../services/analytics.service';
 
 export interface UseProductPageReturn {
   // Data
@@ -105,12 +106,15 @@ export function useProductPage(): UseProductPageReturn {
         }
         if (foundProduct) {
           setProduct(foundProduct);
+          let categoryName = '';
           if (foundProduct.category_id) {
             const foundCategory = await CategoriesService.getCategoryById(foundProduct.category_id);
             if (foundCategory) {
-              setCategory(foundCategory.name);
+              categoryName = foundCategory.name;
+              setCategory(categoryName);
             }
           }
+          AnalyticsService.viewItem(foundProduct, categoryName || undefined);
         }
       } catch (error) {
         logger.error('Error loading product', error);
@@ -182,6 +186,8 @@ export function useProductPage(): UseProductPageReturn {
         product_price: priceCalculation.product_price,
         total_price: priceCalculation.total,
       });
+
+      AnalyticsService.addToCart(product, quantity, priceCalculation.product_price);
 
       await new Promise(resolve => setTimeout(resolve, 500));
       navigate('/panier');

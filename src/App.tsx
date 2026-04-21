@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, useParams, Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { About } from './components/About';
@@ -17,6 +17,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { CookieBanner } from './components/CookieBanner';
 import { MobileBottomNav } from './components/header/MobileBottomNav';
 import { ROUTES } from './constants/routes';
+import { AnalyticsService } from './services/analytics.service';
 
 // Auth pages
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -62,6 +63,7 @@ const AdminTestimonials = lazy(() => import('./pages/admin/AdminTestimonials'));
 const AdminFaqs = lazy(() => import('./pages/admin/AdminFaqs'));
 const AdminPortfolioEvents = lazy(() => import('./pages/admin/AdminPortfolioEvents'));
 const AdminTechniciansPage = lazy(() => import('./pages/admin/AdminTechniciansPage'));
+const AdminPromoCodes = lazy(() => import('./pages/admin/AdminPromoCodes'));
 
 // Client pages
 const ClientLayout = lazy(() => import('./components/client/ClientLayout'));
@@ -123,6 +125,22 @@ function ReservationRedirect() {
 
 function AppContent() {
   const location = useLocation();
+
+  // Safety net: si Supabase redirige un lien recovery vers la mauvaise page
+  // (ex: homepage au lieu de /reset-password), on redirige automatiquement
+  // en conservant le hash fragment contenant le token.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes('type=recovery') && location.pathname !== ROUTES.RESET_PASSWORD) {
+      window.location.replace(ROUTES.RESET_PASSWORD + hash);
+    }
+  }, [location.pathname]);
+
+  // GA4 page view tracking
+  useEffect(() => {
+    AnalyticsService.pageView(location.pathname);
+  }, [location.pathname]);
+
   const isAuthPage = location.pathname === ROUTES.LOGIN || location.pathname === '/inscription' || location.pathname === ROUTES.RESET_PASSWORD;
   const isAdminOrClientOrTechnician =
     location.pathname.startsWith(ROUTES.ADMIN.BASE) ||
@@ -193,6 +211,7 @@ function AppContent() {
                   <Route path="faqs" element={<AdminFaqs />} />
                   <Route path="portfolio" element={<AdminPortfolioEvents />} />
                   <Route path="technicians" element={<AdminTechniciansPage />} />
+                  <Route path="promo-codes" element={<AdminPromoCodes />} />
                   <Route path="*" element={<Navigate to={ROUTES.ADMIN.DASHBOARD} replace />} />
                 </Routes>
               </AdminLayout>

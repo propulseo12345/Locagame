@@ -43,8 +43,11 @@ export function useAdminReservations() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      const resFilters = statusFilter === 'pending_payment'
+        ? { status: 'pending_payment' as Order['status'] }
+        : undefined;
       const [allRes, unassignedRes, techs, vehs, allTasks] = await Promise.all([
-        ReservationsService.getAllReservations(),
+        ReservationsService.getAllReservations(resFilters),
         ReservationsService.getUnassignedReservations(),
         TechniciansService.getAllTechnicians(),
         TechniciansService.getAllVehicles(),
@@ -77,7 +80,7 @@ export function useAdminReservations() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [statusFilter]);
 
   useEffect(() => {
     loadData();
@@ -237,6 +240,25 @@ export function useAdminReservations() {
       setAssigning(false);
     }
   }, [selectedReservation, selectedTechnician, selectedVehicle, refreshAfterAction, toast]);
+
+  // Realtime: subscribe to reservations changes for live status updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('reservations_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'reservations',
+      }, () => {
+        // Re-fetch all reservations when any change occurs (new, updated, deleted)
+        refreshAfterAction();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refreshAfterAction]);
 
   // Realtime: subscribe to delivery_tasks changes for live status updates
   const techniciansRef = useRef(technicians);

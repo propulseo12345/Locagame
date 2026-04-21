@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, Truck, Package } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Truck, Package, Tag } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { CartItem } from '../../types';
 import type { PricingBreakdown } from '../../utils/pricingRules';
@@ -18,18 +18,22 @@ interface CheckoutLayoutProps {
   calculatedDeliveryFee: number;
   deliveryDistance: number;
   isPickup: boolean;
+  // Promo
+  promoDiscount?: number;
+  promoLabel?: string;
 }
 
 export function CheckoutLayout({
   children, cartItems, finalTotal, checkingAvailability, unavailableProducts,
   pricingBreakdowns, productsSubtotal, surchargesTotal, calculatedDeliveryFee, deliveryDistance, isPickup,
+  promoDiscount = 0, promoLabel = '',
 }: CheckoutLayoutProps) {
   return (
     <>
       {checkingAvailability && (
         <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-3">
           <div className="w-5 h-5 border-2 border-[#33ffcc] border-t-transparent rounded-full animate-spin" />
-          <span className="text-white/60 text-sm">Verification de la disponibilite...</span>
+          <span className="text-white/60 text-sm">Vérification de la disponibilité...</span>
         </div>
       )}
       {unavailableProducts.length > 0 && (
@@ -42,7 +46,7 @@ export function CheckoutLayout({
               </h3>
               <p className="text-red-300/80 text-sm mb-3">
                 {unavailableProducts.length === 1
-                  ? `Le produit "${unavailableProducts[0]}" n'est plus disponible pour les dates selectionnees.`
+                  ? `Le produit "${unavailableProducts[0]}" n'est plus disponible pour les dates sélectionnées.`
                   : `Les produits suivants ne sont plus disponibles : ${unavailableProducts.join(', ')}.`}
               </p>
               <Link to="/panier" className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium">
@@ -134,6 +138,17 @@ export function CheckoutLayout({
                     </>
                   )}
                 </div>
+
+                {/* Promo discount */}
+                {promoDiscount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-green-400 flex items-center gap-1">
+                      <Tag className="w-3 h-3" />
+                      {promoLabel}
+                    </span>
+                    <span className="text-sm text-green-400 font-medium">-{formatPrice(promoDiscount)}</span>
+                  </div>
+                )}
 
                 {/* Total */}
                 <div className="pt-2.5 border-t border-white/10">

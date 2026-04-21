@@ -5,6 +5,7 @@ import { useCart } from '../../contexts/CartContext';
 import { useDebounce } from '../useDebounce';
 import { toLocalISODate } from '../../utils/dateHolidays';
 import { CATEGORY_SLUG_MAP, getCategorySlug } from '../../constants/categorySlugMap';
+import { AnalyticsService } from '../../services/analytics.service';
 
 interface UseCatalogSearchOptions {
   categories: Category[];
@@ -184,13 +185,17 @@ export function useCatalogSearch({
 
     setSearchParams(newParams, { replace: true });
 
+    if (searchTerm.trim()) {
+      AnalyticsService.search(searchTerm.trim());
+    }
+
     // Scroller vers les resultats
     setTimeout(() => {
       productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   }, [searchTerm, startDate, endDate, selectedCategory, categories, setSearchParams, productsRef]);
 
-  // Appliquer la categorie depuis l'URL une fois les categories chargees
+  // Appliquer la catégorie depuis l'URL une fois les catégories chargées
   useEffect(() => {
     const categorySlug = searchParams.get('category');
 
@@ -198,7 +203,7 @@ export function useCatalogSearch({
       const categoryName = CATEGORY_SLUG_MAP[categorySlug];
 
       if (categoryName) {
-        // Trouver la categorie par son nom
+        // Trouver la catégorie par son nom
         const category = categories.find(
           c => c.name.toLowerCase() === categoryName.toLowerCase()
         );

@@ -46,11 +46,6 @@ export default function AdminReservations() {
     setStatusFilter(status === statusFilter ? 'all' : status);
   };
 
-  const handleViewUnassigned = () => {
-    clearFilters();
-    setStatusFilter('unassigned');
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -73,11 +68,8 @@ export default function AdminReservations() {
         onFilterClick={handleStatsFilterClick}
       />
 
-      {/* Unassigned alert banner */}
-      <UnassignedReservationsTable
-        count={unassignedReservations.length}
-        onViewUnassigned={handleViewUnassigned}
-      />
+      {/* Unassigned alert */}
+      <UnassignedReservationsTable count={unassignedReservations.length} />
 
       {/* Filters */}
       <ReservationFilters

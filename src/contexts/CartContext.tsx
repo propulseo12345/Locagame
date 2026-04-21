@@ -80,6 +80,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('locagame_cart');
     localStorage.removeItem('locagame_delivery_type');
     localStorage.removeItem('locagame_rental_dates');
+    localStorage.removeItem('locagame_promo');
     setDeliveryType('delivery');
     setRentalDateRangeState(null);
   }, []);

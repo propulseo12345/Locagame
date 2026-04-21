@@ -234,7 +234,7 @@ const ReservationTableRow = memo(function ReservationTableRow({
             </span>
             <button
               onClick={(e) => { e.stopPropagation(); onAssignClick(reservation); }}
-              className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-2 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
               title="Assigner"
             >
               <UserPlus className="w-4 h-4" />
@@ -251,7 +251,7 @@ const ReservationTableRow = memo(function ReservationTableRow({
           {reservation.status === 'pending_payment' && (
             <button
               onClick={() => onReject(reservation.id)}
-              className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+              className="p-2 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
               title="Annuler"
             >
               <Trash2 className="w-4 h-4" />

@@ -16,6 +16,7 @@ export default function ContactForm({ onSubmitSuccess }: ContactFormProps) {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [honeypot, setHoneypot] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -26,6 +27,7 @@ export default function ContactForm({ onSubmitSuccess }: ContactFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (honeypot) return; // Bot detected — silent reject
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSubmitting(false);
@@ -37,6 +39,17 @@ export default function ContactForm({ onSubmitSuccess }: ContactFormProps) {
       <h2 className="text-xl font-bold text-white mb-6">Demande de devis personnalisé</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Honeypot anti-bot */}
+        <input
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          className="absolute opacity-0 h-0 w-0 pointer-events-none"
+          aria-hidden="true"
+          value={honeypot}
+          onChange={e => setHoneypot(e.target.value)}
+        />
         {/* Nom + Email */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

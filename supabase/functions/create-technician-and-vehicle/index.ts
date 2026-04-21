@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { rateLimitResponse } from "../_shared/rate-limiter.ts";
 
 // Types
 interface TechnicianInput {
@@ -57,6 +58,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // Only POST
   if (req.method !== "POST") {
     return jsonResponse({ success: false, error: "Method not allowed" }, 405);
+  }
+
+  // Rate limit: 5 req/min/IP
+  const rlResponse = rateLimitResponse(req, "create-technician", 5, corsHeaders);
+  if (rlResponse) return rlResponse;
+
+  // Payload size limit: 10 KB
+  const contentLength = parseInt(req.headers.get("content-length") || "0");
+  if (contentLength > 10_000) {
+    return jsonResponse({ success: false, error: "Payload too large" }, 413);
   }
 
   try {

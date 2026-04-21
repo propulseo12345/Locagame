@@ -33,6 +33,9 @@ interface CatalogProductsGridProps {
   setCurrentPage: (page: number) => void;
   productsRef: React.RefObject<HTMLDivElement | null> | React.LegacyRef<HTMLDivElement>;
   onCategoryClick?: (id: string) => void;
+  loadMoreProducts?: Product[];
+  hasMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 export function CatalogProductsGrid({
@@ -41,6 +44,7 @@ export function CatalogProductsGrid({
   searchTerm, startDate, endDate, filters, unavailableProductIds,
   activeFiltersCount, handleFilterChange, clearAllFilters,
   totalPages, currentPage, setCurrentPage, productsRef, onCategoryClick,
+  loadMoreProducts, hasMore, onLoadMore,
 }: CatalogProductsGridProps) {
   const gridClass = `grid gap-3 sm:gap-4 ${viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'}`;
   const showCategoryView = !selectedCategory && !searchTerm && Object.keys(filters).length === 0 && !startDate;
@@ -133,14 +137,25 @@ VITE_SUPABASE_ANON_KEY=votre-cle-anon`}
                   );
                 })
             ) : (
-              <div className={gridClass}>
-                {paginatedProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} viewMode={viewMode} />
-                ))}
-              </div>
+              <>
+                {/* Mobile: show accumulated "load more" products */}
+                {loadMoreProducts && (
+                  <div className={`${gridClass} md:hidden`}>
+                    {loadMoreProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} viewMode={viewMode} />
+                    ))}
+                  </div>
+                )}
+                {/* Desktop: show paginated products */}
+                <div className={`${loadMoreProducts ? 'hidden md:grid' : ''} ${gridClass}`}>
+                  {paginatedProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} viewMode={viewMode} />
+                  ))}
+                </div>
+              </>
             )}
             {!showCategoryView && (
-              <CatalogPagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+              <CatalogPagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} hasMore={hasMore} onLoadMore={onLoadMore} />
             )}
           </>
         ) : (

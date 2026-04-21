@@ -254,14 +254,3 @@ export function formatDate(date: string | Date): string {
     day: 'numeric'
   });
 }
-
-/**
- * Calcule le dépôt de garantie (caution) pour une réservation
- * Logique : 20% du sous-total avec un minimum de 50€
- */
-export function calculateDeposit(subtotal: number): number {
-  const depositPercentage = 0.2; // 20%
-  const minDeposit = 50;
-  const calculatedDeposit = Math.ceil(subtotal * depositPercentage);
-  return Math.max(calculatedDeposit, minDeposit);
-}

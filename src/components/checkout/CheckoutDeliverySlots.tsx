@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Truck, Calendar, Clock } from 'lucide-react';
 import { isWeekendOrHoliday, isWeekend, getHolidayName, toLocalISODate } from '../../utils/dateHolidays';
 import type { DeliveryState } from '../../hooks/checkout/types';
@@ -95,6 +95,25 @@ export function CheckoutDeliverySlots({
     return dayStr;
   };
 
+  // --- Pickup slot constraint: must be AFTER delivery slot on same day ---
+  const isSameDay = !!(delivery.date && delivery.pickupDate && delivery.date === delivery.pickupDate);
+  const selectedDeliverySlot = timeSlots.find(s => s.label === delivery.timeSlot);
+
+  const isPickupSlotDisabled = (slot: TimeSlot): boolean => {
+    if (!isSameDay || !selectedDeliverySlot) return false;
+    // Pickup slot must start at or after the delivery slot ends
+    return slot.start_time < selectedDeliverySlot.end_time;
+  };
+
+  // Auto-reset pickup time slot if it becomes invalid after a delivery change
+  useEffect(() => {
+    if (!delivery.pickupTimeSlot || !isSameDay || !selectedDeliverySlot) return;
+    const pickupSlot = timeSlots.find(s => s.label === delivery.pickupTimeSlot);
+    if (pickupSlot && pickupSlot.start_time < selectedDeliverySlot.end_time) {
+      setDelivery(prev => ({ ...prev, pickupTimeSlot: '' }));
+    }
+  }, [delivery.date, delivery.pickupDate, delivery.timeSlot, timeSlots, isSameDay, selectedDeliverySlot, delivery.pickupTimeSlot, setDelivery]);
+
   return (
     <>
       <WeekendWarningModal
@@ -142,7 +161,7 @@ export function CheckoutDeliverySlots({
                 onChange={(e) => setDelivery({ ...delivery, timeSlot: e.target.value })}
                 className={`${inputClass} pl-10`}
               >
-                <option value="" className="bg-[#000033]">Selectionnez</option>
+                <option value="" className="bg-[#000033]">Sélectionnez</option>
                 {timeSlots.map(slot => (
                   <option key={slot.id} value={slot.label} className="bg-[#000033]">{slot.label}</option>
                 ))}
@@ -182,7 +201,7 @@ export function CheckoutDeliverySlots({
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Date de recuperation</label>
+            <label className={labelClass}>Date de récupération</label>
             {datesLocked ? (
               <div className={`${inputClass} pl-10 relative flex items-center opacity-80 cursor-not-allowed`}>
                 <Calendar className="absolute left-3 w-4 h-4 text-gray-500" />
@@ -205,11 +224,27 @@ export function CheckoutDeliverySlots({
               onChange={(e) => setDelivery({ ...delivery, pickupTimeSlot: e.target.value })}
               className={inputClass}
             >
-              <option value="" className="bg-[#000033]">Selectionnez</option>
-              {timeSlots.map(slot => (
-                <option key={slot.id} value={slot.label} className="bg-[#000033]">{slot.label}</option>
-              ))}
+              <option value="" className="bg-[#000033]">Sélectionnez</option>
+              {timeSlots.map(slot => {
+                const disabled = isPickupSlotDisabled(slot);
+                return (
+                  <option
+                    key={slot.id}
+                    value={slot.label}
+                    disabled={disabled}
+                    className={`bg-[#000033] ${disabled ? 'text-gray-600' : ''}`}
+                  >
+                    {slot.label}{disabled ? ' (indisponible)' : ''}
+                  </option>
+                );
+              })}
             </select>
+            {isSameDay && selectedDeliverySlot && (
+              <p className="text-gray-500 text-xs mt-1">
+                Le créneau de récupération doit être après celui de livraison
+              </p>
+            )}
+            {errors.pickupTimeSlot && <p className={errorClass}>{errors.pickupTimeSlot}</p>}
           </div>
         </div>
 

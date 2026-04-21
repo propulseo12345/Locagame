@@ -54,7 +54,7 @@ export function TaskSidebar({
           {task.status === 'assigned' && (
             <button
               onClick={onStartTask}
-              className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 active:scale-95 min-h-[48px]"
             >
               {"🚚 Démarrer la livraison"}
             </button>
@@ -62,22 +62,22 @@ export function TaskSidebar({
           {task.status === 'en_route' && (
             <button
               onClick={onCompleteTask}
-              className="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-3.5 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 active:scale-95 min-h-[48px] text-base"
             >
               {"✅ Marquer comme livré"}
             </button>
           )}
-          <button className="w-full px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors">
-            {"Signaler un problème"}
-          </button>
           <a
             href={mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center"
+            className="block w-full px-4 py-3.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center active:scale-95 min-h-[48px]"
           >
             Ouvrir dans Maps
           </a>
+          <button className="w-full px-4 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors active:scale-95 min-h-[48px]">
+            {"Signaler un problème"}
+          </button>
         </div>
       </div>
 

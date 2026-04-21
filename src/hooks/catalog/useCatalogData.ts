@@ -25,7 +25,7 @@ export function useCatalogData(): UseCatalogDataReturn {
       try {
         setLoading(true);
 
-        // Verifier si Supabase est configure
+        // Vérifier si Supabase est configuré
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -116,7 +116,7 @@ export function useCatalogData(): UseCatalogDataReturn {
     };
   }, []);
 
-  // Grouper les produits par categorie avec compteurs
+  // Grouper les produits par catégorie avec compteurs
   const categoriesWithCount = useMemo(() => {
     return categories
       .map(category => ({

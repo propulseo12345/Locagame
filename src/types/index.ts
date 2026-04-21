@@ -211,6 +211,7 @@ export interface Order {
   subtotal?: number | null;
   delivery_fee?: number | null;
   discount?: number | null;
+  promo_code?: string | null;
   total: number;
   status: 'pending_payment' | 'pending' | 'confirmed' | 'preparing' | 'delivered' | 'returned' | 'completed' | 'cancelled' | 'expired';
   payment_status?: 'unpaid' | 'pending_payment' | 'paid' | 'failed' | 'expired' | 'refunded' | string | null;
@@ -242,7 +243,6 @@ export interface Order {
   delivery_is_mandatory?: boolean | null;
   pickup_is_mandatory?: boolean | null;
   pricing_breakdown?: PricingBreakdownData | null;
-  deposit_amount?: number | null;
   zone_id?: string | null;
 }
 

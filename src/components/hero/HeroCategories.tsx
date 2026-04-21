@@ -42,7 +42,7 @@ export function HeroCategories({ categories, onCategoryClick }: HeroCategoriesPr
 
       {/* Mobile: SwipeCarousel */}
       <div className="md:hidden">
-        <SwipeCarousel itemsPerView={2.3} gap={8} showArrows={false} showDots={false}>
+        <SwipeCarousel itemsPerView={2.3} gap={8} showArrows={false} showDots={false} autoPlay autoPlayInterval={3000}>
           {items.map((category, idx) => (
             <CategoryButton key={category.id} category={category} idx={idx} onCategoryClick={onCategoryClick} />
           ))}

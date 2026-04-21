@@ -25,7 +25,7 @@ export default function CGVPage() {
           </div>
 
           {/* Content */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 space-y-8 text-gray-300">
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 md:p-8 border border-white/10 space-y-8 text-gray-300">
             <section>
               <h2 className="text-xl font-bold text-white mb-4">Objet</h2>
               <p>
@@ -72,7 +72,6 @@ export default function CGVPage() {
                     <li>Devis signé</li>
                     <li>Pièce d'identité</li>
                     <li>Justificatif de domicile</li>
-                    <li>Chèque de caution</li>
                   </ul>
                 </div>
 
@@ -82,7 +81,6 @@ export default function CGVPage() {
                     <li>Devis signé</li>
                     <li>Pièce d'identité</li>
                     <li>Extrait Kbis de moins de 3 mois</li>
-                    <li>Chèque de caution</li>
                   </ul>
                 </div>
 
@@ -92,7 +90,6 @@ export default function CGVPage() {
                     <li>Devis signé</li>
                     <li>Pièce d'identité</li>
                     <li>Récépissé de déclaration en préfecture</li>
-                    <li>Chèque de caution</li>
                   </ul>
                 </div>
               </div>
@@ -120,7 +117,7 @@ export default function CGVPage() {
                 Le retour du matériel s'effectue sur rendez-vous.
               </p>
               <p>
-                En cas de matériel manquant ou détérioré, la caution pourra être conservée jusqu'à l'établissement d'un devis de réparation ou de remplacement.
+                En cas de matériel manquant ou détérioré, un devis de réparation ou de remplacement sera établi.
               </p>
             </section>
 

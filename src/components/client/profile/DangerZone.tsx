@@ -41,28 +41,28 @@ export default function DangerZone() {
   };
 
   return (
-    <div className="bg-red-500/5 backdrop-blur-md rounded-2xl border border-red-500/20 overflow-hidden">
-      <div className="px-6 py-5 border-b border-red-500/20">
-        <h2 className="text-lg font-bold text-red-400">Zone de danger</h2>
+    <div className="bg-red-500/[0.03] border border-red-500/10 rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-red-500/10">
+        <h2 className="text-sm font-semibold text-red-400">Zone de danger</h2>
       </div>
-      <div className="p-6">
-        <p className="text-sm text-white/60 mb-4">
-          La suppression de votre compte est irreversible. Toutes vos donnees seront perdues.
+      <div className="p-5">
+        <p className="text-xs text-gray-400 mb-4">
+          La suppression de votre compte est irréversible. Toutes vos données seront perdues.
         </p>
 
         {!showConfirm ? (
           <button
             onClick={() => setShowConfirm(true)}
-            className="w-full px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-medium rounded-xl hover:bg-red-500/20 transition-colors"
+            className="w-full px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/15 transition-colors"
           >
             Supprimer mon compte
           </button>
         ) : (
           <div className="space-y-3">
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-red-300">
-                Cette action supprimera votre compte, vos reservations et toutes vos donnees. Tapez <strong>SUPPRIMER</strong> pour confirmer.
+            <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-400 mt-0.5 flex-shrink-0" />
+              <p className="text-[11px] text-red-300 leading-relaxed">
+                Tapez <strong>SUPPRIMER</strong> pour confirmer la suppression définitive.
               </p>
             </div>
 
@@ -71,37 +71,29 @@ export default function DangerZone() {
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="Tapez SUPPRIMER"
-              className="w-full px-3 py-2 bg-white/5 border border-red-500/30 rounded-lg text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50"
+              className="w-full px-3 py-2 bg-white/[0.04] border border-red-500/20 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-1 focus:ring-red-500/40"
               disabled={deleting}
             />
 
-            {error && (
-              <p className="text-xs text-red-400">{error}</p>
-            )}
+            {error && <p className="text-[11px] text-red-400">{error}</p>}
 
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowConfirm(false); setConfirmText(''); setError(''); }}
                 disabled={deleting}
-                className="flex-1 px-3 py-2 border border-white/20 text-white/70 rounded-lg text-sm hover:bg-white/5 transition-colors disabled:opacity-50"
+                className="flex-1 px-3 py-2 border border-white/[0.08] text-gray-400 rounded-lg text-xs hover:bg-white/5 transition-colors disabled:opacity-50"
               >
                 Annuler
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting || confirmText !== 'SUPPRIMER'}
-                className="flex-1 px-3 py-2 bg-red-600 text-white font-semibold rounded-lg text-sm hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-3 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {deleting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Suppression...
-                  </>
+                  <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Suppression...</>
                 ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Confirmer
-                  </>
+                  <><Trash2 className="w-3.5 h-3.5" /> Confirmer</>
                 )}
               </button>
             </div>

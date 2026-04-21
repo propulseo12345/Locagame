@@ -24,7 +24,7 @@ export function useCatalogAvailability({
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
 
-  // Verifier la disponibilite des produits quand les dates changent
+  // Vérifier la disponibilité des produits quand les dates changent
   useEffect(() => {
     // Ne rien faire si pas de dates ou pas de produits
     if (!debouncedStartDate || !debouncedEndDate || products.length === 0) {
@@ -49,7 +49,7 @@ export function useCatalogAvailability({
 
         if (!cancelled) {
           setUnavailableProductIds(result.unavailableIds);
-          // Afficher le message d'erreur si la verification a echoue
+          // Afficher le message d'erreur si la vérification a échoué
           if (result.hasError) {
             setAvailabilityError(result.errorMessage || 'Impossible de vérifier la disponibilité. Contactez-nous via le formulaire de contact.');
           }

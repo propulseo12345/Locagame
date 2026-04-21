@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Cookie, Shield, BarChart3, Settings } from 'lucide-react';
+import { AnalyticsService } from '../services/analytics.service';
 
 type CookiePreferences = {
   necessary: boolean;
@@ -25,12 +26,22 @@ export function CookieBanner() {
       const timer = setTimeout(() => setIsVisible(true), 1000);
       return () => clearTimeout(timer);
     }
+    // Si consentement déjà donné, initialiser analytics
+    try {
+      const prefs = JSON.parse(consent);
+      if (prefs.analytics) {
+        AnalyticsService.init();
+      }
+    } catch { /* ignore */ }
   }, []);
 
   const saveConsent = (prefs: CookiePreferences) => {
     localStorage.setItem('cookie-consent', JSON.stringify(prefs));
     localStorage.setItem('cookie-consent-date', new Date().toISOString());
     setIsVisible(false);
+    if (prefs.analytics) {
+      AnalyticsService.init();
+    }
   };
 
   const acceptAll = () => {

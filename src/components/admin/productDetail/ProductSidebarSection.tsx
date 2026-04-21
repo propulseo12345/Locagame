@@ -138,7 +138,7 @@ export default function ProductSidebarSection({ formData, setFormData, product, 
           </div>
           {product.updated_at && (
             <div className="flex items-center justify-between">
-              <span>Modifie le</span>
+              <span>Modifié le</span>
               <span className="text-gray-700">{new Date(product.updated_at).toLocaleDateString('fr-FR')}</span>
             </div>
           )}

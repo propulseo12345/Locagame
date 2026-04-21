@@ -17,3 +17,5 @@ export { AccessDifficultyService, type AccessDifficultyType } from './accessDiff
 export { TestimonialsService, type Testimonial } from './testimonials.service';
 export { FaqsService, type FAQ } from './faqs.service';
 export { PortfolioEventsService, type PortfolioEvent } from './portfolioEvents.service';
+export { PromoCodesService, type PromoCode, type PromoCodeInput, type PromoValidationResult } from './promoCodes.service';
+export { AnalyticsService } from './analytics.service';

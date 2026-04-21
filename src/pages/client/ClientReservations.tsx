@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Filter } from 'lucide-react';
+import { Package, Filter, Loader2, X } from 'lucide-react';
 import { ReservationsService } from '../../services';
 import { useAuth } from '../../contexts/AuthContext';
 import ReservationCard from '../../components/client/ReservationCard';
-import { ReservationCardSkeleton } from '../../components/ui/skeletons';
 
 interface ReservationItem {
   id: string;
@@ -34,6 +33,16 @@ interface Reservation {
   reservation_items?: ReservationItem[];
 }
 
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Toutes' },
+  { value: 'pending_payment', label: 'En attente' },
+  { value: 'confirmed', label: 'Confirmées' },
+  { value: 'preparing', label: 'En préparation' },
+  { value: 'delivered', label: 'Livrées' },
+  { value: 'completed', label: 'Terminées' },
+  { value: 'cancelled', label: 'Annulées' },
+];
+
 export default function ClientReservations() {
   const { user } = useAuth();
   const [customerReservations, setCustomerReservations] = useState<Reservation[]>([]);
@@ -44,7 +53,6 @@ export default function ClientReservations() {
   const loadReservations = async () => {
     if (!user) return;
     setError(null);
-
     try {
       setLoading(true);
       const reservations = await ReservationsService.getCustomerReservations(user.id);
@@ -73,117 +81,103 @@ export default function ClientReservations() {
 
   if (loading) {
     return (
-      <div className="space-y-5 mt-6 md:mt-8">
-        <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <ReservationCardSkeleton key={i} />
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="w-6 h-6 text-[#33ffcc] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {error && (
-        <div className="mt-6 md:mt-8 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between">
-          <p className="text-red-300">{error}</p>
-          <button onClick={loadReservations} className="px-4 py-1.5 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors text-sm font-medium">Réessayer</button>
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center justify-between">
+          <p className="text-sm text-red-400">{error}</p>
+          <button onClick={loadReservations} className="text-xs text-red-400 hover:text-red-300 font-medium px-3 py-1 rounded bg-red-500/10">
+            Réessayer
+          </button>
         </div>
       )}
-      {/* Header avec stats */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#33ffcc]/20 via-[#66cccc]/10 to-transparent backdrop-blur-md rounded-2xl border border-white/20 p-6 shadow-2xl mt-6 md:mt-8">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#33ffcc]/10 rounded-full blur-3xl"></div>
-        <div className="relative z-10">
-          <h1 className="text-2xl md:text-3xl font-black text-white mb-2">Mes réservations</h1>
-          <p className="text-base text-gray-300 mb-6">Consultez l'historique de toutes vos réservations</p>
 
-          <div className="grid grid-cols-3 gap-4 max-w-2xl">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <p className="text-sm text-gray-300 mb-1">Total</p>
-              <p className="text-2xl font-black text-white">{stats.total}</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <p className="text-sm text-gray-300 mb-1">Actives</p>
-              <p className="text-2xl font-black text-[#33ffcc]">{stats.active}</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <p className="text-sm text-gray-300 mb-1">Terminées</p>
-              <p className="text-2xl font-black text-green-400">{stats.completed}</p>
-            </div>
+      {/* Header + Stats — same row on desktop */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-white tracking-tight">Mes réservations</h1>
+          <p className="text-sm text-gray-400 mt-1 truncate">Consultez l'historique de toutes vos réservations</p>
+        </div>
+
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide sm:overflow-visible">
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 min-w-[120px] flex-shrink-0">
+            <p className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Total</p>
+            <p className="text-xl font-bold text-white tabular-nums">{stats.total}</p>
+          </div>
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 min-w-[120px] flex-shrink-0">
+            <p className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Actives</p>
+            <p className="text-xl font-bold text-[#33ffcc] tabular-nums">{stats.active}</p>
+          </div>
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 min-w-[120px] flex-shrink-0">
+            <p className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Terminées</p>
+            <p className="text-xl font-bold text-emerald-400 tabular-nums">{stats.completed}</p>
           </div>
         </div>
       </div>
 
-      {/* Filter */}
-      <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex items-center gap-3">
-            <Filter className="w-5 h-5 text-[#33ffcc]" />
-            <label className="text-sm font-bold text-white">Filtrer par statut:</label>
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="flex-1 sm:flex-none px-4 py-2.5 bg-white/10 border-2 border-white/20 rounded-xl text-white focus:ring-2 focus:ring-[#33ffcc] focus:border-[#33ffcc] focus:outline-none transition-all font-medium"
+      {/* Filter pills — scrollable on mobile */}
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+        <Filter className="w-4 h-4 text-gray-500 flex-shrink-0" />
+        {STATUS_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            onClick={() => setStatusFilter(option.value)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              statusFilter === option.value
+                ? 'bg-[#33ffcc]/10 text-[#33ffcc] border border-[#33ffcc]/20'
+                : 'text-gray-400 border border-white/[0.06] hover:text-white hover:border-white/[0.12]'
+            }`}
           >
-            <option value="all" className="bg-[#000033]">Toutes les réservations</option>
-            <option value="pending_payment" className="bg-[#000033]">Paiement en attente</option>
-            <option value="confirmed" className="bg-[#000033]">Confirmées</option>
-            <option value="preparing" className="bg-[#000033]">En préparation</option>
-            <option value="delivered" className="bg-[#000033]">Livrées</option>
-            <option value="completed" className="bg-[#000033]">Terminées</option>
-            <option value="cancelled" className="bg-[#000033]">Annulées</option>
-          </select>
-          {statusFilter !== 'all' && (
-            <button
-              onClick={() => setStatusFilter('all')}
-              className="text-sm text-[#fe1979] hover:text-[#ff3399] font-medium transition-colors"
-            >
-              Réinitialiser
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Reservations List */}
-      <div className="space-y-4">
-        {filteredReservations.length === 0 ? (
-          <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-12 text-center shadow-xl">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-[#33ffcc]/20 rounded-full mb-6">
-              <Package className="w-12 h-12 text-[#33ffcc]" />
-            </div>
-            <h3 className="text-xl font-black text-white mb-3">Aucune réservation</h3>
-            <p className="text-gray-400 mb-6 max-w-md mx-auto">
-              {statusFilter !== 'all'
-                ? `Vous n'avez pas de réservation avec le statut sélectionné`
-                : `Vous n'avez pas encore de réservations`
-              }
-            </p>
-            <Link
-              to="/catalogue"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-all duration-300 hover:scale-105"
-            >
-              <Package className="w-5 h-5" />
-              Parcourir le catalogue
-            </Link>
-          </div>
-        ) : (
-          filteredReservations.map((reservation, index) => (
-            <ReservationCard key={reservation.id} reservation={reservation} index={index} />
-          ))
+            {option.label}
+          </button>
+        ))}
+        {statusFilter !== 'all' && (
+          <button
+            onClick={() => setStatusFilter('all')}
+            className="p-1.5 text-gray-500 hover:text-white transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         )}
       </div>
 
-      {/* Message de fin */}
-      {filteredReservations.length > 0 && (
-        <div className="text-center py-6">
-          <p className="text-gray-500 text-sm">
-            Vous avez consulté {filteredReservations.length} réservation(s)
+      {/* Reservations list */}
+      {filteredReservations.length === 0 ? (
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-12 text-center">
+          <Package className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+          <h3 className="text-base font-semibold text-white mb-2">Aucune réservation</h3>
+          <p className="text-sm text-gray-400 mb-5 max-w-sm mx-auto">
+            {statusFilter !== 'all'
+              ? 'Aucune réservation avec ce statut'
+              : "Vous n'avez pas encore de réservations"
+            }
           </p>
+          <Link
+            to="/catalogue"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#33ffcc] text-[#000033] text-sm font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
+          >
+            Parcourir le catalogue
+          </Link>
         </div>
+      ) : (
+        <div className="space-y-2">
+          {filteredReservations.map((reservation, index) => (
+            <ReservationCard key={reservation.id} reservation={reservation} index={index} />
+          ))}
+        </div>
+      )}
+
+      {/* Footer count */}
+      {filteredReservations.length > 0 && (
+        <p className="text-center text-xs text-gray-600 py-2">
+          {filteredReservations.length} réservation{filteredReservations.length > 1 ? 's' : ''}
+        </p>
       )}
     </div>
   );

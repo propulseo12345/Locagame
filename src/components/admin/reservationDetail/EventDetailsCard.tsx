@@ -58,7 +58,7 @@ export default function EventDetailsCard({ reservation }: EventDetailsCardProps)
               {eventDetails.floorNumber && (
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 text-blue-700">
                   <Layers className="w-4 h-4" />
-                  <span className="text-sm">Etage {eventDetails.floorNumber}</span>
+                  <span className="text-sm">Étage {eventDetails.floorNumber}</span>
                 </div>
               )}
             </div>
@@ -66,7 +66,7 @@ export default function EventDetailsCard({ reservation }: EventDetailsCardProps)
             {eventDetails.accessDifficulty && eventDetails.accessDifficulty !== 'Aucune' && (
               <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <div className="text-sm font-medium text-yellow-800">
-                  Difficulte d'acces: {eventDetails.accessDifficulty}
+                  Difficulté d'accès: {eventDetails.accessDifficulty}
                 </div>
                 {eventDetails.accessDetails && (
                   <div className="text-sm text-yellow-700 mt-1">{eventDetails.accessDetails}</div>

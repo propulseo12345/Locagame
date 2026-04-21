@@ -33,7 +33,7 @@ export default function ProductAvailabilitySection({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-gray-400" />
-            <h2 className="text-sm font-semibold text-gray-900">Disponibilite manuelle</h2>
+            <h2 className="text-sm font-semibold text-gray-900">Disponibilité manuelle</h2>
           </div>
           <button
             type="button"
@@ -51,7 +51,7 @@ export default function ProductAvailabilitySection({
         {availabilities.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             <Calendar className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Aucune disponibilite manuelle configuree</p>
+            <p className="text-sm">Aucune disponibilité manuelle configurée</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -106,7 +106,7 @@ export default function ProductAvailabilitySection({
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
             <div className="p-5 border-b border-gray-100">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-gray-900">Ajouter une disponibilite</h2>
+                <h2 className="text-base font-semibold text-gray-900">Ajouter une disponibilité</h2>
                 <button onClick={closeModal} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
                   <X className="w-5 h-5" />
                 </button>

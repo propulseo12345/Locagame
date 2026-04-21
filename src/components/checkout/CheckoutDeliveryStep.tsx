@@ -98,7 +98,7 @@ export function CheckoutDeliveryStep({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-white mb-1">Mode de recuperation</h2>
+        <h2 className="text-xl font-bold text-white mb-1">Mode de récupération</h2>
         <p className="text-gray-400 text-sm">Comment souhaitez-vous récupérer le matériel ?</p>
       </div>
 
@@ -116,7 +116,7 @@ export function CheckoutDeliveryStep({
           <div className="flex items-center gap-3 mb-2">
             <Package className={`w-6 h-6 ${isPickup ? 'text-[#33ffcc]' : 'text-gray-400'}`} />
             <span className={`font-semibold ${isPickup ? 'text-[#33ffcc]' : 'text-white'}`}>
-              Retrait a l'entrepot
+              Retrait à l'entrepôt
             </span>
           </div>
           <p className="text-gray-500 text-sm">Gratuit - Venez chercher le matériel</p>

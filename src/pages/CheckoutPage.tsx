@@ -1,6 +1,9 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, Lock } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { useCheckout } from '../hooks/checkout/useCheckout';
+import { AnalyticsService } from '../services/analytics.service';
 import { CheckoutStepper } from '../components/checkout/CheckoutStepper';
 import { CheckoutNavigation } from '../components/checkout/CheckoutNavigation';
 import { CheckoutLayout } from '../components/checkout/CheckoutLayout';
@@ -8,10 +11,41 @@ import { CheckoutCustomerStep } from '../components/checkout/CheckoutCustomerSte
 import { CheckoutRecipientStep } from '../components/checkout/CheckoutRecipientStep';
 import { CheckoutDeliveryStep } from '../components/checkout/CheckoutDeliveryStep';
 import { CheckoutSummaryStep } from '../components/checkout/CheckoutSummaryStep';
-import { AuthModal } from '../components/auth/AuthModal';
+import { CheckoutAuthGate } from '../components/checkout/CheckoutAuthGate';
 
 export default function CheckoutPage() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const c = useCheckout();
+  const checkoutTracked = useRef(false);
+
+  // Track begin_checkout une seule fois quand le panier a des items
+  useEffect(() => {
+    if (c.cartItems.length > 0 && isAuthenticated && !checkoutTracked.current) {
+      checkoutTracked.current = true;
+      AnalyticsService.beginCheckout(
+        c.cartItems.map(item => ({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product_price,
+          quantity: item.quantity,
+        })),
+        c.pricing.finalTotal,
+      );
+    }
+  }, [c.cartItems, c.pricing.finalTotal, isAuthenticated]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#33ffcc] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <CheckoutAuthGate />;
+  }
+
   if (c.cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] pt-header">
@@ -24,6 +58,7 @@ export default function CheckoutPage() {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#000033] to-[#001144] pt-header">
       <div className="max-w-5xl mx-auto px-4 py-6">
@@ -33,9 +68,10 @@ export default function CheckoutPage() {
         </div>
         <CheckoutStepper steps={c.steps} currentStepIndex={c.currentStepIndex} />
         <CheckoutLayout
-          cartItems={c.cartItems} finalTotal={c.pricing.finalTotal} checkingAvailability={c.checkingAvailability} unavailableProducts={c.unavailableProducts}
+          cartItems={c.cartItems} finalTotal={c.adjustedFinalTotal} checkingAvailability={c.checkingAvailability} unavailableProducts={c.unavailableProducts}
           pricingBreakdowns={c.pricing.pricingBreakdowns} productsSubtotal={c.pricing.productsSubtotal} surchargesTotal={c.pricing.surchargesTotal}
           calculatedDeliveryFee={c.pricing.calculatedDeliveryFee} deliveryDistance={c.pricing.deliveryDistance} isPickup={c.form.isPickup}
+          promoDiscount={c.promoDiscount} promoLabel={c.promoLabel}
         >
           <div className="bg-white/5 rounded-2xl border border-white/10 p-4 md:p-6">
             {c.currentStep === 'customer' && (
@@ -63,13 +99,14 @@ export default function CheckoutPage() {
                 surchargesTotal={c.pricing.surchargesTotal} finalTotal={c.pricing.finalTotal} calculatedDeliveryFee={c.pricing.calculatedDeliveryFee}
                 deliveryDistance={c.pricing.deliveryDistance} isPickup={c.form.isPickup} pricingInfoMessage={c.pricing.pricingInfoMessage}
                 payment={c.form.payment} setPayment={c.form.setPayment} errors={c.validation.errors} submitError={c.submitError}
+                promoCode={c.promoCode} promoDiscount={c.promoDiscount} promoLabel={c.promoLabel}
+                onApplyPromo={c.applyPromo} onRemovePromo={c.removePromo}
               />
             )}
           </div>
           <CheckoutNavigation currentStepIndex={c.currentStepIndex} isLastStep={c.currentStep === 'payment'} isProcessing={c.isProcessing} hasUnavailableProducts={c.unavailableProducts.length > 0} onNext={c.handleNext} onPrevious={c.handlePrevious} onSubmit={c.handleSubmit} />
         </CheckoutLayout>
       </div>
-      <AuthModal isOpen={c.showAuthModal} onClose={c.handleAuthModalClose} onAuthSuccess={() => {}} title="Connexion requise" subtitle="Pour finaliser votre commande, creez un compte ou connectez-vous." headerIcon={<div className="p-2.5 bg-[#33ffcc]/20 rounded-xl"><Lock className="w-6 h-6 text-[#33ffcc]" /></div>} />
     </div>
   );
 }

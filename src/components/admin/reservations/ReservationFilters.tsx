@@ -19,6 +19,9 @@ interface ReservationFiltersProps {
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'Tous les statuts' },
+  { value: 'unassigned', label: 'Non assignées', dot: 'bg-amber-500' },
+  { value: 'pending_payment', label: 'Attente paiement', dot: 'bg-orange-500' },
+  { value: 'pending', label: 'En attente', dot: 'bg-yellow-500' },
   { value: 'confirmed', label: 'Confirmée', dot: 'bg-green-500' },
   { value: 'preparing', label: 'En préparation', dot: 'bg-violet-500' },
   { value: 'delivered', label: 'Livré', dot: 'bg-cyan-500' },
@@ -49,9 +52,9 @@ export default function ReservationFilters({
 }: ReservationFiltersProps) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 sm:flex-wrap">
         {/* Search */}
-        <div className="relative flex-1 min-w-[240px]">
+        <div className="relative flex-1 min-w-0 sm:min-w-[240px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -63,65 +66,68 @@ export default function ReservationFilters({
           />
         </div>
 
-        {/* Status select */}
-        <select
-          value={statusFilter}
-          onChange={(e) => onStatusChange(e.target.value)}
-          aria-label="Filtrer par statut"
-          className="h-11 w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
-        >
-          {STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-
-        {/* Delivery mode toggle */}
-        <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
-          {DELIVERY_MODES.map((mode) => {
-            const Icon = mode.icon;
-            const isActive = deliveryModeFilter === mode.value;
-            return (
-              <button
-                key={mode.value}
-                onClick={() => onDeliveryModeChange(mode.value)}
-                className={`h-11 px-3 text-sm font-medium flex items-center gap-1.5 transition-colors ${
-                  isActive
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {Icon && <Icon className="w-3.5 h-3.5" />}
-                {mode.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Technician select */}
-        <select
-          value={technicianFilter}
-          onChange={(e) => onTechnicianChange(e.target.value)}
-          aria-label="Filtrer par livreur"
-          className="h-11 w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
-        >
-          <option value="all">Tous les livreurs</option>
-          {technicians.map((tech) => (
-            <option key={tech.id} value={tech.id}>
-              {tech.first_name} {tech.last_name}
-            </option>
-          ))}
-        </select>
-
-        {/* Clear filters */}
-        {hasActiveFilters && (
-          <button
-            onClick={onClearFilters}
-            className="h-11 px-3 text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1.5 transition-colors"
+        {/* Filters row — scrollable on mobile */}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap">
+          {/* Status select */}
+          <select
+            value={statusFilter}
+            onChange={(e) => onStatusChange(e.target.value)}
+            aria-label="Filtrer par statut"
+            className="h-11 min-w-[140px] sm:w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white flex-shrink-0"
           >
-            <X className="w-4 h-4" />
-            Réinitialiser
-          </button>
-        )}
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+
+          {/* Delivery mode toggle */}
+          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden flex-shrink-0">
+            {DELIVERY_MODES.map((mode) => {
+              const Icon = mode.icon;
+              const isActive = deliveryModeFilter === mode.value;
+              return (
+                <button
+                  key={mode.value}
+                  onClick={() => onDeliveryModeChange(mode.value)}
+                  className={`h-11 px-3 text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                    isActive
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {Icon && <Icon className="w-3.5 h-3.5" />}
+                  {mode.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Technician select */}
+          <select
+            value={technicianFilter}
+            onChange={(e) => onTechnicianChange(e.target.value)}
+            aria-label="Filtrer par livreur"
+            className="h-11 min-w-[140px] sm:w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white flex-shrink-0"
+          >
+            <option value="all">Tous les livreurs</option>
+            {technicians.map((tech) => (
+              <option key={tech.id} value={tech.id}>
+                {tech.first_name} {tech.last_name}
+              </option>
+            ))}
+          </select>
+
+          {/* Clear filters */}
+          {hasActiveFilters && (
+            <button
+              onClick={onClearFilters}
+              className="h-11 px-3 text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1.5 transition-colors flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+              Réinitialiser
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Counter */}

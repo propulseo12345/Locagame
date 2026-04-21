@@ -163,6 +163,7 @@ export const reservationConfirmationTemplate = (data: {
 export const welcomeTemplate = (data: {
   customerName: string;
   loginUrl: string;
+  tempPassword?: string;
 }) =>
   baseTemplate(`
   <h2 style="color:#1a1a2e;margin:0 0 8px;font-size:22px;">
@@ -171,6 +172,19 @@ export const welcomeTemplate = (data: {
   <p style="color:#4a4a5a;margin:0 0 32px;font-size:15px;">
     Bonjour ${data.customerName}, votre compte a bien &eacute;t&eacute; cr&eacute;&eacute;.
   </p>
+  ${data.tempPassword ? `
+  <div style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:8px;padding:16px;margin:0 0 24px;">
+    <p style="color:#4a4a5a;font-size:14px;margin:0 0 8px;">
+      Votre mot de passe temporaire :
+    </p>
+    <p style="color:#1a1a2e;font-size:18px;font-weight:700;font-family:monospace;margin:0;letter-spacing:1px;">
+      ${data.tempPassword}
+    </p>
+    <p style="color:#dc3545;font-size:12px;margin:8px 0 0;">
+      Changez-le d&egrave;s votre premi&egrave;re connexion.
+    </p>
+  </div>
+  ` : ''}
   <p style="color:#4a4a5a;font-size:15px;line-height:1.6;">
     Vous pouvez d&egrave;s maintenant explorer notre catalogue et r&eacute;server
     vos animations pour vos &eacute;v&eacute;nements.

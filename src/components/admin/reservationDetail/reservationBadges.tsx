@@ -37,7 +37,7 @@ const TASK_TYPE_STYLES: Record<string, string> = {
 
 const TASK_TYPE_LABELS: Record<string, string> = {
   delivery: 'Livraison',
-  pickup: 'Recuperation',
+  pickup: 'Récupération',
   client_pickup: 'Retrait client',
   client_return: 'Retour client',
 };

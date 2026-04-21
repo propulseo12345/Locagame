@@ -22,7 +22,7 @@ export function CheckoutAccessDetails({
       <div className="pt-4 border-t border-white/10">
         <h3 className="text-white font-medium mb-4 flex items-center gap-2">
           <AlertCircle className="w-5 h-5 text-[#fe1979]" />
-          Acces au lieu
+          Accès au lieu
         </h3>
 
         {/* Equipment dimensions warning */}
@@ -30,7 +30,7 @@ export function CheckoutAccessDetails({
           <p className="text-amber-400 text-sm flex items-start gap-2">
             <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span>
-              Veillez a verifier que les dimensions de vos acces (portes, couloirs, escaliers)
+              Veillez à vérifier que les dimensions de vos accès (portes, couloirs, escaliers)
               permettent le passage du matériel commandé afin d'assurer une livraison sans encombre.
             </span>
           </p>
@@ -38,7 +38,7 @@ export function CheckoutAccessDetails({
 
         <div className="space-y-4">
           <div>
-            <label className={labelClass}>Difficulte d'acces</label>
+            <label className={labelClass}>Difficulté d'accès</label>
             <select
               value={eventDetails.accessDifficulty}
               onChange={(e) => setEventDetails({ ...eventDetails, accessDifficulty: e.target.value })}
@@ -52,13 +52,13 @@ export function CheckoutAccessDetails({
 
           {eventDetails.accessDifficulty !== 'none' && (
             <div>
-              <label className={labelClass}>Precisions sur l'acces</label>
+              <label className={labelClass}>Précisions sur l'accès</label>
               <textarea
                 value={eventDetails.accessDetails}
                 onChange={(e) => setEventDetails({ ...eventDetails, accessDetails: e.target.value })}
                 className={`${inputClass} resize-none`}
                 rows={2}
-                placeholder="Decrivez les difficultes d'acces..."
+                placeholder="Décrivez les difficultés d'accès..."
               />
               {errors.accessDetails && <p className={errorClass}>{errors.accessDetails}</p>}
             </div>
@@ -88,13 +88,13 @@ export function CheckoutAccessDetails({
 
           {eventDetails.hasElevator && (
             <div>
-              <label className={labelClass}>Etage</label>
+              <label className={labelClass}>Étage</label>
               <input
                 type="text"
                 value={eventDetails.floorNumber}
                 onChange={(e) => setEventDetails({ ...eventDetails, floorNumber: e.target.value })}
                 className={inputClass}
-                placeholder="2eme etage"
+                placeholder="2ème étage"
               />
             </div>
           )}
@@ -113,13 +113,13 @@ export function CheckoutAccessDetails({
 
       {/* Special requests */}
       <div className="pt-4 border-t border-white/10">
-        <label className={labelClass}>Demandes particulieres / Notes</label>
+        <label className={labelClass}>Demandes particulières / Notes</label>
         <textarea
           value={eventDetails.specialRequests}
           onChange={(e) => setEventDetails({ ...eventDetails, specialRequests: e.target.value })}
           className={`${inputClass} resize-none`}
           rows={3}
-          placeholder="Instructions speciales, demandes particulieres..."
+          placeholder="Instructions spéciales, demandes particulières..."
         />
       </div>
     </>

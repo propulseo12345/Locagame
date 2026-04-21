@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Product, FilterOptions } from '../../types';
 
 interface UseCatalogPaginationOptions {
@@ -17,6 +17,12 @@ interface UseCatalogPaginationReturn {
   itemsPerPage: number;
   totalPages: number;
   paginatedProducts: Product[];
+  /** Products accumulated up to currentPage (for "load more" mode) */
+  loadMoreProducts: Product[];
+  /** Load next page (appends to loadMoreProducts) */
+  loadMore: () => void;
+  /** Whether more pages are available */
+  hasMore: boolean;
 }
 
 export function useCatalogPagination({
@@ -37,6 +43,14 @@ export function useCatalogPagination({
     currentPage * itemsPerPage
   );
 
+  // Load more: all items from page 1 up to currentPage
+  const loadMoreProducts = filteredProducts.slice(0, currentPage * itemsPerPage);
+  const hasMore = currentPage < totalPages;
+
+  const loadMore = useCallback(() => {
+    if (hasMore) setCurrentPage(p => p + 1);
+  }, [hasMore]);
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -48,5 +62,8 @@ export function useCatalogPagination({
     itemsPerPage,
     totalPages,
     paginatedProducts,
+    loadMoreProducts,
+    loadMore,
+    hasMore,
   };
 }

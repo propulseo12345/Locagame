@@ -63,14 +63,14 @@ export default function ProductBasicInfoSection({ formData, setFormData, categor
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Categorie
+            Catégorie
           </label>
           <select
             value={formData.category_id}
             onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
             className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 transition-colors"
           >
-            <option value="">Selectionner une categorie</option>
+            <option value="">Sélectionner une catégorie</option>
             {categories.map(cat => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}

@@ -80,12 +80,12 @@ export function PreviewStep({ fileName, validationResults, importMode, setImport
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Categorie</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Catégorie</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Prix/jour</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Prix WE</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Prix sem.</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Détails</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">

@@ -198,7 +198,7 @@ export default function ProductFormModal({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Personnes pour la recuperation</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Personnes pour la récupération</label>
                 <input
                   type="number"
                   min="1"

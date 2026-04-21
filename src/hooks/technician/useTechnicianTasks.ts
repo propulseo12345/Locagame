@@ -133,7 +133,7 @@ export function useTechnicianTasks() {
 
     const days: Array<{ date: Date | null; dateStr: string; tasks: DeliveryTask[] }> = [];
 
-    // Jours du mois precedent
+    // Jours du mois précédent
     const prevMonth = new Date(currentYear, currentMonth, 0);
     const prevMonthDays = prevMonth.getDate();
     for (let i = startingDayOfWeek - 1; i >= 0; i--) {

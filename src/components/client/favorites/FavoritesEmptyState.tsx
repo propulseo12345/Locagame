@@ -1,21 +1,18 @@
 import { Link } from 'react-router-dom';
-import { Heart, Sparkles } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export default function FavoritesEmptyState() {
   return (
-    <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-12 text-center shadow-xl">
-      <div className="inline-flex items-center justify-center w-24 h-24 bg-[#fe1979]/20 rounded-full mb-6">
-        <Heart className="w-12 h-12 text-[#fe1979]" />
-      </div>
-      <h3 className="text-xl font-black text-white mb-3">Aucun favori</h3>
-      <p className="text-gray-400 mb-6 max-w-md mx-auto">
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-12 text-center">
+      <Heart className="w-8 h-8 text-gray-600 mx-auto mb-3" />
+      <h3 className="text-base font-semibold text-white mb-2">Aucun favori</h3>
+      <p className="text-sm text-gray-400 mb-5 max-w-sm mx-auto">
         Ajoutez des produits à vos favoris pour les retrouver facilement
       </p>
       <Link
         to="/catalogue"
-        className="inline-flex items-center gap-2 px-8 py-4 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-all duration-300 hover:scale-105"
+        className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#33ffcc] text-[#000033] text-sm font-semibold rounded-lg hover:bg-[#66cccc] transition-colors"
       >
-        <Sparkles className="w-5 h-5" />
         Parcourir le catalogue
       </Link>
     </div>

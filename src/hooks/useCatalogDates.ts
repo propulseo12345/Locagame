@@ -151,7 +151,7 @@ export function useCatalogDates(products: Product[]): UseCatalogDatesReturn {
           setUnavailableProductIds(result.unavailableIds);
           if (result.hasError) {
             setAvailabilityError(
-              result.errorMessage || 'Impossible de verifier la disponibilite. Contactez-nous via le formulaire de contact.'
+              result.errorMessage || 'Impossible de vérifier la disponibilité. Contactez-nous via le formulaire de contact.'
             );
           }
         }
@@ -159,7 +159,7 @@ export function useCatalogDates(products: Product[]): UseCatalogDatesReturn {
         logger.error('Error checking availabilities', error);
         if (!cancelled) {
           setUnavailableProductIds(new Set());
-          setAvailabilityError('Impossible de verifier la disponibilite. Contactez-nous via le formulaire de contact.');
+          setAvailabilityError('Impossible de vérifier la disponibilité. Contactez-nous via le formulaire de contact.');
         }
       } finally {
         if (!cancelled) {

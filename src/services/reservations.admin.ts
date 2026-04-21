@@ -46,21 +46,6 @@ export class ReservationsAdmin {
   }
 
   /**
-   * Rembourse le dépôt de garantie après vérification du matériel
-   */
-  static async refundDeposit(reservationId: string): Promise<void> {
-    // @ts-expect-error — RPC refund_deposit not in database.types.ts
-    const { error } = await supabase.rpc('refund_deposit', {
-      p_reservation_id: reservationId
-    });
-
-    if (error) {
-      logger.error('Error refunding deposit', error);
-      throw error;
-    }
-  }
-
-  /**
    * Récupère les réservations non assignées
    * = réservations livraison sans delivery_task assignée (pas de task, ou task sans technicien)
    */

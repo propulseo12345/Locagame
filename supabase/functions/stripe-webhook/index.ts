@@ -185,6 +185,12 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Payload size limit: 100 KB (Stripe webhooks can be large)
+  const contentLength = parseInt(req.headers.get("content-length") || "0");
+  if (contentLength > 100_000) {
+    return jsonResponse({ error: "Payload too large" }, 413);
+  }
+
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
   const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -285,10 +291,10 @@ Deno.serve(async (req: Request) => {
             amount: (session.amount_total || 0) / 100,
             currency: session.currency || "eur",
             status: "succeeded",
-            payment_method: session.payment_method_types?.[0] || "card",
             metadata: {
               customer_email: session.customer_details?.email,
               customer_name: session.customer_details?.name,
+              payment_method: session.payment_method_types?.[0] || "card",
             },
           });
 
@@ -303,7 +309,7 @@ Deno.serve(async (req: Request) => {
           `[stripe-webhook] Reservation ${reservationId} -> confirmed (paid)`
         );
 
-        // Envoyer l'email de confirmation (best-effort, non-bloquant)
+        // BLOQUER LE STOCK — maintenant que le paiement est confirmé
         const { data: reservation } = await supabase
           .from("reservations")
           .select(
@@ -318,6 +324,31 @@ Deno.serve(async (req: Request) => {
           .single();
 
         if (reservation) {
+          for (const item of reservation.reservation_items || []) {
+            const { error: stockError } = await supabase
+              .from("product_availability")
+              .insert({
+                product_id: item.product_id,
+                reservation_id: reservationId,
+                start_date: reservation.start_date,
+                end_date: reservation.end_date,
+                quantity: item.quantity || 1,
+                status: "reserved",
+              });
+
+            if (stockError) {
+              console.error(
+                `[stripe-webhook] Stock blocking error for product ${item.product_id}:`,
+                stockError
+              );
+            }
+          }
+
+          console.log(
+            `[stripe-webhook] Stock blocked for reservation ${reservationId}`
+          );
+
+          // Envoyer l'email de confirmation (best-effort)
           await sendConfirmationEmail(
             supabaseUrl,
             supabaseServiceKey,
@@ -331,11 +362,27 @@ Deno.serve(async (req: Request) => {
               `[stripe-webhook] Delivery tasks created for reservation ${reservationId}`
             );
           } catch (taskErr) {
-            // Best-effort: ne pas bloquer le webhook si la création des tasks échoue
             console.error(
               "[stripe-webhook] Delivery tasks creation error (non-blocking):",
               taskErr
             );
+          }
+
+          // Incrémenter current_uses du code promo (best-effort)
+          if (reservation.promo_code) {
+            try {
+              await supabase.rpc("increment_promo_code_usage", {
+                p_code: reservation.promo_code,
+              });
+              console.log(
+                `[stripe-webhook] Promo code usage incremented: ${reservation.promo_code}`
+              );
+            } catch (promoErr) {
+              console.error(
+                "[stripe-webhook] Promo usage increment error (non-blocking):",
+                promoErr
+              );
+            }
           }
         }
 

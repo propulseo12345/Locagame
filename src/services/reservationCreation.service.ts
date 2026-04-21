@@ -24,7 +24,6 @@ interface CreateReservationData {
   subtotal: number;
   delivery_fee: number;
   discount: number;
-  deposit?: number;
   total: number;
   notes?: string;
   recipient_data?: Record<string, unknown> | null;
@@ -147,7 +146,7 @@ export async function createReservation(orderData: CreateReservationData): Promi
         subtotal: orderData.subtotal,
         delivery_fee: orderData.delivery_fee,
         discount: orderData.discount,
-        deposit_amount: orderData.deposit || 0,
+        deposit_amount: 0,
         total: orderData.total,
         status: 'pending',
         recipient_data: (orderData.recipient_data ?? null) as unknown as Json,

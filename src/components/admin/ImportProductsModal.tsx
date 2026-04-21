@@ -71,11 +71,11 @@ export default function ImportProductsModal({ onClose, onImportComplete }: Impor
         const warnings: string[] = [];
 
         if (!row.name) errors.push('Nom requis');
-        if (!row.category_id) errors.push('Categorie requise');
+        if (!row.category_id) errors.push('Catégorie requise');
 
         const categoryUuid = row.category_id ? categoriesMap.resolve(row.category_id) : null;
         if (row.category_id && !categoryUuid) {
-          errors.push(`Categorie inconnue : "${row.category_id}". Valeurs acceptees : ${categoriesMap.slugs.join(', ')}`);
+          errors.push(`Catégorie inconnue : "${row.category_id}". Valeurs acceptées : ${categoriesMap.slugs.join(', ')}`);
         }
 
         if (row.price_one_day < 0) errors.push('Prix 1 jour < 0');

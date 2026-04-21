@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { CartItem, DaySlot } from '../../types';
 import { calculateDurationDays } from '../../utils/pricing';
 import { serializeBreakdown, type PricingBreakdown } from '../../utils/pricingRules';
@@ -38,6 +38,8 @@ interface UseCheckoutSubmitArgs {
   deliveryDistance: number;
   clearCart: () => void;
   validatePayment: () => boolean;
+  promoCode: string;
+  promoDiscount: number;
 }
 
 export function useCheckoutSubmit({
@@ -64,13 +66,21 @@ export function useCheckoutSubmit({
   deliveryDistance,
   clearCart: _clearCart,
   validatePayment,
+  promoCode,
+  promoDiscount,
 }: UseCheckoutSubmitArgs) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [needsAuth, setNeedsAuth] = useState(false);
   const isSubmittingRef = useRef(false);
-  // Garde la reservation_id si le checkout a réussi mais le paiement a échoué (ex: guest→login)
+  // Garde la reservation_id si le checkout a réussi mais le paiement a échoué
   const pendingReservationIdRef = useRef<string | null>(null);
+
+  // Si l'utilisateur change (re-auth en tant que compte différent),
+  // l'ancienne réservation appartient à un autre customer — on la drop
+  // pour en recréer une avec le bon customer_id.
+  useEffect(() => {
+    pendingReservationIdRef.current = null;
+  }, [user?.id]);
 
   const startDate = cartItems[0]?.start_date || '';
   const endDate = cartItems[0]?.end_date || '';
@@ -84,11 +94,15 @@ export function useCheckoutSubmit({
     setSubmitError(null);
 
     try {
-      // Si une réservation a déjà été créée (ex: guest checkout OK mais Stripe KO),
+      // Si une réservation a déjà été créée mais le paiement a échoué,
       // on skip la création et on retente directement le paiement.
       let reservationId = pendingReservationIdRef.current;
 
       if (!reservationId) {
+        if (!user?.id) {
+          throw new Error('Vous devez être connecté pour finaliser votre commande.');
+        }
+
         const reservationItems = cartItems.map(item => ({
           product_id: item.product.id,
           quantity: item.quantity,
@@ -161,7 +175,8 @@ export function useCheckoutSubmit({
           surcharges_total: surchargesTotal,
           delivery_fee: finalDeliveryFee,
           delivery_distance_km: isPickup ? undefined : deliveryDistance,
-          discount: 0,
+          discount: promoDiscount,
+          promo_code: promoCode || undefined,
           total: finalTotal,
           pricing_breakdown: combinedPricingBreakdown,
           items: reservationItems,
@@ -212,7 +227,7 @@ export function useCheckoutSubmit({
         || msgLower.includes('invalid claim');
 
       if (isAuthErr) {
-        setNeedsAuth(true);
+        setSubmitError('Votre session a expiré. Veuillez rafraîchir la page et vous reconnecter.');
       } else if (msgLower.includes('introuvable ou inactif') || msgLower.includes('not found')) {
         setSubmitError(
           'Un ou plusieurs produits de votre panier ne sont plus disponibles. Veuillez retourner au panier et retirer les articles concernes.'
@@ -229,7 +244,5 @@ export function useCheckoutSubmit({
     }
   };
 
-  const clearNeedsAuth = () => setNeedsAuth(false);
-
-  return { handleSubmit, isProcessing, submitError, needsAuth, clearNeedsAuth };
+  return { handleSubmit, isProcessing, submitError };
 }

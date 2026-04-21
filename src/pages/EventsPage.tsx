@@ -157,7 +157,7 @@ export default function EventsPage() {
             </ScrollReveal>
 
             <ScrollReveal animation="fadeUp" delay={0.1}>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-4">
+              <h1 className="text-xl md:text-5xl lg:text-6xl font-black text-white mb-4">
                 Nos <span className="bg-gradient-to-r from-[#33ffcc] via-[#66ffdd] to-[#33ffcc] bg-clip-text text-transparent">Réalisations</span>
               </h1>
             </ScrollReveal>

@@ -39,6 +39,7 @@ export const ROUTES = {
     CUSTOMER_DETAIL: (id: string) => `/admin/customers/${id}`,
     TECHNICIANS: '/admin/technicians',
     SETTINGS: '/admin/settings',
+    PROMO_CODES: '/admin/promo-codes',
   },
 
   // Client

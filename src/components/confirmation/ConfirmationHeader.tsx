@@ -29,10 +29,10 @@ export default function ConfirmationHeader({
         </div>
         <h2 className="text-3xl font-bold text-white mb-2">Paiement confirme !</h2>
         <p className="text-xl text-[#33ffcc] font-medium mb-4">
-          Votre reservation est confirmee
+          Votre réservation est confirmée
         </p>
         <div className="inline-block bg-[#33ffcc]/10 border border-[#33ffcc]/30 px-6 py-3 rounded-xl mb-6">
-          <p className="text-sm text-gray-400 mb-1">Numero de commande</p>
+          <p className="text-sm text-gray-400 mb-1">Numéro de commande</p>
           <p className="text-2xl font-bold text-[#33ffcc]">
             #{reservation?.id?.substring(0, 8).toUpperCase()}
           </p>
@@ -41,7 +41,7 @@ export default function ConfirmationHeader({
           <div className="flex items-start gap-3">
             <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-white font-semibold mb-1">Paiement recu</p>
+              <p className="text-white font-semibold mb-1">Paiement reçu</p>
               <p className="text-gray-300 text-sm">
                 Votre paiement a ete confirme et votre reservation est validee.
                 L'equipe LOCAGAME vous contactera <strong className="text-white">sous 24h</strong> pour

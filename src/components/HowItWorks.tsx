@@ -85,7 +85,7 @@ export function HowItWorks() {
             </p>
           </ScrollReveal>
           <ScrollReveal animation="fadeUp" delay={0.1}>
-            <h2 className="text-4xl md:text-5xl font-black text-white">
+            <h2 className="text-xl md:text-5xl font-black text-white">
               Comment ça marche ?
             </h2>
           </ScrollReveal>
@@ -152,7 +152,7 @@ export function HowItWorks() {
 
         {/* Steps - Mobile: Swipeable carousel */}
         <div className="lg:hidden">
-          <SwipeCarousel itemsPerView={1.15} gap={12} showArrows={false}>
+          <SwipeCarousel itemsPerView={1} gap={12}>
             {steps.map((step, index) => {
               const Icon = step.icon;
               return (

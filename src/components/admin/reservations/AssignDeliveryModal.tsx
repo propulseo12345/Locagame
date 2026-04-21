@@ -45,7 +45,7 @@ export default function AssignDeliveryModal({
         <div className="p-6 space-y-6">
           {/* Infos de la reservation */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">Details de la commande</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Détails de la commande</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Client:</span>
@@ -80,7 +80,7 @@ export default function AssignDeliveryModal({
               onChange={(e) => onTechnicianChange(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
             >
-              <option value="">Selectionner un technicien...</option>
+              <option value="">Sélectionner un technicien...</option>
               {technicians.map(tech => (
                 <option key={tech.id} value={tech.id}>
                   {tech.first_name} {tech.last_name} {tech.vehicle_id ? '(Vehicule assigne)' : '(Sans vehicule)'}
@@ -101,7 +101,7 @@ export default function AssignDeliveryModal({
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33ffcc] focus:border-transparent"
               disabled={!selectedTechnician}
             >
-              <option value="">Selectionner un vehicule...</option>
+              <option value="">Sélectionner un véhicule...</option>
               {vehicles.map(vehicle => (
                 <option key={vehicle.id} value={vehicle.id}>
                   {vehicle.name} - {vehicle.license_plate} ({vehicle.type === 'truck' ? 'Camion' : 'Fourgon'})

@@ -137,10 +137,15 @@
     .input-field {
       @apply py-3.5 text-base;
     }
+
+    /* Prevent iOS zoom on all inputs */
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
 
   .section-title {
-    @apply text-4xl md:text-5xl font-black text-white mb-4;
+    @apply text-xl md:text-5xl font-black text-white mb-4;
   }
 
   .section-subtitle {
@@ -264,7 +269,7 @@
   /* Responsive optimizations */
   @media (max-width: 768px) {
     .section-title {
-      @apply text-3xl;
+      @apply text-xl;
     }
 
     .section-subtitle {
@@ -274,13 +279,13 @@
 
   @media (max-width: 640px) {
     .section-title {
-      @apply text-2xl;
+      @apply text-xl;
     }
 
     .btn-primary,
     .btn-secondary,
     .btn-outline {
-      @apply text-sm px-4 py-2;
+      @apply text-sm px-4 py-3;
     }
   }
 }

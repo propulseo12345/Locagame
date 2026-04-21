@@ -1,14 +1,14 @@
-// Coordonnees de l'entrepot
+// Coordonnées de l'entrepôt
 export const WAREHOUSE = {
   address: "553, rue St Pierre 13012 Marseille",
   lat: 43.3020,
   lng: 5.4310
 };
 
-// Prix par kilometre
+// Prix par kilomètre
 export const PRICE_PER_KM = 0.80;
 
-// Estimation des distances par code postal (en km depuis l'entrepot)
+// Estimation des distances par code postal (en km depuis l'entrepôt)
 export const POSTAL_CODE_DISTANCES: { [key: string]: number } = {
   // Marseille
   '13001': 5, '13002': 4, '13003': 3, '13004': 4, '13005': 5,
@@ -21,7 +21,7 @@ export const POSTAL_CODE_DISTANCES: { [key: string]: number } = {
   '13400': 18, '13390': 20,
   // Martigues
   '13500': 40,
-  // Autres villes des Bouches-du-Rhone
+  // Autres villes des Bouches-du-Rhône
   '13600': 45, '13700': 50, '13800': 55, '13127': 35,
   '13220': 25, '13230': 35, '13250': 22, '13260': 28,
   '13270': 55, '13280': 60, '13300': 38, '13310': 42,

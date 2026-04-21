@@ -4,30 +4,29 @@ import { logger } from '../lib/logger';
 import { User, loadUserProfile } from '../lib/auth-helpers';
 import { SignUpMetadata, SignUpResult, AuthContextType } from './authContext.types';
 import { buildWelcomeHtml } from './authContext.utils';
+import { AnalyticsService } from '../services/analytics.service';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function translateAuthError(message: string): string {
-  switch (message) {
-    case 'Invalid login credentials':
-      return 'Email ou mot de passe incorrect.';
-    case 'Email not confirmed':
-      return 'Veuillez confirmer votre adresse email avant de vous connecter.';
-    case 'Too many requests':
-      return 'Trop de tentatives. Veuillez réessayer dans quelques minutes.';
-    case 'User not found':
-      return 'Aucun compte associé à cet email.';
-    case 'Network request failed':
-      return 'Problème de connexion. Vérifiez votre internet.';
-    case 'User already registered':
-      return 'Cette adresse email est déjà utilisée. Connectez-vous !';
-    case 'Password should be at least 6 characters':
-      return 'Le mot de passe doit contenir au moins 6 caractères.';
-    case 'Unable to validate email address: invalid format':
-      return 'Format d\'adresse email invalide.';
-    default:
-      return 'Une erreur est survenue. Veuillez réessayer.';
-  }
+  const msg = message.toLowerCase();
+  if (msg.includes('invalid login credentials') || msg.includes('invalid credentials'))
+    return 'Email ou mot de passe incorrect.';
+  if (msg.includes('email not confirmed'))
+    return 'Veuillez confirmer votre adresse email avant de vous connecter.';
+  if (msg.includes('too many requests') || msg.includes('rate limit'))
+    return 'Trop de tentatives. Veuillez réessayer dans quelques minutes.';
+  if (msg.includes('user not found'))
+    return 'Aucun compte associé à cet email.';
+  if (msg.includes('network') || msg.includes('fetch'))
+    return 'Problème de connexion. Vérifiez votre internet.';
+  if (msg.includes('already registered') || msg.includes('already been registered'))
+    return 'Cette adresse email est déjà utilisée. Connectez-vous !';
+  if (msg.includes('at least 6 characters') || msg.includes('password'))
+    return 'Le mot de passe doit contenir au moins 6 caractères.';
+  if (msg.includes('invalid format') || msg.includes('validate email'))
+    return "Format d'adresse email invalide.";
+  return 'Une erreur est survenue. Veuillez réessayer.';
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -109,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setUser(userProfile);
+    AnalyticsService.login('email');
     return userProfile;
   }, []);
 
@@ -157,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (userProfile) {
         setUser(userProfile);
       }
+      AnalyticsService.signUp('email');
       return { needsEmailConfirmation: false };
     }
 

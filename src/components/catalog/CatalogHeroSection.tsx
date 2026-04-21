@@ -103,7 +103,7 @@ export function CatalogHeroSection({
                       {calculateDurationDaysInclusive(startDate, endDate)} jour{calculateDurationDaysInclusive(startDate, endDate) > 1 ? 's' : ''}
                     </span>
                   )}
-                  {/* Indicateur de verification */}
+                  {/* Indicateur de vérification */}
                   {checkingAvailability && (
                     <Loader2 className="w-4 h-4 text-[#33ffcc] animate-spin" />
                   )}
@@ -133,7 +133,7 @@ export function CatalogHeroSection({
             </div>
           </form>
 
-          {/* Message d'erreur de disponibilite */}
+          {/* Message d'erreur de disponibilité */}
           {availabilityError && (
             <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
               <p className="text-red-400 text-sm">

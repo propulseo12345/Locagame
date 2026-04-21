@@ -60,7 +60,7 @@ export default function DateRangePickerCalendar({
       }
     } catch (error) {
       console.error('Error checking availability:', error);
-      setErrorMessage('Erreur lors de la verification de disponibilite');
+      setErrorMessage('Erreur lors de la vérification de disponibilité');
       setIsAvailable(false);
     } finally {
       setIsCheckingAvailability(false);

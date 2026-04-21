@@ -13,7 +13,6 @@ interface RpcResult {
   subtotal?: number;
   delivery_fee?: number;
   surcharges?: number;
-  deposit?: number;
   total?: number;
   pricing_breakdown?: Record<string, unknown>;
   items?: Array<Record<string, unknown>>;
@@ -164,8 +163,10 @@ export class CheckoutAuthenticated {
           p_delivery_is_mandatory: payload.delivery_is_mandatory ?? false,
           p_pickup_is_mandatory: payload.pickup_is_mandatory ?? false,
           // Tarif ORS (distance routière réelle × 0,80€/km)
-          p_delivery_fee: payload.delivery_fee ?? null,
-          p_delivery_distance_km: payload.delivery_distance_km ?? null,
+          p_delivery_fee: payload.delivery_fee ?? undefined,
+          p_delivery_distance_km: payload.delivery_distance_km ?? undefined,
+          // Code promo (validé côté serveur par la RPC)
+          p_promo_code: payload.promo_code ?? undefined,
         }
       );
 
@@ -192,7 +193,6 @@ export class CheckoutAuthenticated {
         customer_id: customerId,
         customer_email: payload.email,
         total: result.total,
-        deposit_amount: result.deposit,
         status: 'pending_payment',
       };
     } catch (error) {

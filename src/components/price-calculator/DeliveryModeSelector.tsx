@@ -9,7 +9,7 @@ export function DeliveryModeSelector({ deliveryMode, setDeliveryMode }: Delivery
   return (
     <div>
       <label className="block text-sm font-bold text-white/70 uppercase tracking-wider mb-3">
-        Mode de recuperation
+        Mode de récupération
       </label>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Click & Collect */}

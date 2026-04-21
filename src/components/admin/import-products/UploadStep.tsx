@@ -37,7 +37,7 @@ export function UploadStep({ fileInputRef, onFileUpload }: UploadStepProps) {
         <div className="text-sm text-blue-700 space-y-1">
           <p><strong>name</strong> (requis) - Nom du produit</p>
           <p><strong>slug</strong> (optionnel) - URL slug, auto-genere si vide</p>
-          <p><strong>category_id</strong> (requis) - Slug de la categorie (ex: "casino-poker")</p>
+          <p><strong>category_id</strong> (requis) - Slug de la catégorie (ex: "casino-poker")</p>
           <p><strong>description</strong> - Description du produit</p>
           <p><strong>price_one_day</strong> / <strong>price_weekend</strong> / <strong>price_week</strong> - Tarifs en euros</p>
           <p><strong>total_stock</strong> - Quantité en stock</p>

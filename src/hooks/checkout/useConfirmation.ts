@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { ReservationsService } from '../../services/reservations.service';
 import { CheckoutService } from '../../services/checkout.service';
@@ -6,8 +6,12 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Order } from '../../types';
 import { logger } from '../../lib/logger';
+import { AnalyticsService } from '../../services/analytics.service';
 
 export type ConfirmationPaymentState = 'loading' | 'success' | 'cancelled' | 'pending' | 'error';
+
+const POLL_INTERVAL_MS = 3000;
+const POLL_MAX_DURATION_MS = 30000;
 
 export function useConfirmation() {
   const { reservationId } = useParams<{ reservationId: string }>();
@@ -21,8 +25,53 @@ export function useConfirmation() {
   const [paymentState, setPaymentState] = useState<ConfirmationPaymentState>('loading');
   const [retrying, setRetrying] = useState(false);
   const cartCleared = useRef(false);
+  const purchaseTracked = useRef(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const paymentParam = searchParams.get('payment');
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
+  // Polling: refetch la réservation jusqu'à ce que le statut soit confirmé
+  const startPolling = useCallback((resId: string, _currentData: Order) => {
+    const startTime = Date.now();
+
+    pollingRef.current = setInterval(async () => {
+      // Arrêter après 30 secondes
+      if (Date.now() - startTime > POLL_MAX_DURATION_MS) {
+        stopPolling();
+        return;
+      }
+
+      try {
+        const fresh = await ReservationsService.getReservationById(resId);
+        if (fresh && fresh.payment_status === 'paid') {
+          stopPolling();
+          setReservation(fresh);
+          setPaymentState('success');
+        }
+      } catch {
+        // Silencieux — on retente au prochain tick
+      }
+    }, POLL_INTERVAL_MS);
+  }, [stopPolling]);
+
+  // Cleanup polling au démontage
+  useEffect(() => stopPolling, [stopPolling]);
+
+  // Vider le panier immédiatement au retour de Stripe avec ?payment=success,
+  // avant toute opération async (ownership check, fetch reservation...)
+  useEffect(() => {
+    if (paymentParam === 'success' && !cartCleared.current) {
+      clearCart();
+      cartCleared.current = true;
+    }
+  }, [paymentParam, clearCart]);
 
   useEffect(() => {
     if (!reservationId) return;
@@ -39,57 +88,76 @@ export function useConfirmation() {
         }
 
         const isOwner = user && data.customer?.id === user.id;
-        const isGuestWithSession = data.customer?.is_guest &&
-          sessionStorage.getItem('lastReservationId') === reservationId;
 
-        if (!isOwner && !isGuestWithSession) {
+        if (!isOwner) {
           navigate('/', { replace: true });
           return;
         }
 
         setReservation(data);
 
-        if (paymentParam === 'success') {
-          // Paiement reussi - vider le panier une seule fois
-          if (!cartCleared.current) {
-            clearCart();
-            cartCleared.current = true;
-          }
+        // Vider aussi si on accède directement à une réservation déjà payée
+        if (data?.payment_status === 'paid' && !cartCleared.current) {
+          clearCart();
+          cartCleared.current = true;
+        }
 
-          // Fallback: si le webhook n'a pas encore mis à jour le statut,
-          // on le fait côté client (le webhook fera un no-op grâce à l'idempotence)
+        if (paymentParam === 'success') {
+          // Si le webhook n'a pas encore mis à jour le statut,
+          // vérifier côté serveur via Stripe API (sécurisé)
           if (data?.status === 'pending_payment') {
+            let synced = false;
             try {
-              await ReservationsService.updatePaymentStatus(reservationId, 'paid');
-              // Mettre aussi le statut reservation à confirmed
-              const { error: statusError } = await (await import('../../lib/supabase')).supabase
-                .from('reservations')
-                .update({ status: 'confirmed', payment_status: 'paid', paid_at: new Date().toISOString() })
-                .eq('id', reservationId);
-              if (!statusError) {
-                setReservation({ ...data, status: 'confirmed', payment_status: 'paid' });
+              const syncResult = await ReservationsService.syncPaymentWithStripe(reservationId);
+              if (syncResult.payment_confirmed) {
+                setReservation({
+                  ...data,
+                  status: (syncResult.reservation_status || 'confirmed') as Order['status'],
+                  payment_status: 'paid',
+                });
+                synced = true;
               }
             } catch {
-              // Non-bloquant: le webhook le fera
+              // Non-bloquant: le polling prendra le relais
+            }
+
+            // Si le sync n'a pas confirmé, démarrer le polling
+            if (!synced) {
+              startPolling(reservationId, data);
             }
           }
 
           setPaymentState('success');
+
+          // Track purchase GA4
+          if (!purchaseTracked.current && data) {
+            purchaseTracked.current = true;
+            AnalyticsService.purchase(
+              reservationId,
+              data.total ?? 0,
+              (data.reservation_items || []).map((item) => ({
+                id: item.product_id || '',
+                name: item.product?.name || '',
+                price: item.unit_price || 0,
+                quantity: item.quantity || 1,
+              })),
+            );
+          }
         } else if (paymentParam === 'cancelled') {
           setPaymentState('cancelled');
         } else {
-          // Acces direct - determiner l'etat depuis la reservation
+          // Accès direct - déterminer l'état depuis la réservation
           if (data?.payment_status === 'paid') {
             setPaymentState('success');
           } else if (data?.status === 'pending_payment') {
             setPaymentState('pending');
           } else {
-            setPaymentState('success'); // Ancienne reservation sans paiement
+            setPaymentState('success'); // Ancienne réservation sans paiement
           }
         }
       } catch (err) {
         logger.error('Error loading reservation', err);
-        setError('Impossible de charger la reservation');
+        setError('Impossible de charger la réservation');
         setPaymentState('error');
       } finally {
         setLoading(false);
@@ -112,7 +180,7 @@ export function useConfirmation() {
       window.location.href = session_url;
     } catch (err) {
       logger.error('Retry payment error', err);
-      setError('Impossible de relancer le paiement. Veuillez reessayer.');
+      setError('Impossible de relancer le paiement. Veuillez réessayer.');
       setRetrying(false);
     }
   };

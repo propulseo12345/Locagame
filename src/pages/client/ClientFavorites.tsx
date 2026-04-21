@@ -67,7 +67,7 @@ export default function ClientFavorites() {
 
   if (loading) {
     return (
-      <div className="space-y-5 mt-6 md:mt-8">
+      <div className="space-y-5 ">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <ProductCardSkeleton key={i} />
@@ -78,7 +78,7 @@ export default function ClientFavorites() {
   }
 
   return (
-    <div className="space-y-5 mt-6 md:mt-8">
+    <div className="space-y-5 ">
       {error && (
         <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between">
           <p className="text-red-300">{error}</p>

@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { rateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const ALLOWED_ORIGIN = Deno.env.get("SITE_URL") || "https://www.locagame.net";
 
@@ -20,6 +21,16 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Rate limit: 3 req/min/IP
+  const rlResponse = rateLimitResponse(req, "delete-account", 3, corsHeaders);
+  if (rlResponse) return rlResponse;
+
+  // Payload size limit: 10 KB
+  const contentLength = parseInt(req.headers.get("content-length") || "0");
+  if (contentLength > 10_000) {
+    return jsonResponse({ error: "Payload too large" }, 413);
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

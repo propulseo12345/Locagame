@@ -30,7 +30,6 @@ export class ReservationsCreation {
     subtotal: number;
     delivery_fee: number;
     discount: number;
-    deposit?: number;
     total: number;
     notes?: string;
     // Nouveaux champs pour stockage complet
@@ -91,7 +90,7 @@ export class ReservationsCreation {
           subtotal: orderData.subtotal,
           delivery_fee: orderData.delivery_fee,
           discount: orderData.discount,
-          deposit_amount: orderData.deposit || 0,
+          deposit_amount: 0,
           total: orderData.total,
           status: 'pending_payment',
           payment_status: 'unpaid',

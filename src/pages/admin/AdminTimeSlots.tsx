@@ -105,7 +105,7 @@ export default function AdminTimeSlots() {
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all relative overflow-hidden">
           <Clock className="absolute top-3 right-3 w-8 h-8 text-gray-400 opacity-50" />
           <p className="text-sm text-gray-500 mb-1">Total</p>
@@ -242,7 +242,7 @@ export default function AdminTimeSlots() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Heure début *</label>
                   <input
@@ -264,7 +264,7 @@ export default function AdminTimeSlots() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Type de créneau</label>
                   <select

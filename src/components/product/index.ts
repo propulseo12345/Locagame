@@ -5,3 +5,4 @@ export { ProductStickyHeader } from './ProductStickyHeader';
 export { ProductReservationCard } from './ProductReservationCard';
 export { ProductQuickSpecs } from './ProductQuickSpecs';
 export { ProductLoading, ProductNotFound } from './ProductLoadingState';
+export { SimilarProducts } from './SimilarProducts';

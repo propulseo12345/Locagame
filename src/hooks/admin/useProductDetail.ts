@@ -127,12 +127,12 @@ export function useProductDetail() {
       setNewAvailability(INITIAL_AVAILABILITY);
     } catch (error) {
       logger.error('Error adding availability', error);
-      alert('Erreur lors de l\'ajout de la disponibilite');
+      alert('Erreur lors de l\'ajout de la disponibilité');
     }
   };
 
   const handleDeleteAvailability = async (availabilityId: string) => {
-    if (!confirm('Etes-vous sur de vouloir supprimer cette disponibilite ?')) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette disponibilité ?')) {
       return;
     }
 

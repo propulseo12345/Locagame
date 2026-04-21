@@ -103,7 +103,7 @@ export function Testimonials() {
               </div>
             </ScrollReveal>
             <ScrollReveal animation="fadeUp" delay={0.1}>
-              <h2 className="text-4xl md:text-5xl font-black text-white">
+              <h2 className="text-xl md:text-5xl font-black text-white">
                 Ce que disent nos clients
               </h2>
             </ScrollReveal>
@@ -157,7 +157,7 @@ export function Testimonials() {
           <>
             {/* Mobile: SwipeCarousel with autoplay */}
             <div className="md:hidden">
-              <SwipeCarousel itemsPerView={1} gap={16} autoPlay autoPlayInterval={4000}>
+              <SwipeCarousel itemsPerView={1} gap={16} autoPlay autoPlayInterval={5000}>
                 {testimonials.map((testimonial) => (
                   <TestimonialCard key={testimonial.id} testimonial={testimonial} />
                 ))}

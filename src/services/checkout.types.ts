@@ -36,6 +36,7 @@ export interface CheckoutPayload {
   delivery_fee: number;
   delivery_distance_km?: number;
   discount?: number;
+  promo_code?: string;
   total: number;
   pricing_breakdown?: Record<string, unknown>;
 
@@ -74,7 +75,6 @@ export interface CheckoutResult {
   customer_id?: string;
   customer_email?: string;
   total?: number;
-  deposit_amount?: number;
   status?: string;
   error?: string;
 }

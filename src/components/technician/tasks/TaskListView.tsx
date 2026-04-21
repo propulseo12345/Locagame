@@ -126,25 +126,25 @@ export function TaskListView({
 
                 {/* Actions */}
                 <div className="flex flex-col items-end gap-2">
-                  <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-[#33ffcc] transition-colors" />
-                  <div className="flex items-center gap-2">
+                  <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-[#33ffcc] transition-colors hidden md:block" />
+                  <div className="flex items-center gap-1">
                     <a
                       href={`tel:${task.customer.phone}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="p-2 text-gray-400 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors"
+                      className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
                       title="Appeler"
                     >
-                      <Phone className="w-4 h-4" />
+                      <Phone className="w-5 h-5" />
                     </a>
                     <a
                       href={getGoogleMapsUrl(task.address)}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="p-2 text-gray-400 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors"
+                      className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
                       title="Itineraire"
                     >
-                      <Navigation className="w-4 h-4" />
+                      <Navigation className="w-5 h-5" />
                     </a>
                   </div>
                 </div>

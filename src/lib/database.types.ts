@@ -794,6 +794,54 @@ export type Database = {
           },
         ]
       }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          current_uses: number | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          min_order_amount: number | null
+          stripe_coupon_id: string | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_order_amount?: number | null
+          stripe_coupon_id?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          min_order_amount?: number | null
+          stripe_coupon_id?: string | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       reservation_items: {
         Row: {
           created_at: string | null
@@ -861,6 +909,7 @@ export type Database = {
           created_at: string | null
           customer_id: string | null
           delivery_address_id: string | null
+          delivery_distance_km: number | null
           delivery_fee: number | null
           delivery_is_mandatory: boolean | null
           delivery_time: string | null
@@ -883,6 +932,7 @@ export type Database = {
           pickup_slot: string | null
           pickup_time: string | null
           pricing_breakdown: Json | null
+          promo_code: string | null
           recipient_data: Json | null
           return_time: string | null
           start_date: string
@@ -906,6 +956,7 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           delivery_address_id?: string | null
+          delivery_distance_km?: number | null
           delivery_fee?: number | null
           delivery_is_mandatory?: boolean | null
           delivery_time?: string | null
@@ -928,6 +979,7 @@ export type Database = {
           pickup_slot?: string | null
           pickup_time?: string | null
           pricing_breakdown?: Json | null
+          promo_code?: string | null
           recipient_data?: Json | null
           return_time?: string | null
           start_date: string
@@ -951,6 +1003,7 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           delivery_address_id?: string | null
+          delivery_distance_km?: number | null
           delivery_fee?: number | null
           delivery_is_mandatory?: boolean | null
           delivery_time?: string | null
@@ -973,6 +1026,7 @@ export type Database = {
           pickup_slot?: string | null
           pickup_time?: string | null
           pricing_breakdown?: Json | null
+          promo_code?: string | null
           recipient_data?: Json | null
           return_time?: string | null
           start_date?: string
@@ -1289,6 +1343,10 @@ export type Database = {
       }
       get_technician_id: { Args: never; Returns: string }
       get_technician_vehicle_id: { Args: never; Returns: string }
+      increment_promo_code_usage: {
+        Args: { p_code: string }
+        Returns: undefined
+      }
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { user_id: string }; Returns: boolean }
@@ -1316,15 +1374,22 @@ export type Database = {
         Args: {
           p_client_total?: number
           p_customer_id: string
+          p_delivery_distance_km?: number
+          p_delivery_fee?: number
           p_delivery_is_mandatory?: boolean
           p_delivery_type: string
           p_end_date: string
           p_items: Json
           p_metadata?: Json
           p_pickup_is_mandatory?: boolean
+          p_promo_code?: string
           p_start_date: string
           p_zone_id?: string
         }
+        Returns: Json
+      }
+      validate_promo_code: {
+        Args: { p_code: string; p_order_amount: number }
         Returns: Json
       }
     }

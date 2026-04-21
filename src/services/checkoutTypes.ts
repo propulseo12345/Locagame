@@ -74,7 +74,6 @@ export interface CheckoutResult {
   customer_id?: string;
   customer_email?: string;
   total?: number;
-  deposit_amount?: number;
   status?: string;
   error?: string;
 }

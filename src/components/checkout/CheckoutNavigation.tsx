@@ -15,7 +15,7 @@ export function CheckoutNavigation({
   onNext, onPrevious, onSubmit,
 }: CheckoutNavigationProps) {
   return (
-    <div className="sticky bottom-0 z-30 bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 -mx-4 px-4 py-4 mt-6 md:static md:bg-transparent md:border-0 md:mx-0 md:px-0 md:py-0 md:mt-6">
+    <div className="sticky bottom-0 z-30 bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 -mx-4 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] mt-6 md:static md:bg-transparent md:border-0 md:mx-0 md:px-0 md:py-0 md:pb-0 md:mt-6">
       <div className="flex justify-between">
         <button
           onClick={onPrevious}
@@ -43,8 +43,7 @@ export function CheckoutNavigation({
             disabled={hasUnavailableProducts}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 ml-3 px-6 py-3 bg-[#33ffcc] text-[#000033] font-semibold rounded-xl hover:bg-[#66cccc] disabled:opacity-50 transition-colors"
           >
-            Continuer
-            <ArrowRight className="w-5 h-5" />
+            Continuer<ArrowRight className="w-5 h-5" />
           </button>
         )}
       </div>

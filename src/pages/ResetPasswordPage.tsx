@@ -15,40 +15,59 @@ export default function ResetPasswordPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Supabase injecte les tokens dans le hash de l'URL (#access_token=...&type=recovery)
-    // Le SDK les détecte automatiquement et déclenche PASSWORD_RECOVERY
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    let resolved = false;
+
+    const markReady = () => {
+      if (resolved) return;
+      resolved = true;
+      setStatus('ready');
+    };
+
+    // Écouter les événements auth.
+    // PASSWORD_RECOVERY peut arriver AVANT ou APRÈS l'enregistrement du listener
+    // selon le timing de _initialize() du SDK Supabase.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (resolved) return;
+
       if (event === 'PASSWORD_RECOVERY') {
-        setStatus('ready');
-      } else if (event === 'SIGNED_IN') {
-        // Peut arriver si le token est échangé automatiquement
-        // On vérifie si on a un hash de type recovery
-        const hash = window.location.hash;
-        if (hash.includes('type=recovery')) {
-          setStatus('ready');
+        markReady();
+      } else if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+        // PASSWORD_RECOVERY a peut-être déjà été émis avant l'enregistrement du listener.
+        // On vérifie si le hash contient type=recovery ET qu'une session existe.
+        if (session && window.location.hash.includes('type=recovery')) {
+          markReady();
         }
       }
     });
 
-    // Vérifier si une erreur est présente dans l'URL
+    // Vérifier immédiatement le hash — couvre le cas où TOUS les événements
+    // ont déjà été émis avant que cet effet ne s'exécute.
     const hash = window.location.hash;
+
     if (hash.includes('error=')) {
       const params = new URLSearchParams(hash.slice(1));
       const error = params.get('error_description') || params.get('error') || 'Lien invalide ou expiré';
       setErrorMessage(decodeURIComponent(error));
       setStatus('error');
+      resolved = true;
+    } else if (hash.includes('type=recovery')) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) markReady();
+      });
     }
 
-    // Timeout de sécurité
+    // Timeout de sécurité — augmenté à 10s pour les connexions lentes
     const timeout = setTimeout(() => {
-      setStatus(prev => {
-        if (prev === 'loading') {
-          setErrorMessage('Le lien de réinitialisation est invalide ou a expiré. Veuillez en demander un nouveau.');
-          return 'error';
-        }
-        return prev;
-      });
-    }, 8000);
+      if (!resolved) {
+        setStatus(prev => {
+          if (prev === 'loading') {
+            setErrorMessage('Le lien de réinitialisation est invalide ou a expiré. Veuillez en demander un nouveau.');
+            return 'error';
+          }
+          return prev;
+        });
+      }
+    }, 10000);
 
     return () => {
       subscription.unsubscribe();
@@ -60,8 +79,8 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setFormError('');
 
-    if (password.length < 6) {
-      setFormError('Le mot de passe doit contenir au moins 6 caractères');
+    if (password.length < 8) {
+      setFormError('Le mot de passe doit contenir au moins 8 caractères');
       return;
     }
     if (password !== confirmPassword) {
@@ -150,7 +169,7 @@ export default function ResetPasswordPage() {
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Minimum 6 caractères"
+                        placeholder="Minimum 8 caractères"
                         required
                         className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white placeholder-white/30 focus:border-[#33ffcc]/50 focus:outline-none focus:ring-1 focus:ring-[#33ffcc]/30 transition-colors"
                       />

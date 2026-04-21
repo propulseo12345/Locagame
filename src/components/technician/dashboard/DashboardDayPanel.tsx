@@ -23,7 +23,7 @@ export default function DashboardDayPanel({
   vehicles,
 }: DashboardDayPanelProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col max-h-[700px]">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col max-h-[60vh] md:max-h-[700px]">
       <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
         <h3 className="font-bold text-gray-900 capitalize">
           {new Date(selectedDate).toLocaleDateString('fr-FR', {
@@ -137,20 +137,19 @@ export default function DashboardDayPanel({
                         <a
                           href={`tel:${task.customer.phone}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#33ffcc] transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
                         >
-                          <Phone className="w-3 h-3" />
+                          <Phone className="w-4 h-4" />
                           <span>Appeler</span>
                         </a>
-                        <span className="text-gray-300">|</span>
                         <a
                           href={getGoogleMapsUrl(task.address)}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#33ffcc] transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
                         >
-                          <Navigation className="w-3 h-3" />
+                          <Navigation className="w-4 h-4" />
                           <span>Itinéraire</span>
                         </a>
                       </div>

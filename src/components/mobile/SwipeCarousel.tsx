@@ -26,10 +26,22 @@ export function SwipeCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const totalItems = children.length;
 
   // Calculate item width as percentage based on itemsPerView
   const itemWidthPercent = 100 / itemsPerView;
+
+  const pauseAutoPlay = useCallback(() => {
+    setIsPaused(true);
+    clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => setIsPaused(false), 3000);
+  }, []);
+
+  useEffect(() => {
+    return () => clearTimeout(resumeTimerRef.current);
+  }, []);
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -51,9 +63,18 @@ export function SwipeCarousel({
     return () => el.removeEventListener('scroll', updateScrollState);
   }, [updateScrollState]);
 
+  // Pause autoplay on touch
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !autoPlay) return;
+    const handleTouch = () => pauseAutoPlay();
+    el.addEventListener('touchstart', handleTouch, { passive: true });
+    return () => el.removeEventListener('touchstart', handleTouch);
+  }, [autoPlay, pauseAutoPlay]);
+
   // Auto-play
   useEffect(() => {
-    if (!autoPlay || totalItems <= 1) return;
+    if (!autoPlay || totalItems <= 1 || isPaused) return;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
@@ -66,11 +87,12 @@ export function SwipeCarousel({
     }, autoPlayInterval);
 
     return () => clearInterval(interval);
-  }, [autoPlay, autoPlayInterval, activeIndex, totalItems]);
+  }, [autoPlay, autoPlayInterval, activeIndex, totalItems, isPaused]);
 
   const scrollTo = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
+    pauseAutoPlay();
     const itemWidth = el.scrollWidth / totalItems;
     const scrollAmount = direction === 'left' ? -itemWidth : itemWidth;
     el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
@@ -79,6 +101,7 @@ export function SwipeCarousel({
   const scrollToIndex = (index: number) => {
     const el = scrollRef.current;
     if (!el) return;
+    pauseAutoPlay();
     const itemWidth = el.scrollWidth / totalItems;
     el.scrollTo({ left: index * itemWidth, behavior: 'smooth' });
   };
@@ -86,7 +109,11 @@ export function SwipeCarousel({
   if (totalItems === 0) return null;
 
   return (
-    <div className={`relative ${className}`}>
+    <div
+      className={`relative ${className}`}
+      onMouseEnter={() => autoPlay && setIsPaused(true)}
+      onMouseLeave={() => autoPlay && setIsPaused(false)}
+    >
       {/* Scroll container */}
       <div
         ref={scrollRef}
@@ -108,9 +135,27 @@ export function SwipeCarousel({
         ))}
       </div>
 
-      {/* Arrows — desktop + small mobile arrows */}
+      {/* Arrows — mobile (small, translucent) + desktop */}
       {showArrows && totalItems > Math.ceil(itemsPerView) && (
         <>
+          {/* Mobile arrows */}
+          <button
+            onClick={() => scrollTo('left')}
+            disabled={!canScrollLeft}
+            className="flex md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm text-white transition-all duration-200 disabled:opacity-0 disabled:pointer-events-none"
+            aria-label="Précédent"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => scrollTo('right')}
+            disabled={!canScrollRight}
+            className="flex md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm text-white transition-all duration-200 disabled:opacity-0 disabled:pointer-events-none"
+            aria-label="Suivant"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+
           {/* Desktop arrows */}
           <button
             onClick={() => scrollTo('left')}

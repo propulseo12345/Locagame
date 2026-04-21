@@ -27,7 +27,9 @@ export default function ReservationSidebar({ reservation, updating, onStatusChan
           )}
           {(reservation.discount || 0) > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Reduction</span>
+              <span className="text-gray-600">
+                Réduction{reservation.promo_code ? ` (${reservation.promo_code})` : ''}
+              </span>
               <span className="text-green-600">-{reservation.discount}€</span>
             </div>
           )}
@@ -76,7 +78,7 @@ export default function ReservationSidebar({ reservation, updating, onStatusChan
             ) : (
               <XCircle className="w-4 h-4 text-red-500" />
             )}
-            <span className="text-gray-600">CGV acceptees</span>
+            <span className="text-gray-600">CGV acceptées</span>
           </div>
           <div className="flex items-center gap-2">
             {reservation.newsletter_accepted ? (
@@ -94,7 +96,7 @@ export default function ReservationSidebar({ reservation, updating, onStatusChan
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Informations</h3>
         <div className="space-y-2 text-sm text-gray-600">
           <div>
-            Creee le: {reservation.created_at ? new Date(reservation.created_at).toLocaleDateString('fr-FR', {
+            Créée le : {reservation.created_at ? new Date(reservation.created_at).toLocaleDateString('fr-FR', {
               day: 'numeric',
               month: 'long',
               year: 'numeric',
@@ -104,7 +106,7 @@ export default function ReservationSidebar({ reservation, updating, onStatusChan
           </div>
           {reservation.updated_at && (
             <div>
-              Modifiee le: {new Date(reservation.updated_at).toLocaleDateString('fr-FR', {
+              Modifiée le : {new Date(reservation.updated_at).toLocaleDateString('fr-FR', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',

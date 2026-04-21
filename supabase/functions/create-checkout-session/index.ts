@@ -1,17 +1,17 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import Stripe from "https://esm.sh/stripe@17.7.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { rateLimitResponse } from "../_shared/rate-limiter.ts";
 
-const PROD_ORIGIN = "https://www.locagame.net";
-const ALLOWED_ORIGINS = [
-  PROD_ORIGIN,
-  "http://localhost:5173",
-  "http://localhost:1974",
-];
+const SITE_URL = Deno.env.get("SITE_URL") || "https://www.locagame.net";
+const isDev = Deno.env.get("ENVIRONMENT") !== "production";
+const ALLOWED_ORIGINS = isDev
+  ? [SITE_URL, "http://localhost:5173", "http://localhost:1974"]
+  : [SITE_URL];
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("origin") || "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : PROD_ORIGIN;
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : SITE_URL;
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -96,6 +96,16 @@ Deno.serve(async (req: Request) => {
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: cors });
+  }
+
+  // Rate limit: 10 req/min/IP
+  const rlResponse = rateLimitResponse(req, "create-checkout-session", 10, cors);
+  if (rlResponse) return rlResponse;
+
+  // Payload size limit: 10 KB
+  const contentLength = parseInt(req.headers.get("content-length") || "0");
+  if (contentLength > 10_000) {
+    return jsonResponse({ error: "Payload too large" }, 413, cors);
   }
 
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -258,18 +268,45 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Aucun article dans la reservation" }, 400, cors);
     }
 
+    // 6b. Appliquer le discount via Stripe Coupon (si code promo)
+    // On crée TOUJOURS un coupon frais par commande car le montant varie
+    // (les codes promo % produisent un montant différent selon le panier).
+    const discountAmount = Number(reservation.discount || 0);
+    let stripeCouponId: string | undefined;
+
+    if (discountAmount > 0 && reservation.promo_code) {
+      try {
+        const coupon = await stripe.coupons.create({
+          amount_off: Math.round(discountAmount * 100),
+          currency: "eur",
+          duration: "once" as const,
+          name: `Code promo ${reservation.promo_code} (-${discountAmount.toFixed(2)}€)`,
+        });
+        stripeCouponId = coupon.id;
+        console.log(
+          "[create-checkout-session] Created Stripe coupon:",
+          coupon.id,
+          "amount_off:",
+          discountAmount
+        );
+      } catch (couponErr) {
+        console.error("[create-checkout-session] Stripe coupon creation error:", couponErr);
+      }
+    }
+
     // 7. Vérification de cohérence : total Stripe vs total DB
-    const stripeTotal = lineItems.reduce((sum, li) => {
+    const stripeLineItemsTotal = lineItems.reduce((sum, li) => {
       const unitAmount = (li.price_data as Record<string, unknown>)?.unit_amount as number || 0;
       const qty = li.quantity || 1;
       return sum + unitAmount * qty;
     }, 0);
+    const expectedStripeTotalCents = stripeLineItemsTotal - (stripeCouponId ? Math.round(discountAmount * 100) : 0);
     const dbTotalCents = Math.round(Number(reservation.total) * 100);
 
-    console.log("[create-checkout-session] Stripe total (cents):", stripeTotal, "DB total (cents):", dbTotalCents);
+    console.log("[create-checkout-session] Line items total (cents):", stripeLineItemsTotal, "Discount (cents):", Math.round(discountAmount * 100), "Expected (cents):", expectedStripeTotalCents, "DB total (cents):", dbTotalCents);
 
-    if (Math.abs(stripeTotal - dbTotalCents) > 1) {
-      console.warn("[create-checkout-session] Total mismatch! Stripe:", stripeTotal / 100, "DB:", reservation.total);
+    if (Math.abs(expectedStripeTotalCents - dbTotalCents) > 1) {
+      console.warn("[create-checkout-session] Total mismatch! Expected:", expectedStripeTotalCents / 100, "DB:", reservation.total);
     }
 
     // 8. Creer ou recuperer le Stripe Customer
@@ -311,6 +348,7 @@ Deno.serve(async (req: Request) => {
         metadata: { reservation_id: reservation.id },
       },
       locale: "fr",
+      ...(stripeCouponId ? { discounts: [{ coupon: stripeCouponId }] } : {}),
     };
 
     if (stripeCustomerId) {

@@ -38,7 +38,7 @@ export default function ClientAddresses() {
   }
 
   return (
-    <div className="space-y-6 mt-6 md:mt-8">
+    <div className="space-y-6">
       <AddressesHeader
         count={addresses.length}
         onAdd={() => handleOpenModal()}

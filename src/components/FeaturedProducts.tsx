@@ -132,7 +132,7 @@ export function FeaturedProducts() {
               </div>
             </ScrollReveal>
             <ScrollReveal animation="fadeUp" delay={0.1}>
-              <h2 className="text-4xl md:text-5xl font-black text-white">
+              <h2 className="text-xl md:text-5xl font-black text-white">
                 Nos Coups de Cœur
               </h2>
             </ScrollReveal>
@@ -168,7 +168,7 @@ export function FeaturedProducts() {
           <>
             {/* Mobile: SwipeCarousel */}
             <div className="sm:hidden">
-              <SwipeCarousel itemsPerView={1.15} gap={16} showArrows={false}>
+              <SwipeCarousel itemsPerView={1.15} gap={16} autoPlay autoPlayInterval={4000}>
                 {featuredProducts.map((product, index) => (
                   <FeaturedProductCard key={product.id} product={product} index={index} getCategoryName={getCategoryName} />
                 ))}

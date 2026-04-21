@@ -130,7 +130,7 @@ export function SupabaseDiagnosticBanner() {
               Le navigateur ne peut pas joindre Supabase. Essayez :<br />
               1. Navigation privee (Ctrl+Shift+N)<br />
               2. Desactiver extensions (uBlock, adblock...)<br />
-              3. Verifier que le projet Supabase n'est pas en pause sur app.supabase.com
+              3. Vérifier que le projet Supabase n'est pas en pause sur app.supabase.com
             </div>
           )}
         </div>

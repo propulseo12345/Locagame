@@ -1,4 +1,4 @@
-import { Lock, Shield, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
 
 interface SecurityFormProps {
   passwordData: {
@@ -19,6 +19,8 @@ interface SecurityFormProps {
   onChangePassword: () => void;
 }
 
+const inputClass = 'w-full pl-10 pr-10 py-2.5 bg-white/[0.04] border border-white/[0.08] rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-[#33ffcc]/40 focus:border-[#33ffcc]/30 transition-all';
+
 export default function SecurityForm({
   passwordData,
   setPasswordData,
@@ -30,108 +32,97 @@ export default function SecurityForm({
   onChangePassword,
 }: SecurityFormProps) {
   return (
-    <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
-      <div className="px-6 py-5 border-b border-white/10 flex items-center gap-3">
-        <div className="p-2 bg-[#fe1979]/20 rounded-xl">
-          <Shield className="w-5 h-5 text-[#fe1979]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold text-white">Securite</h2>
-          <p className="text-sm text-white/50">Modifiez votre mot de passe</p>
-        </div>
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-white/[0.06]">
+        <h2 className="text-sm font-semibold text-white">Sécurité</h2>
+        <p className="text-xs text-gray-500 mt-0.5">Modifiez votre mot de passe</p>
       </div>
 
-      <div className="p-6 space-y-5">
+      <div className="p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-white/70 mb-2">Mot de passe actuel</label>
+          <label className="block text-xs font-medium text-gray-400 mb-1.5">Mot de passe actuel</label>
           <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
               type={showPasswords.current ? 'text' : 'password'}
               value={passwordData.current}
               onChange={(e) => setPasswordData({ ...passwordData, current: e.target.value })}
-              className="w-full pl-12 pr-12 py-3.5 bg-white/[0.06] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#33ffcc]/50 focus:border-[#33ffcc]/50 transition-all"
+              className={inputClass}
             />
             <button
               type="button"
               onClick={() => togglePasswordVisibility('current')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
             >
-              {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {showPasswords.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">Nouveau mot de passe</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">Nouveau mot de passe</label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
                 type={showPasswords.new ? 'text' : 'password'}
                 value={passwordData.new}
                 onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
-                className="w-full pl-12 pr-12 py-3.5 bg-white/[0.06] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#33ffcc]/50 focus:border-[#33ffcc]/50 transition-all"
+                className={inputClass}
               />
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility('new')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
               >
-                {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">Confirmer le mot de passe</label>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">Confirmer</label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
                 type={showPasswords.confirm ? 'text' : 'password'}
                 value={passwordData.confirm}
                 onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
-                className="w-full pl-12 pr-12 py-3.5 bg-white/[0.06] border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[#33ffcc]/50 focus:border-[#33ffcc]/50 transition-all"
+                className={inputClass}
               />
               <button
                 type="button"
                 onClick={() => togglePasswordVisibility('confirm')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
               >
-                {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
         </div>
 
         {passwordError && (
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400">
             {passwordError}
           </div>
         )}
 
         {passwordSuccess && (
-          <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-sm flex items-center gap-2">
-            <Check className="w-4 h-4" />
-            Mot de passe modifie avec succes
+          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-xs text-emerald-400 flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5" />
+            Mot de passe modifié avec succès
           </div>
         )}
 
-        <div className="flex justify-end pt-4 border-t border-white/10">
+        <div className="flex justify-end pt-3 border-t border-white/[0.06]">
           <button
             onClick={onChangePassword}
             disabled={savingPassword || !passwordData.current || !passwordData.new || !passwordData.confirm}
-            className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 border border-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] text-sm text-white font-medium rounded-lg border border-white/[0.08] hover:bg-white/[0.1] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {savingPassword ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Modification...
-              </>
+              <><Loader2 className="w-4 h-4 animate-spin" /> Modification...</>
             ) : (
-              <>
-                <Lock className="w-5 h-5" />
-                Changer le mot de passe
-              </>
+              'Changer le mot de passe'
             )}
           </button>
         </div>
