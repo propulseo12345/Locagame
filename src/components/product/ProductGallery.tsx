@@ -121,9 +121,9 @@ export function ProductGallery({
 
         </div>
 
-        {/* Thumbnails */}
+        {/* Thumbnails — hidden on mobile (dots + swipe handles navigation) */}
         {images.length > 1 && (
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+          <div className="hidden sm:grid sm:grid-cols-5 gap-3">
             {images.slice(0, 5).map((image, index) => (
               <button
                 key={index}

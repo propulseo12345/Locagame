@@ -27,15 +27,15 @@ export default function AProposPage() {
         <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-[#33ffcc]/60 rounded-full animate-bounce"></div>
       </div>
 
-      <div className="relative py-16">
+      <div className="relative py-8 md:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#33ffcc]/10 border border-[#33ffcc]/30 rounded-full mb-6">
               <Heart className="w-5 h-5 text-[#33ffcc]" />
               <span className="text-[#33ffcc] font-semibold">Depuis 2015</span>
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 md:mb-6">
               À propos de <span className="gradient-text">LOCAGAME</span>
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
@@ -44,7 +44,7 @@ export default function AProposPage() {
           </div>
 
           {/* Story Section */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 mb-12">
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-5 md:p-8 border border-white/10 mb-8 md:mb-12">
             <h2 className="text-2xl font-bold text-white mb-6">Notre histoire</h2>
             <div className="text-gray-300 space-y-4">
               <p>
@@ -106,7 +106,7 @@ export default function AProposPage() {
           </div>
 
           {/* Stats */}
-          <div className="bg-gradient-to-r from-[#33ffcc]/10 to-[#66cccc]/10 backdrop-blur-sm rounded-2xl p-8 border border-[#33ffcc]/20 mb-12">
+          <div className="bg-gradient-to-r from-[#33ffcc]/10 to-[#66cccc]/10 backdrop-blur-sm rounded-2xl p-5 md:p-8 border border-[#33ffcc]/20 mb-8 md:mb-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
               <div>
                 <div className="text-2xl sm:text-4xl font-bold text-[#33ffcc] mb-2">200+</div>

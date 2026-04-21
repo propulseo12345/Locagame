@@ -70,10 +70,10 @@ export default function ProductPage() {
           onLike={handleLike}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-14 pb-6 lg:pb-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-14 pb-6 lg:pb-10">
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8 lg:gap-12">
             {/* Left column - Gallery & Info */}
-            <div className="md:col-span-1 lg:col-span-3 space-y-8">
+            <div className="md:col-span-1 lg:col-span-3 space-y-6 md:space-y-8">
               <ProductGallery
                 images={product.images}
                 productName={product.name}

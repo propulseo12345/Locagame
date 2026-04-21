@@ -117,13 +117,13 @@ export function FeaturedProducts() {
   };
 
   return (
-    <section className="py-24 bg-[#000033] relative overflow-hidden">
+    <section className="py-12 md:py-24 bg-[#000033] relative overflow-hidden">
       {/* Fond subtil */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#33ffcc]/[0.02] to-transparent" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header de section */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6 mb-8 md:mb-12">
           <div>
             <ScrollReveal animation="fadeUp">
               <div className="flex items-center gap-2 mb-4">
@@ -194,21 +194,21 @@ export function FeaturedProducts() {
 
         {/* CTA discret */}
         <ScrollReveal animation="fadeUp" delay={0.3}>
-          <div className="mt-16 text-center">
-            <p className="text-gray-400 mb-6">
+          <div className="mt-10 md:mt-16 text-center">
+            <p className="text-gray-400 mb-4 md:mb-6">
               Plus de <span className="text-white font-semibold">200 jeux</span> disponibles pour vos événements
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center px-4 sm:px-0">
               <Link
                 to="/catalogue"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-all duration-300 hover:scale-105"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 md:px-8 md:py-4 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-all duration-300 hover:scale-105"
               >
                 Explorer le catalogue
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
                 to="/contact?subject=devis"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/20 text-white font-semibold rounded-xl hover:border-[#33ffcc] hover:text-[#33ffcc] transition-all duration-300"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 md:px-8 md:py-4 border-2 border-white/20 text-white font-semibold rounded-xl hover:border-[#33ffcc] hover:text-[#33ffcc] transition-all duration-300"
               >
                 Demander un devis
               </Link>

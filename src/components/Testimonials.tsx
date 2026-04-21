@@ -8,9 +8,9 @@ import { TestimonialsService, type Testimonial } from '../services';
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
-    <div className="relative bg-gradient-to-br from-white/[0.05] to-transparent rounded-2xl p-8 border border-white/10 hover:border-[#33ffcc]/30 transition-all duration-300 h-full">
-      <Quote className="w-10 h-10 text-[#33ffcc]/20 mb-6" />
-      <p className="text-gray-300 leading-relaxed mb-8">
+    <div className="relative bg-gradient-to-br from-white/[0.05] to-transparent rounded-2xl p-5 md:p-8 border border-white/10 hover:border-[#33ffcc]/30 transition-all duration-300 h-full">
+      <Quote className="w-8 h-8 md:w-10 md:h-10 text-[#33ffcc]/20 mb-4 md:mb-6" />
+      <p className="text-gray-300 leading-relaxed mb-5 md:mb-8 text-sm md:text-base">
         "{testimonial.content}"
       </p>
       <div className="flex items-center gap-4">
@@ -70,13 +70,13 @@ export function Testimonials() {
   };
 
   return (
-    <section className="py-24 bg-[#000033] relative overflow-hidden">
+    <section className="py-12 md:py-24 bg-[#000033] relative overflow-hidden">
       {/* Accent décoratif */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#33ffcc]/5 rounded-full blur-[150px] pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6 mb-8 md:mb-12">
           <div>
             <ScrollReveal animation="fadeUp">
               <div className="flex items-center gap-2 mb-4">
@@ -187,7 +187,7 @@ export function Testimonials() {
 
         {/* CTA */}
         <ScrollReveal animation="scale" delay={0.3}>
-          <div className="mt-16 text-center">
+          <div className="mt-10 md:mt-16 text-center">
             <p className="text-gray-400 mb-6">
               Rejoignez plus de <span className="text-white font-semibold">2000 clients satisfaits</span>
             </p>

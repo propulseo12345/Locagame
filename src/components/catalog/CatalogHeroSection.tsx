@@ -39,7 +39,7 @@ export function CatalogHeroSection({
   return (
     <div className="relative z-10 border-b border-white/10">
       <div className="max-w-[1600px] mx-auto px-3 sm:px-4 lg:px-6 py-10 text-center">
-        <h1 className="text-4xl md:text-5xl font-black text-white mb-3">
+        <h1 className="text-3xl md:text-5xl font-black text-white mb-3">
           Notre <span className="gradient-text">Catalogue</span>
         </h1>
         <p className="text-gray-400 mb-6 max-w-xl mx-auto">
@@ -77,11 +77,12 @@ export function CatalogHeroSection({
                 )}
               </div>
 
-              {/* Dates groupees */}
+              {/* Dates — mobile: stacked, desktop: inline */}
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
-                  <Calendar className="w-4 h-4 text-[#33ffcc] hidden sm:block" />
-                  <span className="text-gray-500 text-sm hidden sm:inline">Du</span>
+                {/* Desktop date row */}
+                <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-xl">
+                  <Calendar className="w-4 h-4 text-[#33ffcc]" />
+                  <span className="text-gray-500 text-sm">Du</span>
                   <input
                     type="date"
                     value={startDate}
@@ -97,17 +98,14 @@ export function CatalogHeroSection({
                     min={startDate || getTodayString()}
                     className="w-[130px] bg-transparent text-white text-sm focus:outline-none [color-scheme:dark]"
                   />
-                  {/* Affichage du nombre de jours */}
                   {startDate && endDate && (
                     <span className="text-[#33ffcc] text-sm font-medium whitespace-nowrap">
                       {calculateDurationDaysInclusive(startDate, endDate)} jour{calculateDurationDaysInclusive(startDate, endDate) > 1 ? 's' : ''}
                     </span>
                   )}
-                  {/* Indicateur de vérification */}
                   {checkingAvailability && (
                     <Loader2 className="w-4 h-4 text-[#33ffcc] animate-spin" />
                   )}
-                  {/* Bouton effacer */}
                   {startDate && (
                     <button
                       type="button"
@@ -116,6 +114,39 @@ export function CatalogHeroSection({
                       title="Effacer les dates"
                     >
                       <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                {/* Mobile date inputs — side by side compact */}
+                <div className="flex sm:hidden items-center gap-2 w-full">
+                  <div className="flex-1 relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#33ffcc]" />
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
+                      min={getTodayString()}
+                      className="w-full pl-9 pr-2 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-base focus:outline-none focus:border-[#33ffcc]/50 [color-scheme:dark]"
+                    />
+                  </div>
+                  <div className="flex-1 relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#33ffcc]" />
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => handleEndDateChange(e.target.value)}
+                      min={startDate || getTodayString()}
+                      className="w-full pl-9 pr-2 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-base focus:outline-none focus:border-[#33ffcc]/50 [color-scheme:dark]"
+                    />
+                  </div>
+                  {startDate && (
+                    <button
+                      type="button"
+                      onClick={clearDates}
+                      className="p-2 text-gray-400 hover:text-[#33ffcc] transition-colors flex-shrink-0"
+                      title="Effacer les dates"
+                    >
+                      <X className="w-5 h-5" />
                     </button>
                   )}
                 </div>

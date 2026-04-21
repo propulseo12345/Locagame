@@ -4,7 +4,7 @@ import { Scale, ArrowLeft } from 'lucide-react';
 export default function MentionsLegalesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#000033] via-[#001144] to-[#000033] pt-header">
-      <div className="relative py-16">
+      <div className="relative py-8 md:py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back link */}
           <Link to="/" className="inline-flex items-center gap-2 text-[#33ffcc] hover:text-[#66cccc] transition-colors mb-8">

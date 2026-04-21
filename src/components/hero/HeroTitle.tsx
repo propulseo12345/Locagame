@@ -16,8 +16,8 @@ export function HeroTitle() {
       </motion.div>
 
       {/* Titre */}
-      <motion.div variants={animations.fadeUp} className="text-center space-y-4">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
+      <motion.div variants={animations.fadeUp} className="text-center space-y-3 md:space-y-4">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
           <span className="relative inline-block">
             <span className="relative z-10 bg-gradient-to-r from-[#33ffcc] via-[#66ffdd] to-[#33ffcc] bg-clip-text text-transparent">
               Loue & Joue
@@ -30,7 +30,7 @@ export function HeroTitle() {
             />
           </span>
         </h1>
-        <p className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto font-light">
+        <p className="text-base md:text-xl text-white/60 max-w-2xl mx-auto font-light">
           Baby-foot, poker, bornes arcade, jeux en bois... Tout pour animer vos événements en région PACA
         </p>
       </motion.div>

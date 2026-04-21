@@ -72,13 +72,13 @@ export function HowItWorks() {
   };
 
   return (
-    <section className="py-24 bg-gradient-to-b from-[#000033] via-[#001144] to-[#000033] relative overflow-hidden">
+    <section className="py-12 md:py-24 bg-gradient-to-b from-[#000033] via-[#001144] to-[#000033] relative overflow-hidden">
       {/* Accent décoratif */}
       <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-[#33ffcc]/5 rounded-full blur-[150px] -translate-y-1/2 pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 md:mb-16">
           <ScrollReveal animation="fadeUp">
             <p className="text-[#33ffcc] text-sm font-semibold uppercase tracking-wider mb-4">
               Simple & rapide
@@ -182,7 +182,7 @@ export function HowItWorks() {
 
         {/* CTA */}
         <ScrollReveal animation="scale" delay={0.2}>
-          <div className="mt-20 text-center">
+          <div className="mt-10 md:mt-20 text-center">
             <p className="text-gray-400 mb-6">
               Plus de <span className="text-white font-semibold">2000 événements</span> organisés avec succès
             </p>

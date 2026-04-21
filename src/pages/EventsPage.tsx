@@ -148,7 +148,7 @@ export default function EventsPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-[#33ffcc]/[0.03] via-transparent to-transparent" />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#33ffcc]/[0.04] rounded-full blur-[120px]" />
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 text-center">
             <ScrollReveal animation="fadeUp">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/[0.06] backdrop-blur-sm rounded-full border border-white/10 mb-6">
                 <Trophy className="w-4 h-4 text-[#33ffcc]" />
@@ -163,7 +163,7 @@ export default function EventsPage() {
             </ScrollReveal>
 
             <ScrollReveal animation="fadeUp" delay={0.15}>
-              <p className="text-gray-400 max-w-xl mx-auto text-lg mb-10">
+              <p className="text-gray-400 max-w-xl mx-auto text-base md:text-lg mb-6 md:mb-10">
                 Découvrez les événements que nous avons animés avec passion
               </p>
             </ScrollReveal>
@@ -201,7 +201,7 @@ export default function EventsPage() {
           </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
           {/* Filtres glassmorphism */}
           <ScrollReveal animation="fadeUp" delay={0.1}>
             <div className="mb-4">
@@ -304,7 +304,7 @@ export default function EventsPage() {
                       </div>
 
                       {/* Contenu */}
-                      <div className="p-8 flex flex-col justify-center">
+                      <div className="p-5 md:p-8 flex flex-col justify-center">
                         {featuredEvent.event_type && (
                           <span className="text-[#33ffcc] text-xs font-semibold uppercase tracking-wider mb-3">
                             {featuredEvent.event_type.name}
@@ -383,8 +383,8 @@ export default function EventsPage() {
 
           {/* CTA Final */}
           <ScrollReveal animation="fadeUp" delay={0.2}>
-            <div className="mt-20 text-center">
-              <div className="relative max-w-2xl mx-auto p-10 bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+            <div className="mt-12 md:mt-20 text-center">
+              <div className="relative max-w-2xl mx-auto p-6 md:p-10 bg-gradient-to-br from-white/[0.08] to-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
                 {/* Glow */}
                 <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-60 h-60 bg-[#33ffcc]/[0.06] rounded-full blur-[80px]" />
 

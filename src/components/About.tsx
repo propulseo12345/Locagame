@@ -1,17 +1,18 @@
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ScrollReveal, StaggerContainer, StaggerItem } from './ui';
+import { SwipeCarousel } from './mobile';
 
 export function About() {
   return (
-    <section className="relative py-20 md:py-28 bg-[#000033] overflow-hidden">
+    <section className="relative py-12 md:py-28 bg-[#000033] overflow-hidden">
       {/* Éléments décoratifs subtils */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#33ffcc]/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#66cccc]/5 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* En-tête centré */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-8 md:mb-16">
           <ScrollReveal animation="fadeUp" delay={0}>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#33ffcc]/10 border border-[#33ffcc]/20 rounded-full mb-6">
               <span className="w-2 h-2 bg-[#33ffcc] rounded-full animate-pulse" />
@@ -33,8 +34,57 @@ export function About() {
           </ScrollReveal>
         </div>
 
-        {/* Contenu en 2 colonnes */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+        {/* Mobile: condensed layout */}
+        <div className="md:hidden space-y-6">
+          <ScrollReveal animation="fadeUp">
+            <blockquote className="relative pl-5 border-l-4 border-[#33ffcc]">
+              <p className="text-xl text-white font-bold italic leading-snug">
+                "Ce soir, je commande une pizza et un baby-foot géant !"
+              </p>
+            </blockquote>
+          </ScrollReveal>
+
+          <ScrollReveal animation="fadeUp" delay={0.1}>
+            <p className="text-base text-gray-300 leading-relaxed">
+              Aussi simple que de se faire livrer ses courses. LOCAGAME c'est <span className="text-white font-bold">« Loue & Joue ! »</span> — la
+              location de jeux variés, rares et insolites, avec ou sans livraison.
+            </p>
+          </ScrollReveal>
+
+          <SwipeCarousel itemsPerView={1.15} gap={12} showArrows={false}>
+            <div className="bg-gradient-to-br from-white/[0.05] to-transparent rounded-2xl p-5 border border-white/10 h-full">
+              <h3 className="text-lg font-bold text-[#33ffcc] mb-2 flex items-center gap-2">
+                <span className="w-8 h-[2px] bg-[#33ffcc]" />
+                Célébrations privées
+              </h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Mariages, anniversaires, EVG/EVJF, baby shower, vacances, week-ends entre amis...
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-white/[0.05] to-transparent rounded-2xl p-5 border border-white/10 h-full">
+              <h3 className="text-lg font-bold text-[#33ffcc] mb-2 flex items-center gap-2">
+                <span className="w-8 h-[2px] bg-[#33ffcc]" />
+                Événements d'entreprise
+              </h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Séminaires, team building, soirées CE/CSE, arbres de Noël, afterwork...
+              </p>
+            </div>
+          </SwipeCarousel>
+
+          <div className="text-center pt-2">
+            <Link
+              to="/catalogue"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-all duration-300 w-full justify-center"
+            >
+              Explorer le catalogue
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Desktop: full 2-column layout */}
+        <div className="hidden md:grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
           {/* Colonne gauche - Citation + Paragraphes */}
           <StaggerContainer staggerDelay={0.15} className="space-y-8">
             {/* Citation */}
@@ -66,7 +116,7 @@ export function About() {
               <p className="text-lg text-gray-300 leading-relaxed">
                 De la location d'une simple boule de pétanque à la livraison d'un baby-foot géant,
                 voire même d'un simulateur de ski, particuliers et professionnels ont besoin de jeux
-                pour divertir leurs invités lors de moments spéciaux.
+                pour divertir leurs invit��s lors de moments spéciaux.
               </p>
             </StaggerItem>
           </StaggerContainer>

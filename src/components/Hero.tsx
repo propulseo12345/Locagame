@@ -30,12 +30,12 @@ export function Hero() {
       <HeroBackground currentImageIndex={currentImageIndex} />
 
       {/* Contenu principal */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-24">
         <motion.div
           variants={animations.container}
           initial="hidden"
           animate="visible"
-          className="space-y-8 md:space-y-10"
+          className="space-y-5 md:space-y-10"
         >
           <HeroTitle />
 

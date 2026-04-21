@@ -11,7 +11,7 @@ export function HeroStats() {
   return (
     <motion.div
       variants={animations.fadeUp}
-      className="flex flex-wrap justify-center items-center gap-8 md:gap-12 pt-6 border-t border-white/5 mt-8"
+      className="flex flex-wrap justify-center items-center gap-6 md:gap-12 pt-4 md:pt-6 border-t border-white/5 mt-4 md:mt-8"
     >
       {stats.map((stat, idx) => (
         <div key={idx} className="text-center">

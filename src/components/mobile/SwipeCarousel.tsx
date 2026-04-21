@@ -135,25 +135,25 @@ export function SwipeCarousel({
         ))}
       </div>
 
-      {/* Arrows — mobile (small, translucent) + desktop */}
+      {/* Arrows — mobile (44px touch target) + desktop */}
       {showArrows && totalItems > Math.ceil(itemsPerView) && (
         <>
-          {/* Mobile arrows */}
+          {/* Mobile arrows — 44px touch target, compact visual */}
           <button
             onClick={() => scrollTo('left')}
             disabled={!canScrollLeft}
-            className="flex md:hidden absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm text-white transition-all duration-200 disabled:opacity-0 disabled:pointer-events-none"
+            className="flex md:hidden absolute left-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white transition-all duration-200 disabled:opacity-0 disabled:pointer-events-none"
             aria-label="Précédent"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => scrollTo('right')}
             disabled={!canScrollRight}
-            className="flex md:hidden absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm text-white transition-all duration-200 disabled:opacity-0 disabled:pointer-events-none"
+            className="flex md:hidden absolute right-0 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm text-white transition-all duration-200 disabled:opacity-0 disabled:pointer-events-none"
             aria-label="Suivant"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" />
           </button>
 
           {/* Desktop arrows */}
@@ -176,20 +176,22 @@ export function SwipeCarousel({
         </>
       )}
 
-      {/* Dots */}
+      {/* Dots — 44px touch target via padding, compact visual */}
       {showDots && totalItems > 1 && (
-        <div className="flex justify-center gap-1.5 mt-4">
+        <div className="flex justify-center gap-0.5 mt-3">
           {Array.from({ length: totalItems }).map((_, i) => (
             <button
               key={i}
               onClick={() => scrollToIndex(i)}
-              className={`rounded-full transition-all duration-300 ${
+              className="p-2"
+              aria-label={`Aller à l'élément ${i + 1}`}
+            >
+              <span className={`block rounded-full transition-all duration-300 ${
                 i === activeIndex
                   ? 'w-6 h-2 bg-[#33ffcc]'
-                  : 'w-2 h-2 bg-white/30 hover:bg-white/50'
-              }`}
-              aria-label={`Aller à l'élément ${i + 1}`}
-            />
+                  : 'w-2 h-2 bg-white/30'
+              }`} />
+            </button>
           ))}
         </div>
       )}
