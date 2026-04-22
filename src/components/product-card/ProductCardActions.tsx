@@ -15,7 +15,7 @@ export function ProductCardActions({
   const isGrid = variant === 'grid';
 
   return (
-    <div className={`flex items-center ${isGrid ? 'justify-between gap-2' : 'gap-3 mt-auto'}`}>
+    <div className={`flex items-center ${isGrid ? 'justify-between gap-1.5 sm:gap-2' : 'gap-3 mt-auto'}`}>
       {canAddToCart ? (
         <button
           onClick={onAddToCart}
@@ -42,8 +42,8 @@ export function ProductCardActions({
         </span>
       )}
       <span
-        className={`flex items-center ${isGrid ? 'gap-1.5 px-3 py-3 min-h-[44px]' : 'gap-2 px-6 py-3'} border-2 border-white/20 text-white rounded-xl hover:border-[#33ffcc] hover:bg-white/10 transition-all duration-300 font-semibold ${
-          isGrid ? 'text-sm' : ''
+        className={`flex items-center ${isGrid ? 'gap-1 sm:gap-1.5 px-2 sm:px-3 py-3 min-h-[44px]' : 'gap-2 px-6 py-3'} border-2 border-white/20 text-white rounded-xl hover:border-[#33ffcc] hover:bg-white/10 transition-all duration-300 font-semibold ${
+          isGrid ? 'text-xs sm:text-sm' : ''
         } group/link ${isGrid ? 'focus:outline-none focus:ring-2 focus:ring-[#33ffcc]' : ''} cursor-pointer`}
         aria-label={`Voir les details de ${productName}`}
       >

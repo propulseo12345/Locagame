@@ -65,12 +65,11 @@ export function CatalogHeroSection({
                     type="button"
                     onClick={() => {
                       setSearchTerm('');
-                      // Mettre a jour l'URL
                       const newParams = new URLSearchParams(searchParams);
                       newParams.delete('search');
                       setSearchParams(newParams, { replace: true });
                     }}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-white transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -143,7 +142,7 @@ export function CatalogHeroSection({
                     <button
                       type="button"
                       onClick={clearDates}
-                      className="p-2 text-gray-400 hover:text-[#33ffcc] transition-colors flex-shrink-0"
+                      className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-[#33ffcc] transition-colors flex-shrink-0"
                       title="Effacer les dates"
                     >
                       <X className="w-5 h-5" />

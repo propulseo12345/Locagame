@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, User, LogOut, LogIn, Phone, Instagram, Facebook, X } from 'lucide-react';
 import { NAV_LINKS, getDashboardLink, getDashboardLabel } from './constants';
@@ -25,6 +26,16 @@ export function MobileMenu({
   handleSignOut,
   onClose,
 }: MobileMenuProps) {
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
+    return () => document.body.classList.remove('menu-open');
+  }, [isOpen]);
+
   return (
     <>
       {/* Overlay */}

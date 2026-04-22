@@ -76,7 +76,7 @@ const CustomerRow = memo(function CustomerRow({ customer, isEven, onDeleteClick 
         <div className="flex items-center justify-end gap-1">
           <button
             onClick={() => onDeleteClick(customer)}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+            className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors active:scale-95"
             title="Supprimer"
           >
             <Trash2 className="w-4 h-4" />

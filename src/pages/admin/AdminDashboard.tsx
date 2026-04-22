@@ -207,7 +207,7 @@ export default function AdminDashboard() {
                   {task.reservationId && (
                     <Link
                       to={`/admin/reservations/${task.reservationId}`}
-                      className="px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-md hover:bg-gray-700 transition-colors"
+                      className="px-3 py-2 min-h-[44px] flex items-center text-xs font-medium bg-gray-900 text-white rounded-md hover:bg-gray-700 transition-colors active:scale-95"
                     >
                       Détails
                     </Link>

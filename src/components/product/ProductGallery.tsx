@@ -48,7 +48,7 @@ export function ProductGallery({
       <div className="space-y-4">
         {/* Image principale */}
         <div
-          className="relative group overflow-hidden rounded-3xl aspect-[4/3] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20"
+          className="relative group overflow-hidden rounded-none sm:rounded-3xl aspect-[4/3] bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm sm:border border-white/20"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -104,17 +104,20 @@ export function ProductGallery({
 
           {/* Indicateurs images */}
           {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/30 backdrop-blur-md rounded-full px-3 py-3">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-0.5 bg-black/30 backdrop-blur-md rounded-full px-2 py-1">
               {images.map((_, index) => (
                 <button
                   key={index}
                   onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(index); }}
-                  className={`rounded-full transition-all duration-300 ${
+                  className="p-2 flex items-center justify-center"
+                  aria-label={`Image ${index + 1}`}
+                >
+                  <span className={`block rounded-full transition-all duration-300 ${
                     index === currentImageIndex
-                      ? 'w-8 h-2.5 bg-[#33ffcc]'
-                      : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/80'
-                  }`}
-                />
+                      ? 'w-6 h-2 bg-[#33ffcc]'
+                      : 'w-2 h-2 bg-white/50'
+                  }`} />
+                </button>
               ))}
             </div>
           )}

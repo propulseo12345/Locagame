@@ -134,13 +134,22 @@ export default function ClientReservationDetail() {
                 <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
                 <div>
                   <p className="text-[11px] text-gray-500 uppercase tracking-wider">Dates</p>
-                  <p className="text-sm text-white">
+                  <p className="text-lg font-bold text-white">
                     {new Date(reservation.start_date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' })}
                     {' → '}
                     {new Date(reservation.end_date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
               </div>
+              {reservation.delivery_time && (
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  <div>
+                    <p className="text-[11px] text-gray-500 uppercase tracking-wider">Créneau</p>
+                    <p className="text-lg font-bold text-white">{reservation.delivery_time}</p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-3">
                 {reservation.delivery_type === 'delivery' ? (
                   <Truck className="w-4 h-4 text-gray-500 flex-shrink-0" />

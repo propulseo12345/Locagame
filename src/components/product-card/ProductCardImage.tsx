@@ -45,7 +45,7 @@ export function ProductCardImage({
           onError={onImageError}
           loading="lazy"
           {...(isGrid ? { width: "400", height: "300" } : {})}
-          className="w-full h-full object-cover motion-safe:group-hover:scale-110 transition-transform duration-700"
+          className="w-full h-full object-cover md:motion-safe:group-hover:scale-105 transition-transform duration-300"
         />
       )}
 
@@ -61,7 +61,7 @@ export function ProductCardImage({
             isGrid ? 'bg-[#33ffcc]/95 backdrop-blur-sm border border-white/20 group-hover:scale-110 transition-transform duration-300' : 'bg-[#33ffcc]'
           }`}>
             <span className="friendly-badge text-2xl">{formatPrice(product.pricing.oneDay)}</span>
-            <span className={`font-${isGrid ? 'bold' : 'semibold'} text-sm`}>/j{!isGrid && 'our'}</span>
+            <span className={`${isGrid ? 'font-bold' : 'font-semibold'} text-sm`}>/j{!isGrid && 'our'}</span>
           </div>
         ) : (
           <div className={`px-4 py-2 rounded-full shadow-lg ${
@@ -79,7 +79,7 @@ export function ProductCardImage({
           isLiked ? 'bg-[#fe1979] text-white scale-110' : 'bg-white/20 text-white hover:bg-white/30 hover:scale-110'
         }`}
       >
-        <Heart className={`w-${isGrid ? '4' : '5'} h-${isGrid ? '4' : '5'} ${isLiked ? 'fill-current' : ''}`} />
+        <Heart className={`${isGrid ? 'w-4 h-4' : 'w-5 h-5'} ${isLiked ? 'fill-current' : ''}`} />
       </button>
 
       {/* Badge populaire (grid only, controlé par l'admin via featured) */}
@@ -92,9 +92,9 @@ export function ProductCardImage({
         </div>
       )}
 
-      {/* Effet de brillance au hover (grid only) */}
+      {/* Effet de brillance au hover (grid only, desktop only — causes repaint jank on mobile) */}
       {isGrid && (
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none hidden md:block">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
         </div>
       )}

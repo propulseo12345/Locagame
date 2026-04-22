@@ -35,7 +35,7 @@ export function ScrollToTop() {
   return (
     <button
       onClick={scrollToTop}
-      className={`fixed bottom-6 right-6 z-50 p-3 bg-[#33ffcc] text-[#000033] rounded-full shadow-lg hover:bg-[#66cccc] hover:scale-110 transition-all duration-300 ${
+      className={`fixed bottom-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom,0px)+12px)] md:bottom-6 right-4 md:right-6 z-50 p-3 min-w-[44px] min-h-[44px] bg-[#33ffcc] text-[#000033] rounded-full shadow-lg hover:bg-[#66cccc] hover:scale-110 active:scale-95 transition-all duration-300 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
       }`}
       aria-label="Retour en haut de page"

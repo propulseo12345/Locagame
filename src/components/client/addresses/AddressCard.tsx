@@ -61,7 +61,7 @@ export default function AddressCard({
               <button
                 onClick={() => onSetDefault(address.id)}
                 disabled={settingDefaultId === address.id}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-400 hover:text-[#33ffcc] border border-white/[0.06] hover:border-[#33ffcc]/20 rounded-lg transition-colors disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 min-h-[44px] text-xs font-medium text-gray-400 hover:text-[#33ffcc] border border-white/[0.06] hover:border-[#33ffcc]/20 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
               >
                 {settingDefaultId === address.id ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -73,7 +73,7 @@ export default function AddressCard({
               <button
                 onClick={() => onDelete(address.id)}
                 disabled={deletingId === address.id}
-                className="flex items-center justify-center p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
               >
                 {deletingId === address.id ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />

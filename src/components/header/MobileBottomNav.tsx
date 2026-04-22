@@ -41,8 +41,8 @@ export function MobileBottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 h-16 pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-center justify-around h-full px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#000033]/95 backdrop-blur-lg border-t border-white/10" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="flex items-center justify-around h-16 px-2">
         {(navItems as readonly MobileNavItem[]).map((item) => {
           const path = item.path === 'account' ? getAccountPath() : item.path;
           const active = isActive(item.path);
@@ -52,19 +52,23 @@ export function MobileBottomNav() {
             <Link
               key={item.label}
               to={path}
-              className={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] gap-0.5 transition-colors ${
+              className={`flex flex-col items-center justify-center min-w-[48px] min-h-[44px] gap-0.5 transition-colors duration-200 relative ${
                 active ? 'text-[#33ffcc]' : 'text-white/50'
               }`}
             >
+              {/* Active indicator dot */}
+              {active && (
+                <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#33ffcc]" />
+              )}
               <div className="relative">
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-5 h-5 transition-transform duration-200 ${active ? 'scale-110' : ''}`} />
                 {item.showBadge && totalItems > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-[#33ffcc] text-[#000033] text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-2.5 bg-[#33ffcc] text-[#000033] text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] font-medium ${active ? 'opacity-100' : 'opacity-70'}`}>
+              <span className={`text-xs font-semibold ${active ? 'opacity-100' : 'opacity-60'}`}>
                 {item.label}
               </span>
             </Link>

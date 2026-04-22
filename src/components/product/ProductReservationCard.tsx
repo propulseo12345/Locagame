@@ -83,7 +83,7 @@ export function ProductReservationCard({
           </div>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl sm:text-5xl font-black text-[#33ffcc]">{formatPrice(product.pricing.oneDay)}</span>
+          <span className="text-4xl sm:text-5xl font-black text-[#33ffcc]">{formatPrice(product.pricing.oneDay)}</span>
           <span className="text-xl text-white/60 font-medium">/jour</span>
         </div>
       </div>

@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import DOMPurify from 'dompurify';
-import { Users, Clock, Package, ShoppingCart } from 'lucide-react';
+import { Users, Clock, Package, ShoppingCart, ChevronDown } from 'lucide-react';
 import { formatPrice } from '../utils/pricing';
 import { stripHtml } from '../utils/html';
 import { SEO } from '../components/SEO';
@@ -18,6 +19,7 @@ import {
 import { useProductPage } from '../hooks/useProductPage';
 
 export default function ProductPage() {
+  const [descExpanded, setDescExpanded] = useState(false);
   const {
     product,
     category,
@@ -74,22 +76,37 @@ export default function ProductPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 md:gap-8 lg:gap-12">
             {/* Left column - Gallery & Info */}
             <div className="md:col-span-1 lg:col-span-3 space-y-6 md:space-y-8">
-              <ProductGallery
-                images={product.images}
-                productName={product.name}
-                category={category}
-                totalStock={product.total_stock}
-                shortDescription={stripHtml(product.description)}
-              />
+              {/* Gallery: fullwidth on mobile (break out of px-4 padding) */}
+              <div className="-mx-4 sm:mx-0">
+                <ProductGallery
+                  images={product.images}
+                  productName={product.name}
+                  category={category}
+                  totalStock={product.total_stock}
+                  shortDescription={stripHtml(product.description)}
+                />
+              </div>
 
               {/* Title and Description */}
               <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-4 leading-tight">
+                <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white mb-3 leading-tight">
                   {product.name}
                 </h1>
 
+                {/* Mobile price banner (visible only on mobile, above the fold) */}
+                <div className="flex items-center gap-3 mb-4 lg:hidden">
+                  {product.pricing?.oneDay > 0 ? (
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-3xl font-black text-[#33ffcc]">{formatPrice(product.pricing.oneDay)}</span>
+                      <span className="text-base text-white/60">/jour</span>
+                    </div>
+                  ) : (
+                    <span className="text-xl font-bold text-amber-400">Sur devis</span>
+                  )}
+                </div>
+
                 {/* Quick specs mobile */}
-                <div className="flex flex-wrap items-center gap-3 mb-6 lg:hidden">
+                <div className="flex flex-wrap items-center gap-2 mb-4 lg:hidden">
                   {product.specifications?.players?.min != null && product.specifications?.players?.max != null && (
                   <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-full">
                     <Users className="w-4 h-4 text-[#33ffcc]" />
@@ -110,7 +127,21 @@ export default function ProductPage() {
                   </div>
                 </div>
 
-                <div className="text-lg text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }} />
+                {/* Description: collapsable on mobile, full on desktop */}
+                <div className="hidden md:block text-lg text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }} />
+                <div className="md:hidden">
+                  <div
+                    className={`text-base text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1 overflow-hidden transition-all duration-300 ${descExpanded ? '' : 'max-h-24'}`}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
+                  />
+                  <button
+                    onClick={() => setDescExpanded(!descExpanded)}
+                    className="flex items-center gap-1 mt-2 text-[#33ffcc] text-sm font-semibold"
+                  >
+                    {descExpanded ? 'Voir moins' : 'Voir plus'}
+                    <ChevronDown className={`w-4 h-4 transition-transform ${descExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
               </div>
 
               <ProductInfoTabs product={product} />
@@ -145,17 +176,17 @@ export default function ProductPage() {
         </div>
 
         {/* Mobile sticky CTA */}
-        <div className="fixed bottom-[var(--bottom-nav-height)] left-0 right-0 z-40 lg:hidden bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 px-4 py-3">
+        <div className="fixed bottom-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 lg:hidden bg-[#000033]/95 backdrop-blur-lg border-t border-white/10 px-4 py-3">
           {product.pricing?.oneDay > 0 ? (
             <div className="flex items-center justify-between gap-4">
               <div>
-                <span className="text-[#33ffcc] font-bold text-lg">{formatPrice(product.pricing.oneDay)}</span>
+                <span className="text-[#33ffcc] font-black text-2xl">{formatPrice(product.pricing.oneDay)}</span>
                 <span className="text-white/60 text-sm">/jour</span>
               </div>
               <button
                 onClick={handleAddToCart}
                 disabled={isAddingToCart || isCheckingAvailability || isAvailable === false || !selectedStartDate || !selectedEndDate}
-                className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 font-bold rounded-xl disabled:opacity-50 transition-colors ${
+                className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 font-bold rounded-xl disabled:opacity-50 transition-colors min-h-[48px] ${
                   isAvailable === false
                     ? 'bg-[#fe1979]/20 text-[#fe1979] cursor-not-allowed'
                     : 'bg-[#33ffcc] text-[#000033] hover:bg-[#66cccc]'
@@ -166,7 +197,7 @@ export default function ProductPage() {
               </button>
             </div>
           ) : (
-            <a href="/contact" className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-colors">
+            <a href="/contact" className="flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-[#33ffcc] text-[#000033] font-bold rounded-xl hover:bg-[#66cccc] transition-colors min-h-[48px]">
               Sur devis — Demander un devis
             </a>
           )}

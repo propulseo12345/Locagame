@@ -234,7 +234,7 @@ const ReservationTableRow = memo(function ReservationTableRow({
             </span>
             <button
               onClick={(e) => { e.stopPropagation(); onAssignClick(reservation); }}
-              className="p-2 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors active:scale-95"
               title="Assigner"
             >
               <UserPlus className="w-4 h-4" />
@@ -251,7 +251,7 @@ const ReservationTableRow = memo(function ReservationTableRow({
           {reservation.status === 'pending_payment' && (
             <button
               onClick={() => onReject(reservation.id)}
-              className="p-2 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors active:scale-95"
               title="Annuler"
             >
               <Trash2 className="w-4 h-4" />
@@ -259,7 +259,7 @@ const ReservationTableRow = memo(function ReservationTableRow({
           )}
           <Link
             to={`/admin/reservations/${reservation.id}`}
-            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-3 py-2 min-h-[44px] flex items-center text-xs font-medium rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors active:scale-95"
           >
             Voir
           </Link>

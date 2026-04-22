@@ -144,6 +144,26 @@ function getProductsLabel(items: ReservationItem[]): string {
   return `${firstName} +${items.length - 1} autre${items.length > 2 ? 's' : ''}`;
 }
 
+// ── Border color by status ──
+
+function getStatusBorderClass(status: string): string {
+  switch (status) {
+    case 'confirmed':
+    case 'completed':
+    case 'delivered':
+      return 'border-l-4 border-l-emerald-500';
+    case 'pending':
+    case 'pending_payment':
+    case 'preparing':
+      return 'border-l-4 border-l-amber-500';
+    case 'cancelled':
+    case 'expired':
+      return 'border-l-4 border-l-red-500';
+    default:
+      return 'border-l-4 border-l-gray-300';
+  }
+}
+
 // ── Component ──
 
 export default function ReservationCard({ reservation, index }: ReservationCardProps) {
@@ -151,11 +171,12 @@ export default function ReservationCard({ reservation, index }: ReservationCardP
   const items = reservation.reservation_items || [];
   const duration = getDurationDays(reservation.start_date, reservation.end_date);
   const firstImage = items[0]?.product?.images?.[0];
+  const borderClass = getStatusBorderClass(reservation.status);
 
   return (
     <Link
       to={`/client/reservations/${reservation.id}`}
-      className={`group block bg-white/[0.03] border border-white/[0.06] rounded-xl hover:bg-white/[0.07] hover:border-white/[0.14] hover:shadow-lg hover:shadow-black/20 transition-all duration-200 ${sc.glow || ''}`}
+      className={`group block bg-white/[0.03] border border-white/[0.06] ${borderClass} rounded-xl hover:bg-white/[0.07] hover:border-white/[0.14] hover:shadow-lg hover:shadow-black/20 transition-all duration-200 ${sc.glow || ''}`}
       style={{ animationDelay: `${index * 30}ms` }}
     >
       <div className="flex items-stretch">

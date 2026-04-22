@@ -114,7 +114,7 @@ export default function PersonalInfoForm({
           <button
             onClick={onSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-[#33ffcc] text-[#000033] text-sm font-semibold rounded-lg hover:bg-[#4fffdd] transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-3 min-h-[44px] bg-[#33ffcc] text-[#000033] text-sm font-semibold rounded-lg hover:bg-[#4fffdd] transition-colors active:scale-95 disabled:opacity-50"
           >
             {saving ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Enregistrement...</>

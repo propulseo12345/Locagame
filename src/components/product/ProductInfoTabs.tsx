@@ -13,9 +13,9 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>('description');
 
   const tabs = [
-    { id: 'description' as TabId, label: 'Description', icon: Info },
-    { id: 'includes' as TabId, label: 'Inclus', icon: Check },
-    { id: 'specs' as TabId, label: 'Spécifications', icon: Ruler }
+    { id: 'description' as TabId, label: 'Description', shortLabel: 'Détails', icon: Info },
+    { id: 'includes' as TabId, label: 'Inclus', shortLabel: 'Inclus', icon: Check },
+    { id: 'specs' as TabId, label: 'Spécifications', shortLabel: 'Specs', icon: Ruler }
   ];
 
   return (
@@ -26,20 +26,21 @@ export function ProductInfoTabs({ product }: ProductInfoTabsProps) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 font-bold text-sm transition-all ${
+            className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-4 font-bold text-xs sm:text-sm transition-all min-h-[48px] ${
               activeTab === tab.id
                 ? 'bg-[#33ffcc]/10 text-[#33ffcc] border-b-2 border-[#33ffcc]'
                 : 'text-white/50 hover:text-white/80 hover:bg-white/5'
             }`}
           >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
+            <tab.icon className="w-4 h-4 flex-shrink-0" />
+            <span className="sm:hidden">{tab.shortLabel}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {activeTab === 'description' && (
           <div className="space-y-4">
             <div className="text-white/70 leading-relaxed [&_strong]:font-bold [&_div]:mb-1" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }} />

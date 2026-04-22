@@ -53,7 +53,7 @@ export default function DangerZone() {
         {!showConfirm ? (
           <button
             onClick={() => setShowConfirm(true)}
-            className="w-full px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/15 transition-colors"
+            className="w-full px-3 py-3 min-h-[48px] bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/15 transition-colors active:scale-95"
           >
             Supprimer mon compte
           </button>
@@ -81,14 +81,14 @@ export default function DangerZone() {
               <button
                 onClick={() => { setShowConfirm(false); setConfirmText(''); setError(''); }}
                 disabled={deleting}
-                className="flex-1 px-3 py-2 border border-white/[0.08] text-gray-400 rounded-lg text-xs hover:bg-white/5 transition-colors disabled:opacity-50"
+                className="flex-1 px-3 py-3 min-h-[48px] border border-white/[0.08] text-gray-400 rounded-lg text-sm hover:bg-white/5 transition-colors active:scale-95 disabled:opacity-50"
               >
                 Annuler
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting || confirmText !== 'SUPPRIMER'}
-                className="flex-1 px-3 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="flex-1 px-3 py-3 min-h-[48px] bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
               >
                 {deleting ? (
                   <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Suppression...</>

@@ -103,7 +103,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
               {/* Mobile menu toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden flex items-center justify-center w-9 h-9 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                className="lg:hidden flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors active:scale-95"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -179,7 +179,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                 }`}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-semibold">{item.label}</span>
+                <span className="text-xs font-semibold">{item.label}</span>
               </Link>
             );
           })}

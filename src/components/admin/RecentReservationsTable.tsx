@@ -38,6 +38,41 @@ function statusBadgeClass(status: string): string {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Mobile reservation card for dashboard                              */
+/* ------------------------------------------------------------------ */
+function MobileRecentCard({ reservation }: { reservation: Order }) {
+  const customer = reservation.customer as any;
+  const total = (reservation as any).total || reservation.total;
+  const startDate = (reservation as any).start_date;
+  const customerName = customer?.first_name && customer?.last_name
+    ? `${customer.first_name} ${customer.last_name}` : 'Invité';
+
+  return (
+    <Link
+      to={`/admin/reservations/${reservation.id}`}
+      className="block bg-white border border-gray-200 rounded-xl p-3 active:scale-95 transition-transform"
+    >
+      <div className="flex items-start justify-between gap-3 mb-1.5">
+        <div className="min-w-0">
+          <p className="text-xs font-mono font-bold text-gray-900">{reservation.id.substring(0, 8).toUpperCase()}</p>
+          <p className="text-xs text-gray-500 truncate">{customerName}</p>
+        </div>
+        <span className={`shrink-0 inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium ${statusBadgeClass(reservation.status)}`}>
+          {statusLabel(reservation.status)}
+        </span>
+      </div>
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        {startDate && <span>{new Date(startDate).toLocaleDateString('fr-FR')}</span>}
+        <span className="text-sm font-bold text-gray-900 tabular-nums">{total}&nbsp;&euro;</span>
+      </div>
+    </Link>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main component                                                     */
+/* ------------------------------------------------------------------ */
 export default function RecentReservationsTable({ reservations }: RecentReservationsTableProps) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -45,12 +80,25 @@ export default function RecentReservationsTable({ reservations }: RecentReservat
         <h3 className="text-sm font-semibold text-gray-900">Réservations récentes</h3>
         <Link
           to="/admin/reservations"
-          className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+          className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors min-h-[44px] flex items-center active:scale-95"
         >
           Voir tout &rarr;
         </Link>
       </div>
-      <div className="overflow-x-auto">
+
+      {/* ── Mobile cards ── */}
+      <div className="md:hidden space-y-2 p-3">
+        {reservations.length === 0 ? (
+          <p className="py-10 text-center text-sm text-gray-500">Aucune réservation récente</p>
+        ) : (
+          reservations.map((reservation) => (
+            <MobileRecentCard key={reservation.id} reservation={reservation} />
+          ))
+        )}
+      </div>
+
+      {/* ── Desktop table ── */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full" aria-label="Réservations récentes">
           <thead>
             <tr className="bg-gray-50 text-left border-b border-gray-100">
@@ -91,7 +139,7 @@ export default function RecentReservationsTable({ reservations }: RecentReservat
                       {new Date((reservation as any).start_date).toLocaleDateString('fr-FR')}
                     </td>
                     <td className="px-4 py-3 text-sm font-bold tabular-nums text-gray-900">
-                      {(reservation as any).total || reservation.total} €
+                      {(reservation as any).total || reservation.total} &euro;
                     </td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ${statusBadgeClass(reservation.status)}`}>

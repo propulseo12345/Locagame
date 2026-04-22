@@ -22,8 +22,8 @@ export default function CustomersFilters({
   filteredCount,
 }: CustomersFiltersProps) {
   return (
-    <div className="flex items-center gap-3 flex-wrap">
-      <div className="relative flex-1 min-w-[240px]">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 sm:flex-wrap">
+      <div className="relative flex-1 min-w-0 sm:min-w-[240px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
         <input
           type="text"
@@ -34,28 +34,30 @@ export default function CustomersFilters({
           className="w-full h-11 pl-9 pr-4 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
         />
       </div>
-      <select
-        value={typeFilter}
-        onChange={(e) => onTypeChange(e.target.value)}
-        aria-label="Filtrer par type de client"
-        className="h-11 w-44 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white"
-      >
-        <option value="all">Tous les types</option>
-        <option value="individual">Particulier</option>
-        <option value="professional">Professionnel</option>
-      </select>
-      {hasActiveFilters && (
-        <button
-          onClick={onClearFilters}
-          className="h-11 flex items-center gap-1.5 px-3 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+      <div className="flex items-center gap-2 flex-wrap">
+        <select
+          value={typeFilter}
+          onChange={(e) => onTypeChange(e.target.value)}
+          aria-label="Filtrer par type de client"
+          className="h-11 w-44 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white"
         >
-          <X className="w-4 h-4" />
-          Effacer
-        </button>
-      )}
-      <span className="text-sm text-gray-500 ml-auto">
-        {filteredCount} · {totalCount} clients
-      </span>
+          <option value="all">Tous les types</option>
+          <option value="individual">Particulier</option>
+          <option value="professional">Professionnel</option>
+        </select>
+        {hasActiveFilters && (
+          <button
+            onClick={onClearFilters}
+            className="h-11 min-w-[44px] flex items-center gap-1.5 px-3 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors active:scale-95"
+          >
+            <X className="w-4 h-4" />
+            Effacer
+          </button>
+        )}
+        <span className="text-sm text-gray-500 ml-auto">
+          {filteredCount} &middot; {totalCount} clients
+        </span>
+      </div>
     </div>
   );
 }

@@ -55,6 +55,15 @@ export default function TechnicianDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* On mobile: DayPanel first, then stats, then calendar */}
+      <div className="order-first md:hidden">
+        <DashboardDayPanel
+          selectedDate={selectedDate}
+          tasksForSelectedDate={tasksForSelectedDate}
+          vehicles={vehicles}
+        />
+      </div>
+
       <DashboardStatsCards monthStats={monthStats} />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -72,11 +81,14 @@ export default function TechnicianDashboard() {
           isCurrentMonth={isCurrentMonth}
         />
 
-        <DashboardDayPanel
-          selectedDate={selectedDate}
-          tasksForSelectedDate={tasksForSelectedDate}
-          vehicles={vehicles}
-        />
+        {/* Desktop only: DayPanel in grid layout */}
+        <div className="hidden md:block">
+          <DashboardDayPanel
+            selectedDate={selectedDate}
+            tasksForSelectedDate={tasksForSelectedDate}
+            vehicles={vehicles}
+          />
+        </div>
       </div>
     </div>
   );

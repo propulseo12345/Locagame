@@ -105,16 +105,16 @@ export default function ClientReservations() {
           <p className="text-sm text-gray-400 mt-1 truncate">Consultez l'historique de toutes vos réservations</p>
         </div>
 
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide sm:overflow-visible">
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 min-w-[120px] flex-shrink-0">
+        <div className="grid grid-cols-3 gap-3 sm:flex sm:gap-3">
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 sm:min-w-[120px]">
             <p className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Total</p>
             <p className="text-xl font-bold text-white tabular-nums">{stats.total}</p>
           </div>
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 min-w-[120px] flex-shrink-0">
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 sm:min-w-[120px]">
             <p className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Actives</p>
             <p className="text-xl font-bold text-[#33ffcc] tabular-nums">{stats.active}</p>
           </div>
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 min-w-[120px] flex-shrink-0">
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 sm:min-w-[120px]">
             <p className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">Terminées</p>
             <p className="text-xl font-bold text-emerald-400 tabular-nums">{stats.completed}</p>
           </div>
@@ -122,13 +122,13 @@ export default function ClientReservations() {
       </div>
 
       {/* Filter pills — scrollable on mobile */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+      <div className="flex items-center gap-2 flex-wrap">
         <Filter className="w-4 h-4 text-gray-500 flex-shrink-0" />
         {STATUS_OPTIONS.map((option) => (
           <button
             key={option.value}
             onClick={() => setStatusFilter(option.value)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+            className={`py-2.5 px-4 min-h-[44px] text-xs font-medium rounded-lg transition-colors active:scale-95 ${
               statusFilter === option.value
                 ? 'bg-[#33ffcc]/10 text-[#33ffcc] border border-[#33ffcc]/20'
                 : 'text-gray-400 border border-white/[0.06] hover:text-white hover:border-white/[0.12]'
@@ -140,7 +140,7 @@ export default function ClientReservations() {
         {statusFilter !== 'all' && (
           <button
             onClick={() => setStatusFilter('all')}
-            className="p-1.5 text-gray-500 hover:text-white transition-colors"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-white transition-colors active:scale-95"
           >
             <X className="w-3.5 h-3.5" />
           </button>

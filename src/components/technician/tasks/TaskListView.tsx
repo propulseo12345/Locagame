@@ -131,7 +131,7 @@ export function TaskListView({
                     <a
                       href={`tel:${task.customer.phone}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
+                      className="flex items-center justify-center w-11 h-11 text-gray-400 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
                       title="Appeler"
                     >
                       <Phone className="w-5 h-5" />
@@ -141,7 +141,7 @@ export function TaskListView({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="flex items-center justify-center w-10 h-10 text-gray-400 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
+                      className="flex items-center justify-center w-11 h-11 text-gray-400 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
                       title="Itineraire"
                     >
                       <Navigation className="w-5 h-5" />

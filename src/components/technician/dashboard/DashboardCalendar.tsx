@@ -139,14 +139,14 @@ export default function DashboardCalendar({
                 {tasks.length > 0 && (
                   <div className="space-y-0.5">
                     {deliveries.length > 0 && (
-                      <div className="flex items-center gap-0.5 text-[8px] md:text-[10px] bg-[#33ffcc]/30 text-[#000033] px-1 md:px-1.5 py-0.5 rounded">
-                        <Truck className="w-2 h-2 md:w-2.5 md:h-2.5" />
+                      <div className="flex items-center gap-0.5 text-[10px] md:text-[10px] bg-[#33ffcc]/30 text-[#000033] px-1 md:px-1.5 py-0.5 rounded">
+                        <Truck className="w-2.5 h-2.5 md:w-2.5 md:h-2.5" />
                         <span className="font-medium">{deliveries.length}</span>
                       </div>
                     )}
                     {pickups.length > 0 && (
-                      <div className="flex items-center gap-0.5 text-[8px] md:text-[10px] bg-orange-100 text-orange-700 px-1 md:px-1.5 py-0.5 rounded">
-                        <Package className="w-2 h-2 md:w-2.5 md:h-2.5" />
+                      <div className="flex items-center gap-0.5 text-[10px] md:text-[10px] bg-orange-100 text-orange-700 px-1 md:px-1.5 py-0.5 rounded">
+                        <Package className="w-2.5 h-2.5 md:w-2.5 md:h-2.5" />
                         <span className="font-medium">{pickups.length}</span>
                       </div>
                     )}

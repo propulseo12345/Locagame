@@ -66,14 +66,14 @@ export default function ReservationFilters({
           />
         </div>
 
-        {/* Filters row — scrollable on mobile */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide sm:overflow-visible sm:flex-wrap">
+        {/* Filters row — wrapping on mobile */}
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Status select */}
           <select
             value={statusFilter}
             onChange={(e) => onStatusChange(e.target.value)}
             aria-label="Filtrer par statut"
-            className="h-11 min-w-[140px] sm:w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white flex-shrink-0"
+            className="h-11 min-w-[140px] sm:w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -81,7 +81,7 @@ export default function ReservationFilters({
           </select>
 
           {/* Delivery mode toggle */}
-          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden flex-shrink-0">
+          <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
             {DELIVERY_MODES.map((mode) => {
               const Icon = mode.icon;
               const isActive = deliveryModeFilter === mode.value;
@@ -89,7 +89,7 @@ export default function ReservationFilters({
                 <button
                   key={mode.value}
                   onClick={() => onDeliveryModeChange(mode.value)}
-                  className={`h-11 px-3 text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                  className={`h-11 px-3 min-w-[44px] text-sm font-medium flex items-center gap-1.5 transition-colors active:scale-95 ${
                     isActive
                       ? 'bg-gray-900 text-white'
                       : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -107,7 +107,7 @@ export default function ReservationFilters({
             value={technicianFilter}
             onChange={(e) => onTechnicianChange(e.target.value)}
             aria-label="Filtrer par livreur"
-            className="h-11 min-w-[140px] sm:w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white flex-shrink-0"
+            className="h-11 min-w-[140px] sm:w-48 px-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-gray-900 focus:border-transparent appearance-none bg-white"
           >
             <option value="all">Tous les livreurs</option>
             {technicians.map((tech) => (
@@ -121,7 +121,7 @@ export default function ReservationFilters({
           {hasActiveFilters && (
             <button
               onClick={onClearFilters}
-              className="h-11 px-3 text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1.5 transition-colors flex-shrink-0"
+              className="h-11 px-3 min-w-[44px] text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1.5 transition-colors active:scale-95"
             >
               <X className="w-4 h-4" />
               Réinitialiser

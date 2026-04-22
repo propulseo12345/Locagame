@@ -117,7 +117,7 @@ export default function SecurityForm({
           <button
             onClick={onChangePassword}
             disabled={savingPassword || !passwordData.current || !passwordData.new || !passwordData.confirm}
-            className="flex items-center gap-2 px-4 py-2 bg-white/[0.06] text-sm text-white font-medium rounded-lg border border-white/[0.08] hover:bg-white/[0.1] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-3 min-h-[44px] bg-white/[0.06] text-sm text-white font-medium rounded-lg border border-white/[0.08] hover:bg-white/[0.1] transition-colors active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {savingPassword ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Modification...</>

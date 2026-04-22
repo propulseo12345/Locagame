@@ -52,8 +52,19 @@ export default function DashboardDayPanel({
               const TypeIcon = typeConfig.icon;
               const vehicle = vehicles.find((v) => v.id === task.vehicleId);
 
+              const isFirst = idx === 0;
+
               return (
                 <div key={task.id} className="relative group">
+                  {/* "PROCHAINE" badge on mobile for first task */}
+                  {isFirst && (
+                    <div className="md:hidden mb-1.5">
+                      <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#33ffcc]/20 text-[#000033] rounded">
+                        Prochaine
+                      </span>
+                    </div>
+                  )}
+
                   {/* Timeline connector */}
                   {idx < tasksForSelectedDate.length - 1 && (
                     <div
@@ -76,11 +87,15 @@ export default function DashboardDayPanel({
                     {/* Card content */}
                     <Link
                       to={`/technician/tasks/${task.id}`}
-                      className="flex-1 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors border border-gray-100 hover:border-gray-200 hover:shadow-sm"
+                      className={`flex-1 rounded-lg p-3 hover:bg-gray-100 transition-colors hover:shadow-sm ${
+                        isFirst
+                          ? 'bg-gray-50 border-l-4 border-l-[#33ffcc] border border-gray-200 shadow-sm'
+                          : 'bg-gray-50 border border-gray-100 hover:border-gray-200'
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-[#000033]">
+                          <span className={`font-bold text-[#000033] ${isFirst ? 'text-xl' : 'text-lg'}`}>
                             {task.scheduledTime}
                           </span>
                           <span
@@ -132,12 +147,14 @@ export default function DashboardDayPanel({
                         </div>
                       </div>
 
-                      {/* Quick actions */}
+                      {/* Quick actions — larger on first task */}
                       <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-200">
                         <a
                           href={`tel:${task.customer.phone}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
+                          className={`flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95 ${
+                            isFirst ? 'min-h-[44px] min-w-[44px] px-3 py-2.5' : 'px-3 py-2'
+                          }`}
                         >
                           <Phone className="w-4 h-4" />
                           <span>Appeler</span>
@@ -147,7 +164,9 @@ export default function DashboardDayPanel({
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-600 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95"
+                          className={`flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-[#33ffcc] hover:bg-[#33ffcc]/10 rounded-lg transition-colors active:scale-95 ${
+                            isFirst ? 'min-h-[44px] min-w-[44px] px-3 py-2.5' : 'px-3 py-2'
+                          }`}
                         >
                           <Navigation className="w-4 h-4" />
                           <span>Itinéraire</span>

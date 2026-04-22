@@ -88,7 +88,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
   return (
     <Link
       to={`/produit/${product.id}`}
-      className="group relative bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden hover:border-[#33ffcc]/50 hover:shadow-2xl hover:shadow-[#33ffcc]/20 transition-all duration-500 hover:scale-[1.03] h-full flex flex-col focus-within:ring-2 focus-within:ring-[#33ffcc] block"
+      className="group relative bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden hover:border-[#33ffcc]/50 hover:shadow-2xl hover:shadow-[#33ffcc]/20 transition-all duration-500 md:hover:scale-[1.03] h-full flex flex-col focus-within:ring-2 focus-within:ring-[#33ffcc] block"
       aria-label={`${product.name} - ${canAddToCart ? `${formatPrice(product.pricing.oneDay)} par jour` : 'Sur devis'}`}
     >
       <ProductCardImage
@@ -97,7 +97,7 @@ function ProductCard({ product, viewMode }: ProductCardProps) {
         onImageError={handleImageError} onLike={handleLike} variant="grid"
       />
       <div className="p-3 sm:p-5 flex-1 flex flex-col bg-gradient-to-b from-white/5 to-transparent">
-        <h3 className="text-sm lg:text-lg font-black text-white mb-2 line-clamp-2 leading-tight group-hover:text-[#33ffcc] transition-colors duration-300">
+        <h3 className="text-base lg:text-lg font-black text-white mb-2 line-clamp-2 leading-tight group-hover:text-[#33ffcc] transition-colors duration-300">
           {product.name}
         </h3>
         <p className="text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed flex-1" title={stripHtml(product.description)}>

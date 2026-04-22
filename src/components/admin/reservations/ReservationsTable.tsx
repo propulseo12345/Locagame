@@ -84,7 +84,7 @@ export default function ReservationsTable({
       {hasActiveFilters && onClearFilters && (
         <button
           onClick={onClearFilters}
-          className="mt-3 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          className="mt-3 px-4 py-2 min-h-[44px] text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors active:scale-95"
         >
           Réinitialiser les filtres
         </button>

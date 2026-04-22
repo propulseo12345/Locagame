@@ -159,12 +159,15 @@ export default function TechnicianLayout({ children }: TechnicianLayoutProps) {
               <Link
                 key={item.href}
                 to={item.href}
-                className={`flex flex-col items-center justify-center gap-1 flex-1 h-full active:scale-95 transition-transform ${
+                className={`relative flex flex-col items-center justify-center gap-1 flex-1 h-full active:scale-95 transition-transform ${
                   isActive ? 'text-[#000033]' : 'text-gray-400'
                 }`}
               >
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#33ffcc] absolute top-1.5" />
+                )}
                 <Icon className={`w-5 h-5 ${isActive ? 'text-[#33ffcc]' : ''}`} />
-                <span className="text-[10px] font-semibold">{item.label}</span>
+                <span className="text-xs font-semibold">{item.label}</span>
               </Link>
             );
           })}
