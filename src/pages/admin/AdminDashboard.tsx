@@ -82,59 +82,59 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {/* CA du mois */}
-        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-green-500 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-sm font-medium text-gray-600">CA du mois</p>
+        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-green-500 px-3 py-2 md:p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-1 md:mb-3">
+            <p className="text-xs md:text-sm font-medium text-gray-600">CA du mois</p>
             <Euro className="w-4 h-4 text-green-400 shrink-0" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">
             {stats.revenue.month.toLocaleString('fr-FR')} €
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">
             {stats.revenue.today.toLocaleString('fr-FR')} € aujourd'hui
           </p>
         </div>
 
         {/* Réservations */}
-        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-blue-500 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-sm font-medium text-gray-600">Réservations</p>
+        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-blue-500 px-3 py-2 md:p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-1 md:mb-3">
+            <p className="text-xs md:text-sm font-medium text-gray-600">Réservations</p>
             <Package className="w-4 h-4 text-blue-400 shrink-0" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">
             {stats.reservations.total}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">
             {stats.reservations.pending} en attente
           </p>
         </div>
 
         {/* Produits */}
-        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-violet-500 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-sm font-medium text-gray-600">Produits</p>
+        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-violet-500 px-3 py-2 md:p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-1 md:mb-3">
+            <p className="text-xs md:text-sm font-medium text-gray-600">Produits</p>
             <Gamepad2 className="w-4 h-4 text-violet-400 shrink-0" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">
             {stats.products.total}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">
             {stats.products.available} disponibles
           </p>
         </div>
 
         {/* Clients */}
-        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-orange-500 p-5 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-sm font-medium text-gray-600">Clients</p>
+        <div className="group bg-white rounded-xl border border-gray-200 border-l-4 border-l-orange-500 px-3 py-2 md:p-5 hover:shadow-md transition-shadow">
+          <div className="flex items-start justify-between mb-1 md:mb-3">
+            <p className="text-xs md:text-sm font-medium text-gray-600">Clients</p>
             <Users className="w-4 h-4 text-orange-400 shrink-0" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">
             {stats.customers.total}
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">
             {stats.customers.new_this_month} nouveaux ce mois
           </p>
         </div>

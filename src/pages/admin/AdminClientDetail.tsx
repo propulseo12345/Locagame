@@ -5,6 +5,7 @@ import { CustomersService, ReservationsService } from '../../services';
 import { Customer, Order } from '../../types';
 import DeleteCustomerModal from '../../components/admin/DeleteCustomerModal';
 import { AdminPageSkeleton } from '../../components/ui/skeletons';
+import { formatPrice } from '../../utils/pricing';
 
 export default function AdminClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -140,8 +141,8 @@ export default function AdminClientDetail() {
             <p className="text-sm font-medium text-gray-600">Total dépensé</p>
             <Euro className="w-4 h-4 text-green-400 shrink-0" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalSpent.toFixed(0)} €</p>
-          <p className="text-xs text-gray-500 mt-1">Panier moyen : {avgBasket > 0 ? `${avgBasket.toFixed(0)} €` : '-'}</p>
+          <p className="text-2xl font-bold tabular-nums text-gray-900">{formatPrice(totalSpent)}</p>
+          <p className="text-xs text-gray-500 mt-1">Panier moyen : {avgBasket > 0 ? formatPrice(avgBasket) : '-'}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 border-l-4 border-l-violet-500 p-5">
           <div className="flex items-start justify-between mb-2">
@@ -243,7 +244,7 @@ export default function AdminClientDetail() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="text-sm font-bold tabular-nums text-gray-900">
-                        {reservation.total ? `${reservation.total.toFixed(0)} €` : '-'}
+                        {reservation.total ? formatPrice(reservation.total) : '-'}
                       </span>
                     </td>
                   </tr>

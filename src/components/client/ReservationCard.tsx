@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Package, Calendar, Truck, MapPin, ChevronRight, Clock } from 'lucide-react';
+import { formatPrice } from '../../utils/pricing';
 
 interface ReservationProduct {
   name: string;
@@ -215,7 +216,7 @@ export default function ReservationCard({ reservation, index }: ReservationCardP
             {/* Amount — prominent */}
             <div className="text-right flex-shrink-0">
               <p className="text-xl font-bold text-[#33ffcc] tabular-nums leading-none">
-                {Number(reservation.total).toFixed(2)}&nbsp;€
+                {formatPrice(Number(reservation.total))}
               </p>
               <p className="text-[10px] text-gray-500 mt-1">TTC</p>
             </div>

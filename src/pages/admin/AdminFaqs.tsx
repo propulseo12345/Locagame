@@ -124,35 +124,35 @@ export default function AdminFaqs() {
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all relative overflow-hidden">
-          <MessageSquare className="absolute top-3 right-3 w-8 h-8 text-gray-400 opacity-50" />
-          <p className="text-sm text-gray-500 mb-1">Total</p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">{items.length}</p>
-          <p className="text-sm text-gray-500 mt-0.5">questions</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all relative overflow-hidden">
+          <MessageSquare className="absolute top-2 right-2 md:top-3 md:right-3 w-5 h-5 md:w-8 md:h-8 text-gray-400 opacity-50" />
+          <p className="text-[10px] md:text-sm text-gray-500 mb-0.5 md:mb-1">Total</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">{items.length}</p>
+          <p className="hidden md:block text-sm text-gray-500 mt-0.5">questions</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all relative overflow-hidden">
-          <CheckCircle className="absolute top-3 right-3 w-8 h-8 text-green-400 opacity-50" />
-          <p className="text-sm text-gray-500 mb-1">Actifs</p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalActive}</p>
-          <p className="text-sm text-gray-500 mt-0.5">visibles sur le site</p>
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all relative overflow-hidden">
+          <CheckCircle className="absolute top-2 right-2 md:top-3 md:right-3 w-5 h-5 md:w-8 md:h-8 text-green-400 opacity-50" />
+          <p className="text-[10px] md:text-sm text-gray-500 mb-0.5 md:mb-1">Actifs</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">{totalActive}</p>
+          <p className="hidden md:block text-sm text-gray-500 mt-0.5">visibles sur le site</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-red-400 hover:shadow-md transition-all relative overflow-hidden">
-          <XCircle className="absolute top-3 right-3 w-8 h-8 text-red-400 opacity-50" />
-          <p className="text-sm text-gray-500 mb-1">Inactifs</p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalInactive}</p>
-          <p className="text-sm text-gray-500 mt-0.5">masqués</p>
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-red-400 hover:shadow-md transition-all relative overflow-hidden">
+          <XCircle className="absolute top-2 right-2 md:top-3 md:right-3 w-5 h-5 md:w-8 md:h-8 text-red-400 opacity-50" />
+          <p className="text-[10px] md:text-sm text-gray-500 mb-0.5 md:mb-1">Inactifs</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">{totalInactive}</p>
+          <p className="hidden md:block text-sm text-gray-500 mt-0.5">masqués</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-blue-500 hover:shadow-md transition-all relative overflow-hidden">
-          <Tag className="absolute top-3 right-3 w-8 h-8 text-blue-400 opacity-50" />
-          <p className="text-sm text-gray-500 mb-1">Catégories</p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalCategories}</p>
-          <p className="text-sm text-gray-500 mt-0.5">thèmes distincts</p>
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-blue-500 hover:shadow-md transition-all relative overflow-hidden">
+          <Tag className="absolute top-2 right-2 md:top-3 md:right-3 w-5 h-5 md:w-8 md:h-8 text-blue-400 opacity-50" />
+          <p className="text-[10px] md:text-sm text-gray-500 mb-0.5 md:mb-1">Catégories</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">{totalCategories}</p>
+          <p className="hidden md:block text-sm text-gray-500 mt-0.5">thèmes distincts</p>
         </div>
       </div>
 
       {/* Filters bar */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -163,124 +163,177 @@ export default function AdminFaqs() {
             className="w-full h-11 pl-9 pr-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400"
           />
         </div>
-        <select
-          value={categoryFilter}
-          onChange={e => setCategoryFilter(e.target.value)}
-          className="h-11 w-44 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 bg-white"
-        >
-          <option value="all">Toutes catégories</option>
-          {uniqueCategories.map(c => (
-            <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-          ))}
-        </select>
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden">
-          {(['all', 'active', 'inactive'] as const).map(s => (
-            <button
-              key={s}
-              onClick={() => setStatusFilter(s)}
-              className={`h-11 px-4 text-sm font-medium transition-colors ${
-                statusFilter === s
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {s === 'all' ? 'Tous' : s === 'active' ? 'Actifs' : 'Inactifs'}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+          <select
+            value={categoryFilter}
+            onChange={e => setCategoryFilter(e.target.value)}
+            className="h-11 min-w-[140px] px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-400 bg-white shrink-0"
+          >
+            <option value="all">Toutes catégories</option>
+            {uniqueCategories.map(c => (
+              <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+            ))}
+          </select>
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden shrink-0">
+            {(['all', 'active', 'inactive'] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`h-11 px-3 md:px-4 text-sm font-medium transition-colors ${
+                  statusFilter === s
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {s === 'all' ? 'Tous' : s === 'active' ? 'Actifs' : 'Inactifs'}
+              </button>
+            ))}
+          </div>
+          <span className="text-sm text-gray-500 whitespace-nowrap shrink-0">
+            {filteredItems.length} · {items.length}
+          </span>
         </div>
-        <span className="text-sm text-gray-500 whitespace-nowrap">
-          {filteredItems.length} · {items.length} questions
-        </span>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-10">#</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Question</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Catégorie</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Statut</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-16">Ordre</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {filteredItems.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-16 text-center">
-                  <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 font-medium">Aucune question trouvée</p>
-                  <button
-                    onClick={() => { setSearchTerm(''); setCategoryFilter('all'); setStatusFilter('all'); }}
-                    className="mt-3 text-sm text-gray-900 underline hover:no-underline"
-                  >
-                    Réinitialiser les filtres
+      {/* Mobile cards */}
+      <div className="block md:hidden space-y-3">
+        {filteredItems.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
+            <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 font-medium">Aucune question trouvée</p>
+            <button
+              onClick={() => { setSearchTerm(''); setCategoryFilter('all'); setStatusFilter('all'); }}
+              className="mt-3 text-sm text-gray-900 underline hover:no-underline"
+            >
+              Réinitialiser les filtres
+            </button>
+          </div>
+        ) : (
+          filteredItems.map((item) => (
+            <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  <HelpCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-gray-900 font-medium text-sm leading-snug line-clamp-2">{item.question}</p>
+                    <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{item.answer}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0 ml-2">
+                  <button onClick={() => handleOpenModal(item)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                    <Edit2 className="w-4 h-4" />
                   </button>
-                </td>
+                  <button onClick={() => setShowDeleteConfirm(item.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="text-xs text-gray-400 tabular-nums">#{item.display_order}</span>
+                <span className="inline-flex items-center ring-1 ring-blue-200 bg-blue-50 text-blue-700 rounded-md px-2 py-0.5 text-[10px] font-medium">
+                  {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                </span>
+                {item.is_active ? (
+                  <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2 py-0.5 text-[10px] font-medium">Actif</span>
+                ) : (
+                  <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2 py-0.5 text-[10px] font-medium">Inactif</span>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-10">#</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Question</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Catégorie</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Statut</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-16">Ordre</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-right">Actions</th>
               </tr>
-            ) : (
-              filteredItems.map((item, index) => (
-                <tr
-                  key={item.id}
-                  className={`hover:bg-gray-100/60 transition-colors ${index % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}
-                >
-                  <td className="px-4 py-3 text-gray-400 text-sm tabular-nums">{item.display_order}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-start gap-2">
-                      <HelpCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-gray-900 font-medium text-sm leading-snug">{item.question}</p>
-                        <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{item.answer}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center ring-1 ring-blue-200 bg-blue-50 text-blue-700 rounded-md px-2.5 py-1 text-xs font-medium">
-                      {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {item.is_active ? (
-                      <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2.5 py-1 text-xs font-medium">
-                        Actif
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2.5 py-1 text-xs font-medium">
-                        Inactif
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 text-sm tabular-nums">{item.display_order}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => handleOpenModal(item)}
-                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setShowDeleteConfirm(item.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredItems.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-16 text-center">
+                    <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 font-medium">Aucune question trouvée</p>
+                    <button
+                      onClick={() => { setSearchTerm(''); setCategoryFilter('all'); setStatusFilter('all'); }}
+                      className="mt-3 text-sm text-gray-900 underline hover:no-underline"
+                    >
+                      Réinitialiser les filtres
+                    </button>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredItems.map((item, index) => (
+                  <tr
+                    key={item.id}
+                    className={`hover:bg-gray-100/60 transition-colors ${index % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}
+                  >
+                    <td className="px-4 py-3 text-gray-400 text-sm tabular-nums">{item.display_order}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-start gap-2">
+                        <HelpCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-gray-900 font-medium text-sm leading-snug">{item.question}</p>
+                          <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{item.answer}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center ring-1 ring-blue-200 bg-blue-50 text-blue-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                        {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {item.is_active ? (
+                        <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                          Actif
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2.5 py-1 text-xs font-medium">
+                          Inactif
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 text-sm tabular-nums">{item.display_order}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleOpenModal(item)}
+                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(item.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Form modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
               <h2 className="text-lg font-bold text-gray-900">{editingItem ? 'Modifier' : 'Nouvelle question'}</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
@@ -356,8 +409,8 @@ export default function AdminFaqs() {
 
       {/* Delete confirm modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer cette question ?</h3>
             <p className="text-gray-600 mb-4">Cette action est irréversible.</p>
             <div className="flex justify-end gap-3">

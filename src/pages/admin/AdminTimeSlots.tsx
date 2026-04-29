@@ -105,56 +105,95 @@ export default function AdminTimeSlots() {
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all relative overflow-hidden">
-          <Clock className="absolute top-3 right-3 w-8 h-8 text-gray-400 opacity-50" />
-          <p className="text-sm text-gray-500 mb-1">Total</p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">{items.length}</p>
-          <p className="text-sm text-gray-500 mt-0.5">créneaux configurés</p>
+      <div className="grid grid-cols-3 gap-2 md:gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all relative overflow-hidden">
+          <Clock className="absolute top-2 right-2 md:top-3 md:right-3 w-5 h-5 md:w-8 md:h-8 text-gray-400 opacity-50" />
+          <p className="text-[10px] md:text-sm text-gray-500 mb-0.5 md:mb-1">Total</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">{items.length}</p>
+          <p className="hidden md:block text-sm text-gray-500 mt-0.5">créneaux configurés</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all relative overflow-hidden">
-          <CheckCircle className="absolute top-3 right-3 w-8 h-8 text-green-400 opacity-50" />
-          <p className="text-sm text-gray-500 mb-1">Actifs</p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">{totalActive}</p>
-          <p className="text-sm text-gray-500 mt-0.5">créneaux actifs</p>
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all relative overflow-hidden">
+          <CheckCircle className="absolute top-2 right-2 md:top-3 md:right-3 w-5 h-5 md:w-8 md:h-8 text-green-400 opacity-50" />
+          <p className="text-[10px] md:text-sm text-gray-500 mb-0.5 md:mb-1">Actifs</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">{totalActive}</p>
+          <p className="hidden md:block text-sm text-gray-500 mt-0.5">créneaux actifs</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-blue-500 hover:shadow-md transition-all relative overflow-hidden">
-          <Layers className="absolute top-3 right-3 w-8 h-8 text-blue-400 opacity-50" />
-          <p className="text-sm text-gray-500 mb-1">Répartition</p>
-          <p className="text-2xl font-bold tabular-nums text-gray-900">{bothCount}</p>
-          <p className="text-sm text-gray-500 mt-0.5">{deliveryCount} liv. · {pickupCount} récup. · {bothCount} les deux</p>
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-blue-500 hover:shadow-md transition-all relative overflow-hidden">
+          <Layers className="absolute top-2 right-2 md:top-3 md:right-3 w-5 h-5 md:w-8 md:h-8 text-blue-400 opacity-50" />
+          <p className="text-[10px] md:text-sm text-gray-500 mb-0.5 md:mb-1">Répartition</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900">{bothCount}</p>
+          <p className="hidden md:block text-sm text-gray-500 mt-0.5">{deliveryCount} liv. · {pickupCount} récup. · {bothCount} les deux</p>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-16">Ordre</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Libellé</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Horaires</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Type</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Statut</th>
-              <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-16 text-center">
-                  <Clock className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 font-medium">Aucun créneau configuré</p>
-                  <button
-                    onClick={() => handleOpenModal()}
-                    className="mt-3 text-sm text-gray-900 underline hover:no-underline"
-                  >
-                    Créer un premier créneau
+      {/* Mobile cards */}
+      <div className="block md:hidden space-y-3">
+        {items.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
+            <Clock className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 font-medium">Aucun créneau configuré</p>
+            <button onClick={() => handleOpenModal()} className="mt-3 text-sm text-gray-900 underline hover:no-underline">
+              Créer un premier créneau
+            </button>
+          </div>
+        ) : (
+          items.map((item) => (
+            <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4">
+              <div className="flex items-start justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-blue-500 shrink-0" />
+                    <span className="text-gray-900 font-medium text-sm truncate">{item.label}</span>
+                  </div>
+                  <p className="text-gray-500 text-xs tabular-nums mt-1">{item.start_time} – {item.end_time}</p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0 ml-2">
+                  <button onClick={() => handleOpenModal(item)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                    <Edit2 className="w-4 h-4" />
                   </button>
-                </td>
+                  <button onClick={() => setShowDeleteConfirm(item.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="text-xs text-gray-400 tabular-nums">#{item.display_order}</span>
+                {item.slot_type === 'delivery' && (
+                  <span className="inline-flex items-center ring-1 ring-blue-200 bg-blue-50 text-blue-700 rounded-md px-2 py-0.5 text-[10px] font-medium">Livraison</span>
+                )}
+                {item.slot_type === 'pickup' && (
+                  <span className="inline-flex items-center ring-1 ring-purple-200 bg-purple-50 text-purple-700 rounded-md px-2 py-0.5 text-[10px] font-medium">Récupération</span>
+                )}
+                {item.slot_type === 'both' && (
+                  <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2 py-0.5 text-[10px] font-medium">Les deux</span>
+                )}
+                {item.is_active ? (
+                  <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2 py-0.5 text-[10px] font-medium">Actif</span>
+                ) : (
+                  <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-600 rounded-md px-2 py-0.5 text-[10px] font-medium">Inactif</span>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left w-16">Ordre</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Libellé</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Horaires</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Type</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-left">Statut</th>
+                <th className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 px-4 py-3 text-right">Actions</th>
               </tr>
-            ) : (
-              items.map((item, index) => (
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {items.map((item, index) => (
                 <tr
                   key={item.id}
                   className={`hover:bg-gray-100/60 transition-colors ${index % 2 === 1 ? 'bg-gray-50/40' : 'bg-white'}`}
@@ -171,60 +210,44 @@ export default function AdminTimeSlots() {
                   </td>
                   <td className="px-4 py-3">
                     {item.slot_type === 'delivery' && (
-                      <span className="inline-flex items-center ring-1 ring-blue-200 bg-blue-50 text-blue-700 rounded-md px-2.5 py-1 text-xs font-medium">
-                        Livraison
-                      </span>
+                      <span className="inline-flex items-center ring-1 ring-blue-200 bg-blue-50 text-blue-700 rounded-md px-2.5 py-1 text-xs font-medium">Livraison</span>
                     )}
                     {item.slot_type === 'pickup' && (
-                      <span className="inline-flex items-center ring-1 ring-purple-200 bg-purple-50 text-purple-700 rounded-md px-2.5 py-1 text-xs font-medium">
-                        Récupération
-                      </span>
+                      <span className="inline-flex items-center ring-1 ring-purple-200 bg-purple-50 text-purple-700 rounded-md px-2.5 py-1 text-xs font-medium">Récupération</span>
                     )}
                     {item.slot_type === 'both' && (
-                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2.5 py-1 text-xs font-medium">
-                        Les deux
-                      </span>
+                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-700 rounded-md px-2.5 py-1 text-xs font-medium">Les deux</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     {item.is_active ? (
-                      <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2.5 py-1 text-xs font-medium">
-                        Actif
-                      </span>
+                      <span className="inline-flex items-center ring-1 ring-green-200 bg-green-50 text-green-700 rounded-md px-2.5 py-1 text-xs font-medium">Actif</span>
                     ) : (
-                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-600 rounded-md px-2.5 py-1 text-xs font-medium">
-                        Inactif
-                      </span>
+                      <span className="inline-flex items-center ring-1 ring-gray-200 bg-gray-50 text-gray-600 rounded-md px-2.5 py-1 text-xs font-medium">Inactif</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => handleOpenModal(item)}
-                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                      >
+                      <button onClick={() => handleOpenModal(item)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => setShowDeleteConfirm(item.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                      >
+                      <button onClick={() => setShowDeleteConfirm(item.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Form modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
               <h2 className="text-lg font-bold text-gray-900">{editingItem ? 'Modifier' : 'Nouveau créneau'}</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
@@ -313,8 +336,8 @@ export default function AdminTimeSlots() {
 
       {/* Delete confirm modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer ce créneau ?</h3>
             <p className="text-gray-600 mb-4">Cette action est irréversible.</p>
             <div className="flex justify-end gap-3">

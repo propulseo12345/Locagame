@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { Customer } from '../../../types';
+import { formatPrice } from '../../../utils/pricing';
 
 interface CustomerRowProps {
   customer: Customer;
@@ -54,12 +55,12 @@ const CustomerRow = memo(function CustomerRow({ customer, isEven, onDeleteClick 
       </td>
       <td className="px-4 py-3.5 whitespace-nowrap">
         <div className="text-sm font-bold text-gray-900 tabular-nums">
-          {totalSpent > 0 ? `${totalSpent.toFixed(0)} €` : '-'}
+          {totalSpent > 0 ? formatPrice(totalSpent) : '-'}
         </div>
       </td>
       <td className="px-4 py-3.5 whitespace-nowrap">
         <div className="text-sm font-semibold text-gray-900 tabular-nums">
-          {avgBasket > 0 ? `${avgBasket.toFixed(0)} €` : '-'}
+          {avgBasket > 0 ? formatPrice(avgBasket) : '-'}
         </div>
       </td>
       <td className="px-4 py-3.5 whitespace-nowrap">

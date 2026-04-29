@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Package, TrendingUp, Star, ArrowUpRight } from 'lucide-react';
+import { formatPrice } from '../../../utils/pricing';
 
 interface DashboardStatCardsProps {
   activeReservations: number;
@@ -29,7 +30,7 @@ export default function DashboardStatCards({ activeReservations, totalReservatio
     },
     {
       label: 'Dépensé',
-      value: `${totalSpent.toFixed(0)} €`,
+      value: formatPrice(totalSpent),
       sub: 'cumulé',
       icon: Star,
       color: 'text-amber-400',
@@ -38,7 +39,7 @@ export default function DashboardStatCards({ activeReservations, totalReservatio
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div className="grid grid-cols-3 gap-3">
       {cards.map((card) => {
         const Icon = card.icon;
         const Wrapper = card.link ? Link : 'div';

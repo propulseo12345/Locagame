@@ -1,4 +1,5 @@
 import { TrendingUp, Calendar } from 'lucide-react';
+import { formatPrice } from '../../../utils/pricing';
 
 interface ClientSidebarStatsProps {
   totalSpent: number;
@@ -19,7 +20,7 @@ export default function ClientSidebarStats({ totalSpent, memberSince }: ClientSi
           </div>
           <div className="min-w-0">
             <p className="text-[10px] text-gray-500 font-medium leading-none">Total dépensé</p>
-            <p className="text-xs font-bold text-white tabular-nums mt-0.5">{totalSpent.toFixed(0)} €</p>
+            <p className="text-xs font-bold text-white tabular-nums mt-0.5">{formatPrice(totalSpent)}</p>
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Users, Loader2 } from 'lucide-react';
 import { Customer } from '../../../types';
+import { formatPrice } from '../../../utils/pricing';
 import CustomerRow from './CustomerRow';
 import { TableRowSkeleton } from '../../ui/skeletons';
 
@@ -56,7 +57,7 @@ function MobileCustomerCard({ customer }: { customer: Customer }) {
       <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
         <span>{validCount} résa{validCount > 1 ? 's' : ''}</span>
         <span className="font-bold text-gray-900 tabular-nums">
-          {totalSpent > 0 ? `${totalSpent.toFixed(0)} \u20AC` : '-'}
+          {totalSpent > 0 ? formatPrice(totalSpent) : '-'}
         </span>
       </div>
     </Link>

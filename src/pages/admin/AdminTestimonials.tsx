@@ -123,41 +123,41 @@ export default function AdminTestimonials() {
       </div>
 
       {/* Stats bar */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-gray-400 hover:shadow-md transition-all">
           <div className="flex items-start justify-between">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total</p>
-            <Quote className="w-4 h-4 text-gray-400 opacity-50" />
+            <p className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide">Total</p>
+            <Quote className="w-4 h-4 text-gray-400 opacity-50 hidden md:block" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900 mt-2">{items.length}</p>
-          <p className="text-xs text-gray-400 mt-0.5">témoignages</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900 mt-1 md:mt-2">{items.length}</p>
+          <p className="hidden md:block text-xs text-gray-400 mt-0.5">témoignages</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all">
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-green-500 hover:shadow-md transition-all">
           <div className="flex items-start justify-between">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Actifs</p>
-            <CheckCircle className="w-4 h-4 text-green-400 opacity-50" />
+            <p className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide">Actifs</p>
+            <CheckCircle className="w-4 h-4 text-green-400 opacity-50 hidden md:block" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900 mt-2">{activeCount}</p>
-          <p className="text-xs text-gray-400 mt-0.5">visibles sur le site</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900 mt-1 md:mt-2">{activeCount}</p>
+          <p className="hidden md:block text-xs text-gray-400 mt-0.5">visibles sur le site</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-yellow-500 hover:shadow-md transition-all">
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-yellow-500 hover:shadow-md transition-all">
           <div className="flex items-start justify-between">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Mis en avant</p>
-            <Star className="w-4 h-4 text-yellow-400 opacity-50" />
+            <p className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide">Mis en avant</p>
+            <Star className="w-4 h-4 text-yellow-400 opacity-50 hidden md:block" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900 mt-2">{featuredCount}</p>
-          <p className="text-xs text-gray-400 mt-0.5">en vedette</p>
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900 mt-1 md:mt-2">{featuredCount}</p>
+          <p className="hidden md:block text-xs text-gray-400 mt-0.5">en vedette</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-xl p-4 border-l-4 border-l-amber-500 hover:shadow-md transition-all">
+        <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 md:p-4 border-l-4 border-l-amber-500 hover:shadow-md transition-all">
           <div className="flex items-start justify-between">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Note moyenne</p>
-            <Star className="w-4 h-4 text-amber-400 opacity-50" />
+            <p className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide">Note moyenne</p>
+            <Star className="w-4 h-4 text-amber-400 opacity-50 hidden md:block" />
           </div>
-          <p className="text-2xl font-bold tabular-nums text-gray-900 mt-2 flex items-center gap-1">
+          <p className="text-xl md:text-2xl font-bold tabular-nums text-gray-900 mt-1 md:mt-2 flex items-center gap-1">
             {avgRating}
             <Star className="w-4 h-4 text-amber-400 fill-current" />
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">sur 5</p>
+          <p className="hidden md:block text-xs text-gray-400 mt-0.5">sur 5</p>
         </div>
       </div>
 

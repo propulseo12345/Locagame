@@ -122,13 +122,13 @@ export default function ClientReservations() {
       </div>
 
       {/* Filter pills — scrollable on mobile */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
         <Filter className="w-4 h-4 text-gray-500 flex-shrink-0" />
         {STATUS_OPTIONS.map((option) => (
           <button
             key={option.value}
             onClick={() => setStatusFilter(option.value)}
-            className={`py-2.5 px-4 min-h-[44px] text-xs font-medium rounded-lg transition-colors active:scale-95 ${
+            className={`shrink-0 py-2.5 px-4 min-h-[44px] text-xs font-medium rounded-lg transition-colors active:scale-95 ${
               statusFilter === option.value
                 ? 'bg-[#33ffcc]/10 text-[#33ffcc] border border-[#33ffcc]/20'
                 : 'text-gray-400 border border-white/[0.06] hover:text-white hover:border-white/[0.12]'

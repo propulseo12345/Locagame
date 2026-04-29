@@ -44,7 +44,7 @@ export default function ClientDashboard() {
   const activeReservations = customerReservations.filter(
     r => r.status === 'confirmed' || r.status === 'preparing'
   );
-  const recentReservations = customerReservations.slice(0, 5);
+  const recentReservations = customerReservations.slice(0, 3);
 
   if (loading) {
     return (
@@ -90,7 +90,7 @@ export default function ClientDashboard() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-white">Réservations récentes</h2>
-          {customerReservations.length > 5 && (
+          {customerReservations.length > 3 && (
             <Link
               to="/client/reservations"
               className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#33ffcc] transition-colors"

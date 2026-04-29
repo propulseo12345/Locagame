@@ -200,10 +200,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex items-center justify-between px-4 md:px-6 lg:px-8 py-3 md:py-4">
             <div className="flex items-center gap-3">
               {/* Mobile logo */}
-              <Link to="/" className="md:hidden flex items-center shrink-0">
-                <div className="w-8 h-8 rounded-lg bg-[#000033] flex items-center justify-center text-[#33ffcc] font-bold text-sm">
-                  L
-                </div>
+              <Link to="/admin/dashboard" className="md:hidden flex items-center shrink-0">
+                <img
+                  src="/logo-client.png"
+                  alt="LOCAGAME"
+                  className="h-7 w-auto"
+                />
               </Link>
               <h2 className="text-lg md:text-2xl font-bold text-gray-800">
                 {menuItems.find(item => item.href === location.pathname)?.label || 'Admin'}

@@ -65,6 +65,7 @@ export function HeroSearchBar({
                   placeholder="Quel jeu recherchez-vous ?"
                   className="w-full bg-transparent text-white placeholder-white/40 focus:outline-none text-base"
                   autoComplete="off"
+                  enterKeyHint="search"
                 />
                 {(isSearching || isLoading) && searchQuery.length > 0 && (
                   <Loader2 className="w-5 h-5 text-[#33ffcc] animate-spin ml-2" />
@@ -123,6 +124,7 @@ export function HeroSearchBar({
                   placeholder="Quel jeu recherchez-vous ?"
                   className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#33ffcc]/50"
                   autoComplete="off"
+                  enterKeyHint="search"
                 />
               </div>
             </div>

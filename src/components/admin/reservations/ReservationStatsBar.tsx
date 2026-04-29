@@ -96,7 +96,7 @@ interface ReservationStatsBarProps {
 
 export default function ReservationStatsBar({ stats, activeFilter, onFilterClick }: ReservationStatsBarProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-8 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-8 gap-2 md:gap-3">
       {STAT_CARDS.map((card) => {
         const Icon = card.icon;
         const value = card.getValue(stats);
@@ -109,22 +109,22 @@ export default function ReservationStatsBar({ stats, activeFilter, onFilterClick
             key={card.key}
             onClick={() => onFilterClick(card.key === 'all' ? 'all' : card.key)}
             className={`
-              relative bg-white rounded-lg p-3 border border-gray-200 border-l-4 ${card.borderColor}
+              relative bg-white rounded-lg px-2 py-1.5 md:p-3 border border-gray-200 border-l-4 ${card.borderColor}
               cursor-pointer hover:shadow-md transition-all text-left
               ${isTotal ? 'md:col-span-2' : ''}
               ${isActive ? `ring-2 ${card.ringColor}` : ''}
               ${value === 0 && !isTotal ? 'opacity-60' : ''}
             `}
           >
-            <Icon className={`w-4 h-4 ${card.color} absolute top-3 right-3`} />
+            <Icon className={`w-3.5 h-3.5 md:w-4 md:h-4 ${card.color} absolute top-2 right-2 md:top-3 md:right-3`} />
             {shouldPulse && (
-              <span className="absolute top-2 right-2 flex h-2 w-2">
+              <span className="absolute top-1.5 right-1.5 md:top-2 md:right-2 flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
               </span>
             )}
-            <div className="text-xs text-gray-500 font-medium">{card.label}</div>
-            <div className={`text-2xl font-bold tabular-nums mt-0.5 ${card.color}`}>
+            <div className="text-[10px] md:text-xs text-gray-500 font-medium">{card.label}</div>
+            <div className={`text-xl md:text-2xl font-bold tabular-nums mt-0.5 ${card.color}`}>
               {value}
             </div>
           </button>

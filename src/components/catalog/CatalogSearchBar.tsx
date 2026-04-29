@@ -29,10 +29,11 @@ export function CatalogSearchBar({
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
-            type="text"
+            type="search"
             placeholder="Rechercher un jeu..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
+            enterKeyHint="search"
             className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#33ffcc] focus:bg-white/10 focus:outline-none transition-all"
           />
           {searchTerm && (

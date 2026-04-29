@@ -4,6 +4,7 @@ import { DeliveryService } from '../../services';
 import { DeliveryZone } from '../../types';
 import DeliveryZoneModal from '../../components/admin/DeliveryZoneModal';
 import { AdminPageSkeleton } from '../../components/ui/skeletons';
+import { formatPrice } from '../../utils/pricing';
 
 export default function AdminDeliveryZones() {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
@@ -45,17 +46,17 @@ export default function AdminDeliveryZones() {
     }
   };
 
-  const avgFee = zones.length > 0
-    ? (zones.reduce((s, z) => s + z.delivery_fee, 0) / zones.length).toFixed(0)
-    : '0';
+  const avgFeeNum = zones.length > 0
+    ? zones.reduce((s, z) => s + z.delivery_fee, 0) / zones.length
+    : 0;
+  const avgFee = formatPrice(avgFeeNum);
 
-  const avgThreshold = zones.filter(z => z.free_delivery_threshold).length > 0
-    ? (
-        zones
-          .filter(z => z.free_delivery_threshold)
-          .reduce((s, z) => s + (z.free_delivery_threshold ?? 0), 0) /
-        zones.filter(z => z.free_delivery_threshold).length
-      ).toFixed(0)
+  const thresholdZones = zones.filter(z => z.free_delivery_threshold);
+  const avgThreshold = thresholdZones.length > 0
+    ? formatPrice(
+        thresholdZones.reduce((s, z) => s + (z.free_delivery_threshold ?? 0), 0) /
+        thresholdZones.length
+      )
     : null;
 
   const totalPostalCodes = zones.reduce((s, z) => s + z.postal_codes.length, 0);
@@ -107,13 +108,13 @@ export default function AdminDeliveryZones() {
         <div className="bg-white border border-gray-200 border-l-4 border-l-green-500 rounded-xl p-4 hover:shadow-md transition-all relative">
           <Euro className="w-4 h-4 text-green-400 absolute top-4 right-4" />
           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Frais moyen</div>
-          <div className="text-2xl font-bold tabular-nums text-gray-900">{avgFee} €</div>
+          <div className="text-2xl font-bold tabular-nums text-gray-900">{avgFee}</div>
         </div>
         <div className="bg-white border border-gray-200 border-l-4 border-l-violet-500 rounded-xl p-4 hover:shadow-md transition-all relative">
           <TrendingDown className="w-4 h-4 text-violet-400 absolute top-4 right-4" />
           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Seuil gratuit moy.</div>
           <div className="text-2xl font-bold tabular-nums text-gray-900">
-            {avgThreshold !== null ? `${avgThreshold} €` : 'N/A'}
+            {avgThreshold !== null ? avgThreshold : 'N/A'}
           </div>
         </div>
         <div className="bg-white border border-gray-200 border-l-4 border-l-orange-500 rounded-xl p-4 hover:shadow-md transition-all relative">
@@ -209,8 +210,8 @@ export default function AdminDeliveryZones() {
 
       {/* Delete confirm modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Supprimer cette zone ?</h3>
             <p className="text-sm text-gray-500 mb-6">Cette action est irréversible.</p>
             <div className="flex justify-end gap-3">
